@@ -1,0 +1,3 @@
+[submodule "kspyder-bgdata-conf"]
+	path = kspyder-bgdata-conf
+	url = git@github.com:BonneGueule/kspyder-bgdata-conf.git
