@@ -1,0 +1,10 @@
+temp/*
+**/.DS_Store
+**/__pycache__
+**.egg-info
+**/Pipfile*
+.python_packages
+.venv
+.vscode
+log/**
+local_only/*

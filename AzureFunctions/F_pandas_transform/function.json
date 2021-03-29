@@ -1,0 +1,12 @@
+{
+  "scriptFile": "extend_data.py",
+  "disabled": false,
+  "bindings": [
+    {
+      "name": "params",
+      "activity": "pandas_transform",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+    ]
+}

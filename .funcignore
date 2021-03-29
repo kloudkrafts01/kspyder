@@ -1,0 +1,6 @@
+.git*
+.vscode
+local.settings.json
+tests
+.venv
+local_only

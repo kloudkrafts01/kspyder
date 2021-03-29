@@ -1,0 +1,11 @@
+{
+  "scriptFile": "get_odoo_data.py",
+  "bindings": [
+    {
+      "name": "mytimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0 7,12,17 * * *"
+    }
+  ]
+}

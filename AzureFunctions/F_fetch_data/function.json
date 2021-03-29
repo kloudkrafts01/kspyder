@@ -1,0 +1,12 @@
+{
+  "scriptFile": "fetch_data.py",
+  "disabled": false,
+  "bindings": [
+    {
+      "name": "params",
+      "activity": "fetch_data",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+    ]
+}

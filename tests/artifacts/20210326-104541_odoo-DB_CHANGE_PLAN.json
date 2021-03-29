@@ -1,0 +1,32 @@
+{
+    "schema": "odoo",
+    "connector": "Connectors.odooRPC",
+    "delete": [
+        "WebOrders"
+    ],
+    "create": [
+        "WebOrders"
+    ],
+    "changes_detail": {
+        "WebOrders": {
+            "has_changed": true,
+            "new_fields": [
+                "EffectiveDate"
+            ],
+            "deleted_fields": [],
+            "intersect_fields": [
+                "OrderState",
+                "PrestaShopRef",
+                "ClientId",
+                "InvoiceStatus",
+                "Id",
+                "OrderRef",
+                "DateOrder",
+                "PrestaShopId",
+                "AmountHT",
+                "AmountTax",
+                "IsLowPackaging"
+            ]
+        }
+    }
+}
