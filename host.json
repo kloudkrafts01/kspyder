@@ -15,7 +15,7 @@
   "functionTimeout": "02:00:00",
   "extensions": {
     "durableTask": {
-      "hubName": "%BGSPYDER_ENVIRONMENT%"
+      "hubName": "%KSPYDER_ENVIRONMENT%"
     }
   }
 }
