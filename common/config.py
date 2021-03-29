@@ -8,12 +8,12 @@ DEFAULT_TIMESPAN = 1
 PAGE_SIZE = 500
 
 # specify which config you want to apply. The config files will be looked up in th 'CONF_${USE_CONFIG}' folder.
-USE_CONFIG = os.environ["BGSPYDER_CONF"]
+USE_CONFIG = os.environ["KSPYDER_CONF"]
 
 # Python path config
 COMMONS_FOLDER = os.path.dirname(__file__)
 ROOT_FOLDER = os.path.abspath(os.path.join(COMMONS_FOLDER,'..'))
-CONF_FOLDER = os.path.join(ROOT_FOLDER,'{}-conf'.format(USE_CONFIG))
+CONF_FOLDER = os.path.join(ROOT_FOLDER,'kspyder-{}-conf'.format(USE_CONFIG))
 FUNCTIONS_FOLDER = os.path.join(ROOT_FOLDER,'AzureFunctions')
 CONNECTORS_FOLDER = os.path.join(ROOT_FOLDER,'Connectors')
 TEMP_FOLDER = os.path.join(ROOT_FOLDER,'temp')
@@ -61,7 +61,7 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
 
 # Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
-if os.environ['BGSPYDER_ENVIRONMENT'] == 'local':
+if os.environ['KSPYDER_ENVIRONMENT'] == 'local':
 
     # if 'True', dataset artifacts will be saved locally as JSON
     DUMP_JSON = True
@@ -72,7 +72,7 @@ if os.environ['BGSPYDER_ENVIRONMENT'] == 'local':
     PS_PROFILE = load_profile('Prestashop_STAGING')
     AZURE_PROFILE = load_profile('Azure_SQL_DEV')
 
-if os.environ['BGSPYDER_ENVIRONMENT'] == 'dev':
+if os.environ['KSPYDER_ENVIRONMENT'] == 'dev':
 
     # if 'True', dataset artifacts will be saved locally as JSON
     DUMP_JSON = False
@@ -83,7 +83,7 @@ if os.environ['BGSPYDER_ENVIRONMENT'] == 'dev':
     PS_PROFILE = load_profile('Prestashop_STAGING')
     AZURE_PROFILE = load_profile('Azure_SQL_DEV')
 
-if os.environ['BGSPYDER_ENVIRONMENT'] == 'prod':
+if os.environ['KSPYDER_ENVIRONMENT'] == 'prod':
 
     # if 'True', dataset artifacts will be saved locally as JSON
     DUMP_JSON = False
