@@ -1,0 +1,109 @@
+# Build and push an image to Azure Function App
+
+trigger:
+- master
+- develop
+
+resources:
+  repositories:
+  - repository: self
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureSubscription: 'AzureRM - BG Subscription 1'
+
+  # Function app name
+  functionAppName: 'bgspyder'
+  rgName: 'rg-bgdata'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-18.04'
+
+  # Python runtime & build settings
+  pythonVersion: '3.7'
+  pythonExecutable: 'python$(pythonVersion)'
+  packagePath: './.python_packages/lib/site-packages'
+
+
+jobs:
+- job: Build_Deploy
+  displayName: "Build and Deploy"
+  pool:
+    vmImage: $(vmImageName)
+
+  steps:
+    - checkout: self
+      submodules: true
+      persistCredentials: true
+
+    - task: UsePythonVersion@0
+      displayName: "Setting python $(pythonVersion)"
+      inputs:
+        versionSpec: $(pythonVersion)
+        architecture: 'x64'
+    
+    # uncomment only if you run into weird build issues
+    # - bash: sudo apt-get update -y
+    #   displayName: "Updating apt"
+
+    # Install the prerequisites for pyodbc and mssql to work    
+    - bash: |
+        ls -lra ./
+        ls -lra ./kspyder-bgdata-conf/
+
+        if [ -f extensions.csproj ]
+        then
+            dotnet build extensions.csproj --output ./bin
+        fi
+        sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+      displayName: "Installing the system ODBC driver"
+
+    # uncomment only if you run into weird build issues related to pip
+    # - script: pip install --upgrade pip
+    #   displayName: "Upgrading pip"
+
+    # you need to install wheel otherwise some azure python packages won't load
+    - script: pip install --target=$(packagePath) wheel
+      displayName: "Installing Wheel"
+
+    - script: pip install --target=$(packagePath) -r ./requirements.txt
+      displayName: "Installing python dependencies"
+
+    - task: ArchiveFiles@2
+      displayName: "Archive files"
+      inputs:
+        rootFolderOrFile: "$(System.DefaultWorkingDirectory)"
+        includeRootFolder: false
+        archiveType: zip
+        replaceExistingArchive: true
+        archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+        artifactName: "build$(Build.BuildId)"
+
+    # deploy to the 'dev' deployment slot
+    - task: AzureFunctionApp@1
+      displayName: 'Azure Function App Deploy : $(functionAppName)'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appType: functionAppLinux
+        appName: $(functionAppName)
+        resourceGroupName: $(rgName)
+        package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+        deployToSlotOrASE: true
+        slotName: dev
+
+    # deploy to the default (production) slot
+    - task: AzureFunctionApp@1
+      displayName: 'Azure Function App Deploy : $(functionAppName)'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appType: functionAppLinux
+        appName: $(functionAppName)
+        resourceGroupName: $(rgName)
+        package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+
