@@ -25,7 +25,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         ]
 
         req_params = dict(req.params)
-        req_body = req.get_body()
+        req_body = req.get_json()
         for key in expected_params:
             req_params[key] = (req.params[key] if key in req.params.keys() else None)
 
