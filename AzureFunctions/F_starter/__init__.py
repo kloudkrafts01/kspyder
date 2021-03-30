@@ -4,7 +4,8 @@
 # - create a Durable activity function (default name is "Hello")
 # - add azure-functions-durable to requirements.txt
 # - run pip install -r requirements.txt
- 
+
+import json
 import azure.functions as func
 import azure.durable_functions as df
 
@@ -25,7 +26,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         ]
 
         req_params = dict(req.params)
-        req_body = req.get_json()
+        req_body = json.dumps(req.body)
         for key in expected_params:
             req_params[key] = (req.params[key] if key in req.params.keys() else None)
 
