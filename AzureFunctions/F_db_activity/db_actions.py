@@ -11,28 +11,29 @@ connectors = {
     'prestashop': 'prestashopSQL'
 }
 
-def main(params: dict) -> dict:
+def main(orc_input: dict) -> dict:
 
     result = {}
     
     try:
-        
+        params = orc_input['params']
+        body = orc_input['body']
+
         azconn = AzureSQLConnector.load_default()
         schema, connector_list, action = prepare_params(params)
 
-        if action == 'build_db':
+        if action == 'build':
             azconn.create_db(connectors)
 
-        elif action == 'destroy_db':
+        elif action == 'destroy':
             azconn.delete_db(schema_name=schema)
 
-        elif action == 'examine_db':
+        elif action == 'examine':
             for connector in connector_list:
                 result[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
 
-        elif action == 'apply_db_changes':
-            print("TODO")
-            # azconn.apply_changes(input_body)
+        elif action == 'apply':
+            azconn.apply_changes(body)
         
         else:
             raise ValueError("Invalid value provided for 'action' parameter.")
