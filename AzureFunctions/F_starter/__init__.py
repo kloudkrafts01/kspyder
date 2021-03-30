@@ -20,7 +20,8 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         expected_params = [
             'last_days',
             'source',
-            'model'
+            'model',
+            'action'
         ]
 
         orc_input = dict(req.params)
