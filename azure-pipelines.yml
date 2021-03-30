@@ -69,6 +69,7 @@ jobs:
     # move Azure Functions to the root project directory so they can be built
     - bash: |
         cp -R AzureFunctions/* .
+        ls -la .
       displayName: "Moving Azure Functions one step up"
 
     - task: ArchiveFiles@2
