@@ -70,7 +70,6 @@ jobs:
     - bash: |
         cp -R AzureFunctions/* .
         ls -la .
-        print "CONFIG folder contents:"
         ls -la ./kspyder-bgdata-conf/
       displayName: "Moving Azure Functions one step up"
 
