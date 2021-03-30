@@ -68,7 +68,8 @@ PAGE_SIZE = BASE_CONFIG['PAGE_SIZE']
 
 # Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
 DUMP_JSON = BASE_CONFIG[ENV]['DUMP_JSON']
-LOG_CONFIG = BASE_CONFIG[ENV]['LOG_CONFIG']
+log_key = BASE_CONFIG[ENV]['LOG_CONFIG']
+LOG_CONFIG = load_conf(log_key)
 
 odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
 ODOO_PROFILE = load_profile(odoo_key)
