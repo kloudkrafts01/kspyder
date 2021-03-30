@@ -1,6 +1,6 @@
 import os,sys,re
 import yaml
-from AzureFunctions.azure_utils import AZ_SECRETS
+from .azure_utils import AZ_SECRETS
 
 
 # default number of days' history to be fetched and page size for source queries

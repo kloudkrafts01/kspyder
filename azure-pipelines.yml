@@ -48,9 +48,6 @@ jobs:
 
     # Install the prerequisites for pyodbc and mssql to work    
     - bash: |
-        ls -lra ./
-        ls -lra ./kspyder-bgdata-conf/
-
         if [ -f extensions.csproj ]
         then
             dotnet build extensions.csproj --output ./bin
@@ -68,6 +65,11 @@ jobs:
 
     - script: pip install --target=$(packagePath) -r ./requirements.txt
       displayName: "Installing python dependencies"
+
+    # move Azure Functions to the root project directory so they can be built
+    - bash: |
+        cp -R AzureFunctions/* .
+      displayName: "Moving Azure Functions one step up"
 
     - task: ArchiveFiles@2
       displayName: "Archive files"
