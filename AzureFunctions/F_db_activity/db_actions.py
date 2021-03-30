@@ -29,10 +29,14 @@ def main(params: dict) -> dict:
         elif action == 'examine_db':
             for connector in connector_list:
                 result[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
+
+        elif action == 'apply_db_changes':
+            print("TODO")
+            # azconn.apply_changes(input_body)
         
         else:
             raise ValueError("Invalid value provided for 'action' parameter.")
-            
+
     except Exception as e:
         errorStr = '{}'.format(e)
         logger.error(errorStr)

@@ -26,7 +26,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
 
         orc_input = dict(req.params)
         for key in expected_params:
-                orc_input[key] = (req.params[key] if key in req.params.keys() else None)
+            orc_input[key] = (req.params[key] if key in req.params.keys() else None)
 
         instance_id = await client.start_new(req.route_params["functionName"], None, orc_input)
 
