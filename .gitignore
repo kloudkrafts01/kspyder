@@ -6,5 +6,8 @@ temp/*
 .python_packages
 .venv
 .vscode
-log/**
+log/*
 local_only/*
+**.tfvars
+**.tfstate
+**/state.json

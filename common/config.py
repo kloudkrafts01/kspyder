@@ -79,37 +79,3 @@ PS_PROFILE = load_profile(ps_key)
 
 azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
 AZURE_PROFILE = load_profile(azure_key)
-
-
-# if os.environ['KSPYDER_ENVIRONMENT'] == 'local':
-
-#     # if 'True', dataset artifacts will be saved locally as JSON
-#     DUMP_JSON = True
-    
-#     LOG_CONFIG = load_conf('logging_verbose')
-
-#     ODOO_PROFILE = load_profile('Odoo_PREPROD')
-#     PS_PROFILE = load_profile('Prestashop_STAGING')
-#     AZURE_PROFILE = load_profile('Azure_SQL_DEV')
-
-# if os.environ['KSPYDER_ENVIRONMENT'] == 'dev':
-
-#     # if 'True', dataset artifacts will be saved locally as JSON
-#     DUMP_JSON = False
-    
-#     LOG_CONFIG = load_conf('logging')
-
-#     ODOO_PROFILE = load_profile('Odoo_PREPROD')
-#     PS_PROFILE = load_profile('Prestashop_STAGING')
-#     AZURE_PROFILE = load_profile('Azure_SQL_DEV')
-
-# if os.environ['KSPYDER_ENVIRONMENT'] == 'prod':
-
-#     # if 'True', dataset artifacts will be saved locally as JSON
-#     DUMP_JSON = False
-
-#     LOG_CONFIG = load_conf('logging')
-
-#     ODOO_PROFILE = load_profile('Odoo_PROD')
-#     PS_PROFILE = load_profile('Prestashop_PROD')
-#     AZURE_PROFILE = load_profile('Azure_SQL_PROD')
