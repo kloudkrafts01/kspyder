@@ -36,7 +36,11 @@ def main(orc_input: dict) -> dict:
             azconn.apply_changes(body)
         
         else:
-            raise ValueError("Invalid value provided for 'action' parameter.")
+            returnMsg = "Invalid value provided for 'action' parameter: {}".format(action)
+            logger.info(returnMsg)
+            result = {
+                'status': returnMsg
+            }
 
     except Exception as e:
         errorStr = '{}'.format(e)
