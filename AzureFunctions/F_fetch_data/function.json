@@ -3,7 +3,7 @@
   "disabled": false,
   "bindings": [
     {
-      "name": "params",
+      "name": "orc_input",
       "activity": "fetch_data",
       "type": "activityTrigger",
       "direction": "in"
