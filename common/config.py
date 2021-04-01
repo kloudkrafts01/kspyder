@@ -60,7 +60,6 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
     return conf_dict
 
 BASE_CONFIG = load_conf('baseconfig')
-print(BASE_CONFIG)
 ENV = os.environ['KSPYDER_ENVIRONMENT']
 
 # Set global, environment-independant variables

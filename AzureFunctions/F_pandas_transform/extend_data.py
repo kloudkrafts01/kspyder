@@ -1,6 +1,6 @@
 #!python3
 
-import os,yaml
+import os
 
 from common.config import load_conf, CONF_FOLDER
 from common.spLogging import logger

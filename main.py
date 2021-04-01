@@ -45,7 +45,13 @@ def fetch():
         'model': model_name,
         'source': source
     }
-    result = fetch_data.main(params)
+
+    orc_input = {
+        'params': params,
+        'body': 'TODO'
+    }
+
+    result = fetch_data.main(orc_input)
     logger.info(result)
 
     return result

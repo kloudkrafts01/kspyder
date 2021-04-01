@@ -1,5 +1,7 @@
 #!python3
 
+import traceback
+
 from common.spLogging import logger
 from common.extract import get_data
 
@@ -37,7 +39,7 @@ def main(orc_input: dict) -> str:
         logger.info(returnStr)
 
     except Exception as e:
-        returnStr = '{}'.format(e)
+        returnStr = 'F_fetch_data.fetch_data :: {}'.format(e)
         logger.error(e)
 
     return returnStr
