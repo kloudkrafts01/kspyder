@@ -6,7 +6,7 @@ import azure.durable_functions as df
 from common.spLogging import logger
 
 
-async def main(mytimer: azure.functions.TimerRequest, starter: str) -> str:
+async def main(mytimer: azure.functions.TimerRequest, starter: str):
     
     try:
         orchestrator_name = "F_orchestrator"
@@ -32,8 +32,7 @@ async def main(mytimer: azure.functions.TimerRequest, starter: str) -> str:
 
         logger.info(f"Started orchestration with ID = '{instance_id}'.")
 
-        return instance_id
 
     except Exception as e:
 
-        logger.error("F_starter :: {}".format(e))
+        logger.error("F_odoo_timer :: {}".format(e))
