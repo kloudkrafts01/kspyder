@@ -39,7 +39,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
             'body': req_body
         }
 
-        instance_id = await client.start_new(req.route_params["functionName"], None, orc_input)
+        instance_id = await client.start_new(req.route_params["functionName"], None, req_params)
 
         logger.info(f"Started orchestration with ID = '{instance_id}'.")
 

@@ -8,12 +8,12 @@ from Connectors.pandasSQL import PandasSQLConnector
 
 TRANSFORMS_DIR = os.path.join(CONF_FOLDER,'transforms')
 
-def main(orc_input: dict) -> str:
+def main(params: dict) -> str:
 
     returnStr = ""
     
     try:
-        params = orc_input['params']
+        # params = orc_input['params']
         pdconn = PandasSQLConnector.load_default()
         schema = params['source']
         

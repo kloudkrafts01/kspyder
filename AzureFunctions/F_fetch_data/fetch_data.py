@@ -14,12 +14,12 @@ VALID_SOURCES = {
 }
 
 
-def main(orc_input: dict) -> str:
+def main(params: dict) -> str:
 
     returnStr = ""
     
     try:
-        params = orc_input['params']
+        # params = orc_input['params']
         source,last_days,models = format_params(params)
         results = {}
         

@@ -11,13 +11,16 @@ connectors = {
     'prestashop': 'prestashopSQL'
 }
 
-def main(orc_input: dict) -> dict:
+def main(params: dict) -> dict:
 
     result = {}
     
     try:
-        params = orc_input['params']
-        body = orc_input['body']
+        # params = orc_input['params']
+        # body = orc_input['body']
+        body = {
+            'status': 'TODO'
+        }
 
         azconn = AzureSQLConnector.load_default()
         schema, connector_list, action = prepare_params(params)
