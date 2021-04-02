@@ -51,7 +51,7 @@ def fetch():
         'body': 'TODO'
     }
 
-    result = fetch_data.main(orc_input)
+    result = fetch_data.main(params)
     logger.info(result)
 
     return result
