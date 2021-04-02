@@ -1,14 +1,38 @@
-import datetime
-import logging
+#!python3
 
-import azure.functions as func
+import azure
+import azure.durable_functions as df
+
+from common.spLogging import logger
 
 
-def main(mytimer: func.TimerRequest) -> None:
-    utc_timestamp = datetime.datetime.utcnow().replace(
-        tzinfo=datetime.timezone.utc).isoformat()
+async def main(mytimer: azure.functions.TimerRequest, starter: str):
+    
+    try:
+        orchestrator_name = "F_orchestrator"
+        client = df.DurableOrchestrationClient(starter)
 
-    if mytimer.past_due:
-        logging.info('The timer is past due!')
+        req_params = {
+            'source': 'prestashop',
+            'last_days': '1',
+            'model': None,
+            'action': None
+        }
 
-    logging.info('Python timer trigger function ran at %s', utc_timestamp)
+        req_body = {
+            'status': 'TODO'
+        }
+
+        orc_input = {
+            'params': req_params,
+            'body': req_body
+        }
+
+        instance_id = await client.start_new(orchestrator_name, None, req_params)
+
+        logger.info(f"Started orchestration with ID = '{instance_id}'.")
+
+
+    except Exception as e:
+
+        logger.error("F_odoo_timer :: {}".format(e))
