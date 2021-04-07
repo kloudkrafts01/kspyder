@@ -10,12 +10,14 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     client = df.DurableOrchestrationClient(starter)
 
     instances = await client.get_status_all()
+    instances_list = []
 
     for instance in instances:
+        instances_list += instance,
         logger.info(json.dumps(instance))
 
     response = func.HttpResponse(
-        body = json.dumps(instances),
+        body = json.dumps(instances_list),
         status_code = 200,
         mimetype = 'application/json'
     )
