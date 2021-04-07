@@ -185,6 +185,13 @@ class GenericSQLConnector():
             table_obj = getattr(AutoBase.classes,model_name)
 
             table_fields = set(x.name for x in table_obj.__table__.columns)
+            table_field_objects = set(x for x in table_obj.__table__.columns)
+            table_field_dict = {}
+            for field in table_field_objects:
+                table_field_dict[field.name] = {
+                    'dbname'
+                }
+
             model_fields = get_all_model_fields(connector,model_name)
 
             new_fields = model_fields - table_fields
