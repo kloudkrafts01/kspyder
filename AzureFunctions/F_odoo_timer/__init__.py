@@ -13,6 +13,7 @@ async def main(mytimer: azure.functions.TimerRequest, starter: str):
         client = df.DurableOrchestrationClient(starter)
 
         req_params = {
+            'trigger': 'scheduled',
             'source': 'odoo',
             'last_days': '1',
             'model': None,

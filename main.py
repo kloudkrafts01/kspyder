@@ -41,6 +41,7 @@ def get_connectors():
 def fetch():
 
     params = {
+        'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
         'model': model_name,
         'source': source

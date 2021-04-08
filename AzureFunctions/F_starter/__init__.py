@@ -33,6 +33,8 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
 
         for key in expected_params:
             req_params[key] = (req.params[key] if key in req.params.keys() else None)
+        
+        req_params['trigger'] = 'http'
 
         orc_input = {
             'params': req_params,
