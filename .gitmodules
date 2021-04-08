@@ -1,3 +1,6 @@
 [submodule "kspyder-bgdata-conf"]
 	path = kspyder-bgdata-conf
 	url = https://github.com/BonneGueule/kspyder-bgdata-conf.git
+[submodule "TF_Azure"]
+	path = TF_Azure
+	url = https://github.com/BonneGueule/TF_Azure.git
