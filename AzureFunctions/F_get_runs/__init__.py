@@ -13,7 +13,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     instances_list = []
 
     for instance in instances:
-        instances_list += instance,
+        instances_list += instance.to_json(),
         logger.info(json.dumps(instance))
 
     response = func.HttpResponse(
