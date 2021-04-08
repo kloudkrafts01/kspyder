@@ -12,6 +12,8 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     instances = await client.get_status_all()
     instances_list = []
 
+    response = None
+
     try: 
         for instance in instances:
             instances_list += instance.to_json(),
@@ -25,13 +27,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         )
 
     except Exception as e:
-        resp_body = json.dumps({
-            'error': e
-        }) 
-        response = func.HttpResponse(
-            body = resp_body,
-            status_code = 200,
-            mimetype = 'application/json'
-        )
+        
+        logger.error("F_get_runs :: {}".format(e))
 
     return response

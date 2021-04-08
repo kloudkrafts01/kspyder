@@ -19,7 +19,7 @@ def main(params: dict) -> str:
         
         results = {}
   
-        initStr = "Extend Data Table operation started."
+        initStr = "Extend Data Table operation started. Trigger : {} - Schema: {}".format(params['trigger'],schema)
         logger.info(initStr)
 
         for filename in os.listdir(TRANSFORMS_DIR):

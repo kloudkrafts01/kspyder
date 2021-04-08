@@ -25,7 +25,7 @@ def main(params: dict) -> str:
         
         azconn = AzureSQLConnector.load_default()
 
-        initStr = "Fetch operation started. Source: {} - Models: {} - LAST_DAYS={}".format(source,models,last_days)
+        initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(params['trigger'],source,models,last_days)
         logger.info(initStr)
 
         for model_name in models:
