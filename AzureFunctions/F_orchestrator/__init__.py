@@ -17,19 +17,19 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     logger.info("Orchestration Input : {}".format(orc_input))
     action = orc_input['action']
 
-    if action == 'transform':
-        result2 = yield context.call_activity('pandas_transform', orc_input)
-        result = [result2]
+    # if action == 'transform':
+    #     result2 = yield context.call_activity('pandas_transform', orc_input)
+    #     result = [result2]
 
-    elif action == 'full':
-        result1 = yield context.call_activity('fetch_data', orc_input)
-        result2 = yield context.call_activity('pandas_transform', orc_input)
+    # elif action == 'full':
+    result1 = yield context.call_activity('fetch_data', orc_input)
+    result2 = yield context.call_activity('pandas_transform', orc_input)
 
-        result = [result1, result2]
+    result = [result1, result2]
     
-    else:
-        result1 = yield context.call_activity('fetch_data', orc_input)
-        result = [result1]
+    # else:
+    #     result1 = yield context.call_activity('fetch_data', orc_input)
+    #     result = [result1]
     
     return result
 
