@@ -271,9 +271,7 @@ class GenericSQLConnector():
         """Applies the changes specified in a given 'plan' JSON file. This approach is pretty much inspired by Terraform, but applied to SQLAlchemy db models :)"""
 
         returnmsg = ""
-        result = {
-            'plan': plan
-        }
+        result = {}
 
         schema_name = plan['schema']
         connector_name = plan['connector']
