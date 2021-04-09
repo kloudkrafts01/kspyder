@@ -21,11 +21,12 @@ def main(params: dict) -> str:
     try:
         # params = orc_input['params']
         source,last_days,models = format_params(params)
+        trigger = params['trigger']
         results = {}
         
         azconn = AzureSQLConnector.load_default()
 
-        initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(params['trigger'],source,models,last_days)
+        initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(trigger,source,models,last_days)
         logger.info(initStr)
 
         for model_name in models:
@@ -35,7 +36,7 @@ def main(params: dict) -> str:
             result = azconn.insert_dataset(dataset)
             results[model_name] = result
 
-        returnStr = "Fetch operation ended. Source: {} - LAST_DAYS={}\nRESULTS: {}".format(source,last_days,results)
+        returnStr = "Fetch operation ended. Trigger: {} - Source: {} - LAST_DAYS={}\nRESULTS: {}".format(trigger,source,last_days,results)
         logger.info(returnStr)
 
     except Exception as e:
