@@ -16,7 +16,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     orc_input = context.get_input()
     logger.info("Orchestration Input : {}".format(orc_input))
 
-    result1 = yield context.call_activity('fetch_data', orc_input)
+    result1 = context.call_activity('fetch_data', orc_input)
     result2 = yield context.call_activity('pandas_transform', orc_input)
 
     result = [result1, result2]
