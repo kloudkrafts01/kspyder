@@ -23,7 +23,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
     if (action == 'fetch') or (action == 'full'):
         fetch_result = yield context.call_activity('fetch_data', orc_input)
-        result['fetch_result'] = fetch_result
+        result['fetch_data'] = fetch_result
 
     if (action == 'transform') or (action == 'full'):
         transform_result = yield context.call_activity('pandas_transform', orc_input)

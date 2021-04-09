@@ -13,41 +13,47 @@ connectors = {
 
 def main(params: dict) -> dict:
 
-    result = {}
+    result = {
+        'params': params
+    }
     
     try:
         # params = orc_input['params']
         # body = orc_input['body']
-        body = {
-            'status': 'TODO'
-        }
 
         azconn = AzureSQLConnector.load_default()
         schema, connector_list, action = prepare_params(params)
 
         if action == 'build':
-            azconn.create_db(connector_list)
+            created_tables = azconn.create_db(connector_list)
+            result['results'] = created_tables
 
         elif action == 'destroy':
-            azconn.delete_db(schema_name=schema)
+            deleted_tables = azconn.delete_db(schema_name=schema)
+            result['results'] = deleted_tables
 
         elif action == 'examine':
+            plans = {}
             for connector in connector_list:
-                result[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
+                plans[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
+            result['results'] = plans
 
         elif action == 'apply':
-            azconn.apply_changes(body)
+            body = params['body']
+            reports = {}
+            for connector_name,plan in body.items():
+                reports[connector_name] = azconn.apply_changes(plan)
+            result['results'] = reports
         
         else:
-            returnMsg = "Invalid value provided for 'action' parameter: {}".format(action)
-            logger.info(returnMsg)
-            result = {
-                'status': returnMsg
-            }
+            returnMsg = "F_db_activity :: Invalid value provided for 'action' parameter: {}".format(action)
+            logger.warning(returnMsg)
+            result['results'] = returnMsg
 
     except Exception as e:
-        errorStr = '{}'.format(e)
-        logger.error(errorStr)
+        returnMsg = 'F_db_activity error :: {}'.format(e)
+        logger.error(returnMsg)
+        result['results'] = returnMsg
 
     return result
 

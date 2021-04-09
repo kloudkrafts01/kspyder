@@ -271,6 +271,10 @@ class GenericSQLConnector():
         """Applies the changes specified in a given 'plan' JSON file. This approach is pretty much inspired by Terraform, but applied to SQLAlchemy db models :)"""
 
         returnmsg = ""
+        result = {
+            'plan': plan
+        }
+
         schema_name = plan['schema']
         connector_name = plan['connector']
         to_delete = plan['delete']
@@ -302,16 +306,21 @@ class GenericSQLConnector():
                 
                 returnmsg = "Successfully applied changes to the DB."
                 logger.info(returnmsg)
-            
+
+                result['status'] = 'success'
+
             except Exception as e:
                 returnmsg = "DB CHANGE: Error {}".format(e)
                 logger.error(returnmsg)
+                result['status'] = 'error'
 
         else:
             returnmsg = "DB CHANGE: Nothing to change in the current plan. No action will be applied on the db."
             logger.info(returnmsg)
+            result['status'] = 'not applied'
 
-        return returnmsg
+        result['message'] = returnmsg
+        return result
 
     def delete_tables(self,schema_name,tables_list):
         logger.info("DROPPING tables from schema {}: {}".format(schema_name,tables_list))
@@ -326,6 +335,9 @@ class GenericSQLConnector():
         self.delete_tables(schema_name,tables_list=delete_tables)
         # clears up the intermediary MetaData definition python objects
         AutoBase.metadata.clear()
+        logger.info("Successfully destroyed the following db tables: {}".format(delete_tables))
+
+        return delete_tables
 
     def create_db(self,connectors):
         """Creates all Table Metadata and db tables corresponding to the given connectors' models definitions"""
@@ -337,6 +349,8 @@ class GenericSQLConnector():
         AutoBase.metadata.create_all(self.engine)
         tables_list = list(x.name for x in AutoBase.metadata.sorted_tables)
         logger.info("Successfully created database. Models: {}".format(tables_list))
+
+        return tables_list
 
     def create_models(self,connector, models_list):
         """Creates Tabls Metadata and db tables corresponding to the given connectors' models definitions"""
