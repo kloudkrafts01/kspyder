@@ -26,7 +26,7 @@ def main(params: dict) -> dict:
         schema, connector_list, action = prepare_params(params)
 
         if action == 'build':
-            azconn.create_db(connectors)
+            azconn.create_db(connector_list)
 
         elif action == 'destroy':
             azconn.delete_db(schema_name=schema)
