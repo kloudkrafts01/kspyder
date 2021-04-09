@@ -15,15 +15,19 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     
     orc_input = context.get_input()
     logger.info("Orchestration Input : {}".format(orc_input))
-
-    fetch_result = yield context.call_activity('fetch_data', orc_input)
-    transform_result = yield context.call_activity('pandas_transform', fetch_result['params'])
+    action = orc_input['action']
 
     result = {
-        'orc_input': orc_input,
-        'fetch_data': fetch_result['results'],
-        'pandas_transform': transform_result['results']
+        'orc_input': orc_input
     }
+
+    if (action == 'fetch') or (action == 'full'):
+        fetch_result = yield context.call_activity('fetch_data', orc_input)
+        result['fetch_result'] = fetch_result
+
+    if (action == 'transform') or (action == 'full'):
+        transform_result = yield context.call_activity('pandas_transform', orc_input)
+        result['pandas_transform'] = transform_result
 
     logger.info("Orchestration Results : {}".format(result))
     

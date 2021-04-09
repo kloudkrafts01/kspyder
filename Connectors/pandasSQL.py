@@ -21,7 +21,8 @@ class PandasSQLConnector(GenericSQLConnector):
     def save(self,df,schema,table):
         
         if df.empty:
-            logger.warning("PandasSQL: Dataframe {} to be saved is Empty.".format(table))
+            logger.warning("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(table))
+            return
         df.to_sql(table,self.engine,schema=schema,if_exists='replace',index=True,index_label=df.index.name)
 
     def apply_transforms(self,transforms):
