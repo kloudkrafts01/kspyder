@@ -318,6 +318,7 @@ class GenericSQLConnector():
             result['status'] = 'not applied'
 
         result['message'] = returnmsg
+        result['plan'] = plan
         return result
 
     def delete_tables(self,schema_name,tables_list):

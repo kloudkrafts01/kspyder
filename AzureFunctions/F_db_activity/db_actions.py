@@ -13,9 +13,7 @@ connectors = {
 
 def main(params: dict) -> dict:
 
-    result = {
-        'params': params
-    }
+    result = {}
     
     try:
         # params = orc_input['params']
