@@ -14,7 +14,7 @@ VALID_SOURCES = {
 }
 
 
-def main(params: dict) -> str:
+def main(params: dict) -> dict:
 
     returnStr = ""
     
@@ -38,12 +38,21 @@ def main(params: dict) -> str:
 
         returnStr = "Fetch operation ended. Trigger: {} - Source: {} - LAST_DAYS={}\nRESULTS: {}".format(trigger,source,last_days,results)
         logger.info(returnStr)
+        output_results = {
+            'params': params,
+            'results': results
+        }
 
     except Exception as e:
         returnStr = 'F_fetch_data.fetch_data :: {}'.format(e)
         logger.error(e)
 
-    return returnStr
+        output_results = {
+            'params': params,
+            'results': returnStr
+        }
+
+    return output_results
 
 def format_params(params):
 

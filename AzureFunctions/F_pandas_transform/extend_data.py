@@ -8,7 +8,7 @@ from Connectors.pandasSQL import PandasSQLConnector
 
 TRANSFORMS_DIR = os.path.join(CONF_FOLDER,'transforms')
 
-def main(params: dict) -> str:
+def main(params: dict) -> dict:
 
     returnStr = ""
     
@@ -16,10 +16,11 @@ def main(params: dict) -> str:
         # params = orc_input['params']
         pdconn = PandasSQLConnector.load_default()
         schema = params['source']
-        
+        trigger = params['trigger']
+
         results = {}
   
-        initStr = "Extend Data Table operation started. Trigger : {} - Schema: {}".format(params['trigger'],schema)
+        initStr = "Extend Data Table operation started. Trigger : {} - Schema: {}".format(trigger,schema)
         logger.info(initStr)
 
         for filename in os.listdir(TRANSFORMS_DIR):
@@ -38,8 +39,18 @@ def main(params: dict) -> str:
         returnStr = "Extend Data Table ended. Results: {}".format(results)
         logger.info(returnStr)
 
+        output_results = {
+            'params': params,
+            'results': results
+        }
+
     except Exception as e:
         returnStr = '{}'.format(e)
         logger.error(e)
 
-    return returnStr
+        output_results = {
+            'params': params,
+            'results': returnStr
+        }
+
+    return output_results
