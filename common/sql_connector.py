@@ -150,8 +150,6 @@ class GenericSQLConnector():
         - new_models: Model names that were given in the connector's manifest but not found in the database
         - deleted_models: Model names that were found in the database, but absent from the connector's current manifest
         - intersect_models: Model names that were found both in the database and in the connector's manifest
-        
-        Also returns:
         - model_changes: dict object reflecting if some intersecting models were changed i.e.,
             if fields were added or deleted from the manifest, compared to the current database state)
             - new_fields: list of field names that were found in the model manifest but not in the corresponding database table

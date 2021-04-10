@@ -1,5 +1,7 @@
 #!python3
 
+import traceback
+
 import azure
 import azure.durable_functions as df
 
@@ -36,4 +38,4 @@ async def main(mytimer: azure.functions.TimerRequest, starter: str):
 
     except Exception as e:
 
-        logger.error("F_odoo_timer :: {}".format(e))
+        logger.error("F_odoo_timer :: {}".format(traceback.print_exc()))
