@@ -44,7 +44,7 @@ def main(params: dict) -> dict:
         }
 
     except Exception as e:
-        returnStr = 'F_fetch_data.fetch_data :: {}'.format(e)
+        returnStr = 'F_fetch_data.fetch_data :: {}'.format(traceback.print_exc())
         logger.error(e)
 
         output_results = {
