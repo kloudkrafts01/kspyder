@@ -17,9 +17,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     logger.info("Orchestration Input : {}".format(orc_input))
     action = orc_input['action']
 
-    result = {
-        'orc_input': orc_input
-    }
+    result = {}
 
     if (action == 'fetch') or (action == 'full'):
         fetch_result = yield context.call_activity('fetch_data', orc_input)
