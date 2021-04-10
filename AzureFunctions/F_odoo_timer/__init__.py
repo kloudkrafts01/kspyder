@@ -17,7 +17,7 @@ async def main(mytimer: azure.functions.TimerRequest, starter: str):
             'source': 'odoo',
             'last_days': '1',
             'model': None,
-            'action': None
+            'action': 'full'
         }
 
         req_body = {
