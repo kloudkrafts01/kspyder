@@ -25,7 +25,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         
         # then apply changes with the change plan as input body
         apply_input = orc_input
-        apply_input['body'] = result1['results']
+        apply_input['action'] = 'apply'
+        apply_input['body'] = result1
         result = yield context.call_activity('db_activity', apply_input)
 
     else:

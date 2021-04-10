@@ -13,15 +13,18 @@ from Connectors.azureSQL import AzureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
+from AzureFunctions.F_db_activity import db_actions
 
 
 operation = 'operation'
-env = 'env'
 source = None
 model_name = None
 input_file = 'file'
 last_days = None
 fetch_all = None
+action = None
+
+params = {}
 
 CONNECTORS = {
     'odoo': odooRPC,
@@ -40,12 +43,7 @@ def get_connectors():
 
 def fetch():
 
-    params = {
-        'trigger': 'cli',
-        'last_days': (None if fetch_all else last_days),
-        'model': model_name,
-        'source': source
-    }
+    params = get_params()
 
     orc_input = {
         'params': params,
@@ -119,6 +117,37 @@ def apply_db_changes():
     azconn = AzureSQLConnector.load_default()
     azconn.apply_changes(plan)
 
+def manage_db():
+
+    params = get_params()
+
+    if action == 'apply':
+        # first, run an examine action and get the change plan
+        examine_input = params
+        examine_input['action'] = 'examine'
+        result1 = db_actions.main(examine_input)
+        
+        # then apply changes with the change plan as input body
+        apply_input = params
+        apply_input['action'] = 'apply'
+        apply_input['body'] = result1
+        result = db_actions.main(apply_input)
+
+    else:
+        result = db_actions.main(params)
+
+    print(result)
+
+def get_params():
+
+    params = {
+        'trigger': 'cli',
+        'last_days': (None if fetch_all else last_days),
+        'model': model_name,
+        'source': source,
+        'action': action
+    }
+    return params
 
 if __name__ == "__main__":
 
@@ -129,9 +158,9 @@ if __name__ == "__main__":
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
     parser.add_argument('-m','--model',action='store',type=str,dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
-    parser.add_argument('-e','--env',action='store',type=str,dest=env)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)
+    parser.add_argument('-x','--action',action='store',type=str,dest=action)
 
     args = parser.parse_args()
 
@@ -142,7 +171,7 @@ if __name__ == "__main__":
     last_days = args.timespan
     model_name = args.model
     input_file = args.file
-    env = args.env
+    action = args.action
     
     function = locals()[args.operation]
     function()

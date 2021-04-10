@@ -2,6 +2,7 @@
 #!python3
 
 from importlib import import_module
+import traceback
 
 from common.spLogging import logger
 from Connectors.azureSQL import AzureSQLConnector
@@ -23,35 +24,35 @@ def main(params: dict) -> dict:
         schema, connector_list, action = prepare_params(params)
 
         if action == 'build':
-            created_tables = azconn.create_db(connector_list)
-            result['results'] = created_tables
+            result = azconn.create_db(connector_list)
+            # result['results'] = created_tables
 
         elif action == 'destroy':
-            deleted_tables = azconn.delete_db(schema_name=schema)
-            result['results'] = deleted_tables
+            result = azconn.delete_db(schema_name=schema)
+            # result['results'] = deleted_tables
 
         elif action == 'examine':
-            plans = {}
+            # plans = {}
             for connector in connector_list:
-                plans[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
-            result['results'] = plans
+                result[connector.SCHEMA_NAME] = azconn.plan_changes(connector)
+            # result['results'] = plans
 
         elif action == 'apply':
             body = params['body']
-            reports = {}
+            # reports = {}
             for connector_name,plan in body.items():
-                reports[connector_name] = azconn.apply_changes(plan)
-            result['results'] = reports
+                result[connector_name] = azconn.apply_changes(plan)
+            # result['results'] = reports
         
         else:
             returnMsg = "F_db_activity :: Invalid value provided for 'action' parameter: {}".format(action)
             logger.warning(returnMsg)
-            result['results'] = returnMsg
+            result = returnMsg
 
     except Exception as e:
-        returnMsg = 'F_db_activity error :: {}'.format(e)
+        returnMsg = 'F_db_activity error :: {}'.format(traceback.print_exc())
         logger.error(returnMsg)
-        result['results'] = returnMsg
+        result = returnMsg
 
     return result
 

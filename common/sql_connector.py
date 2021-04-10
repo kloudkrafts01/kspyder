@@ -180,7 +180,7 @@ class GenericSQLConnector():
 
         for model_name in intersect_models:
 
-            logger.debug("Comparing Model: {}".format(model_name))
+            # logger.debug("Comparing Model: {}".format(model_name))
             model = connector.MODELS[model_name]
             table_obj = getattr(AutoBase.classes,model_name)
 
@@ -202,10 +202,10 @@ class GenericSQLConnector():
             if has_changed:
                 changed_models.add(model_name)
 
-            logger.debug("HAS CHANGED: {}".format(has_changed))
-            logger.debug("NEW Fields: {}".format(new_fields))
-            logger.debug("DELETED Fields: {}".format(deleted_fields))
-            logger.debug("MATCHING Fields: {}".format(intersect_fields))
+            # logger.debug("HAS CHANGED: {}".format(has_changed))
+            # logger.debug("NEW Fields: {}".format(new_fields))
+            # logger.debug("DELETED Fields: {}".format(deleted_fields))
+            # logger.debug("MATCHING Fields: {}".format(intersect_fields))
 
             model_changes[model_name] = {
                 'has_changed': has_changed,
