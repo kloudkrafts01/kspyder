@@ -2,13 +2,12 @@
 
 import json
 import argparse
-import logging
+from importlib import import_module
 
 from common.extract import get_data
-from common.config import DEFAULT_TIMESPAN
+from common.config import CONNECTOR_MAP, DEFAULT_TIMESPAN
 from common.spLogging import logger
 
-from Connectors import odooRPC, prestashopSQL
 from Connectors.azureSQL import AzureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
@@ -26,24 +25,19 @@ action = None
 
 params = {}
 
-CONNECTORS = {
-    'odoo': odooRPC,
-    'prestashop': prestashopSQL
-}
-
 def get_connectors():
 
     result = []
     if source:
-        result += CONNECTORS[source], 
+        connector = import_module(CONNECTOR_MAP[source])
+        result += connector, 
     else:
-        result = CONNECTORS.values()
+        for connector_name in CONNECTOR_MAP.values():
+            result += import_module(connector_name),
 
     return result
 
 def fetch():
-
-    params = get_params()
 
     orc_input = {
         'params': params,
@@ -67,26 +61,13 @@ def destroy_db():
     azconn = AzureSQLConnector.load_default()
     azconn.delete_db(schema_name=source)
 
-def extract_from_odoo():
+def extract():
 
-    logger.info('Extracting Odoo Model: {}'.format(model_name))
-
-    if fetch_all:
-        jsonpath,dataset = get_data(odooRPC,model_name,last_days=None)
-    else:
-        jsonpath,dataset = get_data(odooRPC,model_name,last_days=last_days)
-
-    return jsonpath,dataset
-
-def extract_from_ps():
-
-    logger.info('Extracting PS Model: {}'.format(model_name))
-
-    if fetch_all:
-        jsonpath,dataset = get_data(prestashopSQL,model_name,last_days=None)
-    else:
-        jsonpath,dataset = get_data(prestashopSQL,model_name,last_days=last_days)
-
+    logger.info("Extracting schema: {} - models: {}".format(source,model_name))
+    
+    connector = import_module(CONNECTOR_MAP[source])
+    jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
+    
     return jsonpath,dataset
 
 def insert_to_azure():
@@ -96,9 +77,6 @@ def insert_to_azure():
 
 def expand():
 
-    params = {
-        'source': source
-    }
     result = extend_data.main(params)
     logger.info(result)
 
@@ -119,8 +97,6 @@ def apply_db_changes():
 
 def manage_db():
 
-    params = get_params()
-
     if action == 'apply':
         # first, run an examine action and get the change plan
         examine_input = params
@@ -138,17 +114,6 @@ def manage_db():
 
     print(result)
 
-def get_params():
-
-    params = {
-        'trigger': 'cli',
-        'last_days': (None if fetch_all else last_days),
-        'model': model_name,
-        'source': source,
-        'action': action
-    }
-    return params
-
 if __name__ == "__main__":
 
 
@@ -164,8 +129,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.info(args)
-
     source = args.source
     fetch_all = args.all
     last_days = args.timespan
@@ -173,6 +136,16 @@ if __name__ == "__main__":
     input_file = args.file
     action = args.action
     
+    params = {
+        'trigger': 'cli',
+        'last_days': (None if fetch_all else last_days),
+        'model': model_name,
+        'source': source,
+        'action': action
+    }
+
+    print(params)
+
     function = locals()[args.operation]
     function()
 
