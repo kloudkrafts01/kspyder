@@ -289,8 +289,8 @@ class GenericSQLConnector():
 
                 # if tables need to be dropped, use SQLAlchemy to drop them
                 if deletion:
-                    delete_tables = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
-                    self.delete_tables(schema_name, delete_tables)
+                    # delete_tables = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
+                    self.delete_tables(schema_name, to_delete)
                     AutoBase.metadata.clear()
 
                 # if tables need to be (re)-created, create them from the connector's manifest definition
@@ -319,7 +319,8 @@ class GenericSQLConnector():
         result['plan'] = plan
         return result
 
-    def delete_tables(self,schema_name,tables_list):
+    def delete_tables(self,schema_name,to_delete):
+        tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
         logger.info("DROPPING tables from schema {}: {}".format(schema_name,tables_list))
         AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
         

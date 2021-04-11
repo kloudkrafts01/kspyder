@@ -30,6 +30,10 @@ def main(params: dict) -> dict:
         elif action == 'destroy':
             result = azconn.delete_db(schema_name=schema)
             # result['results'] = deleted_tables
+        
+        elif action =='drop':
+            tablenames = params['model']
+            result = azconn.delete_tables(schema_name=schema,to_delete=tablenames)
 
         elif action == 'examine':
             # plans = {}
