@@ -13,7 +13,6 @@ VALID_SOURCES = {
     'prestashop': prestashopSQL
 }
 
-
 def main(params: dict) -> dict:
 
     returnStr = ""

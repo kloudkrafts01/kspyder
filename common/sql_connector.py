@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker
 AutoBase = automap_base()
 
 from common.spLogging import logger
-from common.config import DUMP_JSON
+from common.config import DUMP_JSON, CONNECTOR_MAP
 from common.utils import json_dump
 
 STR_PATTERN = re.compile('(String)\((\d+)\)')
@@ -265,6 +265,18 @@ class GenericSQLConnector():
 
         return plan
 
+    def build_plan(self,schema_name,to_delete=[],to_create=[],detail={}):
+
+        plan = {
+            "schema": schema_name, 
+            "connector": CONNECTOR_MAP[schema_name], 
+            "delete": to_delete, 
+            "create": to_create, 
+            "changes_detail": detail
+        }
+
+        return plan
+
     def apply_changes(self,plan):
         """Applies the changes specified in a given 'plan' JSON file. This approach is pretty much inspired by Terraform, but applied to SQLAlchemy db models :)"""
 
@@ -321,7 +333,8 @@ class GenericSQLConnector():
 
     def delete_tables(self,schema_name,to_delete):
         tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
-        logger.info("DROPPING tables from schema {}: {}".format(schema_name,tables_list))
+        logger.info("DROPPING tables from schema {}: {}".format(schema_name,to_delete))
+        logger.info("Found tables : {}".format(tables_list))
         AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
         
     def delete_db(self,schema_name=None):
