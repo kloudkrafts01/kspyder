@@ -37,7 +37,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         
         params['trigger'] = 'http'
         models_raw = req_params['model']
-        params['model'] = (models_raw.split(',') id models_raw else None)
+        params['model'] = (models_raw.split(',') if models_raw else None)
 
         orc_input = {
             'params': params,
