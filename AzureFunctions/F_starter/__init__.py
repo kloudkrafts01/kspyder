@@ -25,7 +25,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
             'action'
         ]
 
-        req_params = dict(req.params)
+        # req_params = dict(req.params)
         params = {}
         # req_body = req.get_body()
         req_body = {
@@ -36,7 +36,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
             params[key] = (req.params[key] if key in req.params.keys() else None)
         
         params['trigger'] = 'http'
-        models_raw = req_params['model']
+        models_raw = params['model']
         params['model'] = (models_raw.split(',') if models_raw else None)
 
         orc_input = {
