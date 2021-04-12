@@ -38,4 +38,4 @@ async def main(mytimer: azure.functions.TimerRequest, starter: str):
 
     except Exception as e:
 
-        logger.error("F_odoo_timer :: {}".format(traceback.print_exc()))
+        logger.error("F_prestashop_timer :: {}".format(traceback.print_exc()))

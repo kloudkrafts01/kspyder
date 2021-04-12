@@ -33,7 +33,7 @@ def main(params: dict) -> dict:
                 results[filename] = 'applied'
             
             else:
-                logger.info("Skipping filtered schema : {}".format(transform_def['Source']))
+                logger.info("Skipping filtered schema : {}".format(transform_def))
                 results[filename] = 'skipped'
 
         returnStr = "Extend Data Table ended. Results: {}".format(results)
