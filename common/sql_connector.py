@@ -103,7 +103,7 @@ class GenericSQLConnector():
         session = self.SessionFactory()
         # This is very important, so the data is inserted in the right schema
         session.connection(execution_options={
-            "schema_translate_map": {schema_name: schema}
+            "schema_translate_map": {schema : schema}
         })
 
         logger.info("Saving JSON file to {}".format(self.dbname))

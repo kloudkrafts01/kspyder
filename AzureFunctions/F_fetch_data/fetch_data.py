@@ -70,16 +70,8 @@ def format_params(params):
         last_days = int(last_days)
 
     # get the input model into a list
-    model_name = params['model']
-    models = []
-    if model_name in source.MODELS_LIST:
-        models = [model_name]
-    elif model_name is None:
-        # if no model name was provided as input, just iterate over all valid models for the source
-        models = source.MODELS_LIST
-    else:
-        errmsg = "Fetch_data: Invalid Model name provided ! No data will be fetched."
-        raise ValueError(errmsg)
-
+    models_raw = params['model']
+    models = (source.MODELS_LIST if models_raw is None else models_raw )
+    
     return source,last_days,models
 

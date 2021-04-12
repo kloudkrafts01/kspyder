@@ -54,7 +54,8 @@ def extract():
     logger.info("Extracting schema: {} - models: {}".format(source,model_name))
     
     connector = import_module(CONNECTOR_MAP[source])
-    jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
+    for model_name in models:
+        jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
     
     return jsonpath,dataset
 
@@ -104,14 +105,14 @@ if __name__ == "__main__":
     source = args.source
     fetch_all = args.all
     last_days = args.timespan
-    model_name = args.model
+    models = args.model
     input_file = args.file
     action = args.action
     
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
-        'model': model_name,
+        'model': models,
         'source': source,
         'action': action
     }

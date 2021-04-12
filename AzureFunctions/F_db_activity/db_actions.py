@@ -13,9 +13,7 @@ def main(params: dict) -> dict:
     result = {}
     
     try:
-        # params = orc_input['params']
-        # body = orc_input['body']
-
+        
         azconn = AzureSQLConnector.load_default()
         schema = params['source']
         schema_list = ([schema] if schema else CONNECTOR_MAP.keys())
