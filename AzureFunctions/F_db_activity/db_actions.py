@@ -17,7 +17,10 @@ def main(params: dict) -> dict:
         # body = orc_input['body']
 
         azconn = AzureSQLConnector.load_default()
-        schema, schema_list, action, models = prepare_params(params)
+        schema = params['source']
+        schema_list = ([schema] if schema else CONNECTOR_MAP.keys())
+        action = params['action']
+        models = params['model']
 
         if action == 'build':
             result = azconn.create_db(schema_list)
@@ -48,14 +51,3 @@ def main(params: dict) -> dict:
         result = returnMsg
 
     return result
-
-def prepare_params(params):
-
-    schema = params['source']
-    schema_list = ([schema] if schema else CONNECTOR_MAP.keys())
-    
-    action = params['action']
-    models = params['model']
-    # models = [model_name]
-
-    return schema, schema_list, action, models
