@@ -26,22 +26,25 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         ]
 
         req_params = dict(req.params)
+        params = {}
         # req_body = req.get_body()
         req_body = {
             'status': 'TODO'
         }
 
         for key in expected_params:
-            req_params[key] = (req.params[key] if key in req.params.keys() else None)
+            params[key] = (req.params[key] if key in req.params.keys() else None)
         
-        req_params['trigger'] = 'http'
+        params['trigger'] = 'http'
+        models_raw = req_params['model']
+        params['model'] = (models_raw.split(',') if models_raw else None)
 
         orc_input = {
-            'params': req_params,
+            'params': params,
             'body': req_body
         }
 
-        instance_id = await client.start_new(req.route_params["functionName"], None, req_params)
+        instance_id = await client.start_new(req.route_params["functionName"], None, params)
 
         logger.info(f"Started orchestration with ID = '{instance_id}'.")
 
