@@ -326,7 +326,12 @@ class GenericSQLConnector():
         AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
         logger.info("Successfully dropped tables : {}".format(to_delete))
 
-        return tables_list
+        result = {
+            'schema': schema,
+            'deleted': to_delete
+        }
+
+        return result
         
     def delete_db(self,schemas=CONNECTOR_MAP.keys()):
         """ Drops all tables from the database within the specified schema. If no schema is specified, drops everything"""
@@ -343,7 +348,12 @@ class GenericSQLConnector():
         # clears up the intermediary MetaData definition python objects
         AutoBase.metadata.clear()
 
-        return delete_tables
+        result = {
+            'delete_list': schemas,
+            'deleted': '{}'.format(delete_tables)
+        }
+
+        return result
 
     def create_db(self,schemas=CONNECTOR_MAP.keys()):
         """Creates all Table Metadata and db tables corresponding to the given connectors' models definitions"""
@@ -355,7 +365,12 @@ class GenericSQLConnector():
         tables_list = list(x.name for x in AutoBase.metadata.sorted_tables)
         logger.info("Successfully created database. Models: {}".format(tables_list))
 
-        return tables_list
+        result = {
+            'schemas': schemas,
+            'created': tables_list
+        }
+
+        return result
 
     def create_models(self, schema, models_list=None):
         """Creates Tabls Metadata and db tables corresponding to the given connectors' models definitions"""

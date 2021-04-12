@@ -15,7 +15,6 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     
     orc_input = context.get_input()
     logger.info("Orchestration Input : {}".format(orc_input))
-    action = orc_input['action']
 
     result = yield context.call_activity('db_activity', orc_input)
     
