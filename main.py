@@ -25,17 +25,6 @@ action = None
 
 params = {}
 
-def get_connectors():
-
-    result = []
-    if source:
-        connector = import_module(CONNECTOR_MAP[source])
-        result += connector, 
-    else:
-        for connector_name in CONNECTOR_MAP.values():
-            result += import_module(connector_name),
-
-    return result
 
 def fetch():
 
@@ -52,14 +41,13 @@ def fetch():
 def build_db():
 
     azconn = AzureSQLConnector.load_default()
-    connectors = get_connectors()
-
-    azconn.create_db(connectors)
+    source_list = ([source] if source else None)
+    azconn.create_db(source_list)
 
 def destroy_db():
 
     azconn = AzureSQLConnector.load_default()
-    azconn.delete_db(schema_name=source)
+    azconn.delete_db(schema=source)
 
 def extract():
 
@@ -83,9 +71,8 @@ def expand():
 def examine_db():
 
     azconn = AzureSQLConnector.load_default()
-    connectors = get_connectors()
-    for connector in connectors:
-        json_plan = azconn.plan_changes(connector)
+    json_plan = azconn.plan_changes(source)
+    return json_plan
 
 def apply_db_changes():
 
