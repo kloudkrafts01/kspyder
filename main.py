@@ -83,22 +83,7 @@ def apply_db_changes():
     azconn.apply_changes(plan)
 
 def manage_db():
-
-    # if action == 'apply':
-    #     # first, run an examine action and get the change plan
-    #     examine_input = params
-    #     examine_input['action'] = 'examine'
-    #     result1 = db_actions.main(examine_input)
-        
-    #     # then apply changes with the change plan as input body
-    #     apply_input = params
-    #     apply_input['action'] = 'apply'
-    #     apply_input['body'] = result1
-    #     result = db_actions.main(apply_input)
-
-    # else:
     result = db_actions.main(params)
-
     return result
 
 if __name__ == "__main__":
@@ -108,7 +93,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
-    parser.add_argument('-m','--model',action='store',type=str,dest=model_name)
+    parser.add_argument('-m','--model',action='store',type=str,nargs='+',dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)

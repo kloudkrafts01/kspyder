@@ -17,20 +17,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     logger.info("Orchestration Input : {}".format(orc_input))
     action = orc_input['action']
 
-    if action == 'apply':
-        # first, run an examine action and get the change plan
-        examine_input = orc_input
-        examine_input['action'] = 'examine'
-        result1 = yield context.call_activity('db_activity', examine_input)
-        
-        # then apply changes with the change plan as input body
-        apply_input = orc_input
-        apply_input['action'] = 'apply'
-        apply_input['body'] = result1
-        result = yield context.call_activity('db_activity', apply_input)
-
-    else:
-        result = yield context.call_activity('db_activity', orc_input)
+    result = yield context.call_activity('db_activity', orc_input)
     
     return result
 

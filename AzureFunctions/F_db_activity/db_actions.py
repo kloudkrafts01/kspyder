@@ -55,7 +55,7 @@ def prepare_params(params):
     schema_list = ([schema] if schema else CONNECTOR_MAP.keys())
     
     action = params['action']
-    model_name = params['model']
-    models = [model_name]
+    models = params['model']
+    # models = [model_name]
 
     return schema, schema_list, action, models
