@@ -1,4 +1,5 @@
 import json
+import traceback
 import pyodbc
 import re
 import urllib
@@ -283,7 +284,8 @@ class GenericSQLConnector():
         result = {}
 
         schema = plan['schema']
-        connector_name = plan['connector']
+        # connector_name = plan['connector']
+        connector_name = CONNECTOR_MAP[schema]
         to_delete = plan['delete']
         to_create = plan['create']
 
@@ -306,9 +308,7 @@ class GenericSQLConnector():
 
                 # if tables need to be (re)-created, create them from the connector's manifest definition
                 if creation:
-                    connector = import_module(connector_name)
-                    models_list = list(x for x in connector.MODELS_LIST if x in to_create)
-                    self.create_models(connector, models_list)
+                    self.create_models(schema,to_create)
                     AutoBase.metadata.clear()
                 
                 returnmsg = "Successfully applied changes to the DB."
@@ -331,21 +331,31 @@ class GenericSQLConnector():
         return result
 
     def delete_tables(self,schema,to_delete):
+
+        AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
         tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
-        logger.info("DROPPING tables from schema {}: {}".format(schema,to_delete))
-        logger.info("Found tables : {}".format(tables_list))
-        AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
         
-    def delete_db(self,schema=None):
+        logger.info("DROPPING tables from schema {}: {}".format(schema,to_delete))
+        
+        AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
+        logger.info("Successfully dropped tables : {}".format(to_delete))
+
+        return tables_list
+        
+    def delete_db(self,schemas=CONNECTOR_MAP.keys()):
         """ Drops all tables from the database within the specified schema. If no schema is specified, drops everything"""
 
-        delete_tables = AutoBase.metadata.reflect(bind=self.engine, schema=schema)
+        delete_tables = []
 
         # drops all tables at the SQL database level
-        self.delete_tables(schema,delete_tables)
+        for schema in schemas:
+            connector = import_module(CONNECTOR_MAP[schema])
+            to_delete = connector.MODELS_LIST
+            deleted = self.delete_tables(schema,to_delete)
+            delete_tables.append(deleted)
+        
         # clears up the intermediary MetaData definition python objects
         AutoBase.metadata.clear()
-        logger.info("Successfully destroyed the following db tables: {}".format(delete_tables))
 
         return delete_tables
 
@@ -354,9 +364,6 @@ class GenericSQLConnector():
 
         for schema in schemas:
             self.create_models(schema)
-            # connector = import_module(CONNECTOR_MAP[schema])
-            # for model_name in connector.MODELS_LIST:
-            #     create_ORM_class(schema, model_name, connector.MODELS[model_name], connector.UNPACKING)
 
         AutoBase.metadata.create_all(self.engine)
         tables_list = list(x.name for x in AutoBase.metadata.sorted_tables)

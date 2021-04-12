@@ -99,7 +99,7 @@ def manage_db():
     else:
         result = db_actions.main(params)
 
-    print(result)
+    return result
 
 if __name__ == "__main__":
 
