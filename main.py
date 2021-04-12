@@ -84,20 +84,20 @@ def apply_db_changes():
 
 def manage_db():
 
-    if action == 'apply':
-        # first, run an examine action and get the change plan
-        examine_input = params
-        examine_input['action'] = 'examine'
-        result1 = db_actions.main(examine_input)
+    # if action == 'apply':
+    #     # first, run an examine action and get the change plan
+    #     examine_input = params
+    #     examine_input['action'] = 'examine'
+    #     result1 = db_actions.main(examine_input)
         
-        # then apply changes with the change plan as input body
-        apply_input = params
-        apply_input['action'] = 'apply'
-        apply_input['body'] = result1
-        result = db_actions.main(apply_input)
+    #     # then apply changes with the change plan as input body
+    #     apply_input = params
+    #     apply_input['action'] = 'apply'
+    #     apply_input['body'] = result1
+    #     result = db_actions.main(apply_input)
 
-    else:
-        result = db_actions.main(params)
+    # else:
+    result = db_actions.main(params)
 
     return result
 

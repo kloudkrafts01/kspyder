@@ -33,9 +33,9 @@ def main(params: dict) -> dict:
                 result[schema] = azconn.plan_changes(schema)
 
         elif action == 'apply':
-            body = params['body']
-            for schema_name,plan in body.items():
-                result[schema_name] = azconn.apply_changes(plan)
+            for schema in schema_list:
+                plan = azconn.plan_changes(schema)
+                result[schema] = azconn.apply_changes(plan)
         
         else:
             returnMsg = "F_db_activity :: Invalid value provided for 'action' parameter: {}".format(action)

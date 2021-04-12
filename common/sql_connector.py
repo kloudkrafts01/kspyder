@@ -251,29 +251,17 @@ class GenericSQLConnector():
             if value['has_changed']:
                 changes_detail[key] = value
 
-        plan = self.build_plan(
-            schema,
-            to_delete=list(to_delete),
-            to_create=list(to_create),
-            detail=changes_detail
-        )
+        plan = {
+            "schema": schema, 
+            "delete": list(to_delete), 
+            "create": list(to_create),
+            "changes_detail": changes_detail
+        }
 
         logger.debug("CHANGE PLAN FOR SCHEMA {}: {}".format(schema, plan))
 
         if DUMP_JSON:
             json_dump(plan, schema, 'DB_CHANGE_PLAN')
-
-        return plan
-
-    def build_plan(self,schema,to_delete=[],to_create=[],detail={}):
-
-        plan = {
-            "schema": schema, 
-            "connector": CONNECTOR_MAP[schema], 
-            "delete": to_delete, 
-            "create": to_create, 
-            "changes_detail": detail
-        }
 
         return plan
 
@@ -284,8 +272,6 @@ class GenericSQLConnector():
         result = {}
 
         schema = plan['schema']
-        # connector_name = plan['connector']
-        connector_name = CONNECTOR_MAP[schema]
         to_delete = plan['delete']
         to_create = plan['create']
 
