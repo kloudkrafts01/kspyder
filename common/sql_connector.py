@@ -1,4 +1,5 @@
 import json
+import traceback
 import pyodbc
 import re
 import urllib
@@ -86,15 +87,15 @@ class GenericSQLConnector():
     def update_from_json(self,dataset):
 
         header = dataset['header']
-        schema_name = header['schema']
+        schema = header['schema']
         model_name = header['model']
 
         result = None
 
-        logger.info("Loading DB schema: {}".format(schema_name))
+        logger.info("Loading DB schema: {}".format(schema))
         # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
         AutoBase = automap_base()
-        AutoBase.prepare(engine=self.engine, schema=schema_name, reflect=True)
+        AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
         logger.debug("loading modelObject")
         modelObject = getattr(AutoBase.classes,model_name)
 
@@ -102,7 +103,7 @@ class GenericSQLConnector():
         session = self.SessionFactory()
         # This is very important, so the data is inserted in the right schema
         session.connection(execution_options={
-            "schema_translate_map": {schema_name: schema_name}
+            "schema_translate_map": {schema : schema}
         })
 
         logger.info("Saving JSON file to {}".format(self.dbname))
@@ -143,7 +144,7 @@ class GenericSQLConnector():
         
         return result
 
-    def compare_schema(self,connector):
+    def compare_schema(self,schema):
         """Loads all table definitions from the db schema, and compares it with the connector's model definitions taken from the connector's YAML manifest.
         Returns several sets of strings:
 
@@ -156,11 +157,11 @@ class GenericSQLConnector():
             - deleted_fields: list of field names present in the db table but absent from the model manifest
         """
 
-        schema_name = connector.SCHEMA_NAME
-        logger.info("Comparing DB schema {} with connector models: {}".format(schema_name,connector.__name__))
+        connector = import_module(CONNECTOR_MAP[schema])
+        logger.info("Comparing DB schema {} with connector models: {}".format(schema,connector.__name__))
         # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
         # AutoBase = automap_base()
-        AutoBase.prepare(engine=self.engine, schema=schema_name, reflect=True)
+        AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
 
         table_names = set(x.__table__.name for x in AutoBase.classes)
         model_names = set(connector.MODELS_LIST)
@@ -216,11 +217,11 @@ class GenericSQLConnector():
 
         return new_models, deleted_models, intersect_models, changed_models, model_changes
 
-    def plan_changes(self,connector,create_new=True,delete_old=False,alter_changed=True):
+    def plan_changes(self,schema,create_new=True,delete_old=False,alter_changed=True):
         """Establishes a comparison between the current connector's manifest and the current db schema state,
         and produces a 'change plan' JSON file"""
 
-        new, old, matching, changed, changes = self.compare_schema(connector)
+        new, old, matching, changed, changes = self.compare_schema(schema)
 
         # Determine all models that need to be dropped from the schema
         to_delete = None
@@ -251,29 +252,16 @@ class GenericSQLConnector():
                 changes_detail[key] = value
 
         plan = {
-            'schema': connector.SCHEMA_NAME,
-            'connector': connector.__name__,
-            'delete': list(to_delete),
-            'create': list(to_create),
-            'changes_detail': changes_detail
+            "schema": schema, 
+            "delete": list(to_delete), 
+            "create": list(to_create),
+            "changes_detail": changes_detail
         }
 
-        logger.debug("CHANGE PLAN FOR SCHEMA {}: {}".format(connector.SCHEMA_NAME, plan))
+        logger.debug("CHANGE PLAN FOR SCHEMA {}: {}".format(schema, plan))
 
         if DUMP_JSON:
-            json_dump(plan, connector.SCHEMA_NAME, 'DB_CHANGE_PLAN')
-
-        return plan
-
-    def build_plan(self,schema_name,to_delete=[],to_create=[],detail={}):
-
-        plan = {
-            "schema": schema_name, 
-            "connector": CONNECTOR_MAP[schema_name], 
-            "delete": to_delete, 
-            "create": to_create, 
-            "changes_detail": detail
-        }
+            json_dump(plan, schema, 'DB_CHANGE_PLAN')
 
         return plan
 
@@ -283,8 +271,7 @@ class GenericSQLConnector():
         returnmsg = ""
         result = {}
 
-        schema_name = plan['schema']
-        connector_name = plan['connector']
+        schema = plan['schema']
         to_delete = plan['delete']
         to_create = plan['create']
 
@@ -297,19 +284,17 @@ class GenericSQLConnector():
             try:
                 
                 # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
-                AutoBase.prepare(engine=self.engine, schema=schema_name, reflect=True)
+                AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
 
                 # if tables need to be dropped, use SQLAlchemy to drop them
                 if deletion:
                     # delete_tables = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
-                    self.delete_tables(schema_name, to_delete)
+                    self.delete_tables(schema, to_delete)
                     AutoBase.metadata.clear()
 
                 # if tables need to be (re)-created, create them from the connector's manifest definition
                 if creation:
-                    connector = import_module(connector_name)
-                    models_list = list(x for x in connector.MODELS_LIST if x in to_create)
-                    self.create_models(connector, models_list)
+                    self.create_models(schema,to_create)
                     AutoBase.metadata.clear()
                 
                 returnmsg = "Successfully applied changes to the DB."
@@ -331,62 +316,87 @@ class GenericSQLConnector():
         result['plan'] = plan
         return result
 
-    def delete_tables(self,schema_name,to_delete):
-        tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
-        logger.info("DROPPING tables from schema {}: {}".format(schema_name,to_delete))
-        logger.info("Found tables : {}".format(tables_list))
-        AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
-        
-    def delete_db(self,schema_name=None):
-        """ Drops all tables from the database within the specified schema_name. If no schema_name is specified, drops everything"""
+    def delete_tables(self,schema,to_delete):
 
-        delete_tables = AutoBase.metadata.reflect(bind=self.engine, schema=schema_name)
+        AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
+        tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
+        
+        logger.info("DROPPING tables from schema {}: {}".format(schema,to_delete))
+        
+        AutoBase.metadata.drop_all(bind=self.engine,tables=tables_list)
+        logger.info("Successfully dropped tables : {}".format(to_delete))
+
+        result = {
+            'schema': schema,
+            'deleted': to_delete
+        }
+
+        return result
+        
+    def delete_db(self,schemas=CONNECTOR_MAP.keys()):
+        """ Drops all tables from the database within the specified schema. If no schema is specified, drops everything"""
+
+        delete_tables = []
 
         # drops all tables at the SQL database level
-        self.delete_tables(schema_name,tables_list=delete_tables)
+        for schema in schemas:
+            connector = import_module(CONNECTOR_MAP[schema])
+            to_delete = connector.MODELS_LIST
+            deleted = self.delete_tables(schema,to_delete)
+            delete_tables.append(deleted)
+        
         # clears up the intermediary MetaData definition python objects
         AutoBase.metadata.clear()
-        logger.info("Successfully destroyed the following db tables: {}".format(delete_tables))
 
-        return delete_tables
+        result = {
+            'delete_list': schemas,
+            'deleted': '{}'.format(delete_tables)
+        }
 
-    def create_db(self,connectors):
+        return result
+
+    def create_db(self,schemas=CONNECTOR_MAP.keys()):
         """Creates all Table Metadata and db tables corresponding to the given connectors' models definitions"""
 
-        for connector in connectors:
-            for model_name in connector.MODELS_LIST:
-                create_ORM_class(connector.SCHEMA_NAME, model_name, connector.MODELS[model_name], connector.UNPACKING)
+        for schema in schemas:
+            self.create_models(schema)
 
         AutoBase.metadata.create_all(self.engine)
         tables_list = list(x.name for x in AutoBase.metadata.sorted_tables)
         logger.info("Successfully created database. Models: {}".format(tables_list))
 
-        return tables_list
+        result = {
+            'schemas': schemas,
+            'created': tables_list
+        }
 
-    def create_models(self,connector, models_list):
+        return result
+
+    def create_models(self, schema, models_list=None):
         """Creates Tabls Metadata and db tables corresponding to the given connectors' models definitions"""
+
+        connector = import_module(CONNECTOR_MAP[schema])
 
         if models_list is None:
             models_list = connector.MODELS_LIST
 
-        logger.info("Creating MetadataClasses in schema {} from models: {}".format(connector.SCHEMA_NAME, models_list))
+        logger.info("Creating MetadataClasses in schema {} from models: {}".format(schema, models_list))
 
         for model_name in models_list:
-            model = connector.MODELS[model_name]
-            ORMclass = create_ORM_class(connector.SCHEMA_NAME, model_name, model, connector.UNPACKING)
+            ORMclass = create_ORM_class(schema, model_name, connector.MODELS[model_name], connector.UNPACKING)
 
         AutoBase.metadata.create_all(bind=self.engine)
         
 
-def create_ORM_class(schema_name,model_name,model,unpack={}):
+def create_ORM_class(schema,model_name,model,unpack={}):
     """Constructs an sqlAlchemy ORM class definition on a declarative Base,
     that corresponds to a given model definition""" 
 
-    logger.debug("START CREATION of ORM class {}. Schema: {}".format(model_name,schema_name))
+    logger.debug("START CREATION of ORM class {}. Schema: {}".format(model_name,schema))
 
     construct = {
         '__tablename__': model_name,
-        '__table_args__': {'schema': schema_name}
+        '__table_args__': {'schema': schema}
     }
 
     for field_name,field in model['fields'].items():
