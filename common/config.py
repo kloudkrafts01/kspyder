@@ -1,7 +1,8 @@
 import os,sys,re
 import yaml
-from AzureFunctions.azure_utils import AZ_SECRETS
+from .azure_utils import AzureClient
 
+AZURE_CLIENT = AzureClient()
 
 # default number of days' history to be fetched and page size for source queries
 DEFAULT_TIMESPAN = 1
@@ -31,7 +32,7 @@ sys.path.insert(0,LOG_FOLDER)
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
 
-def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=AZ_SECRETS):
+def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
     """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
     with open(profilepath,'r') as conf:
@@ -59,37 +60,23 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
+# odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
+# ODOO_PROFILE = load_profile(odoo_key)
 
-# Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
-if os.environ['KSPYDER_ENVIRONMENT'] == 'local':
+# ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
+# PS_PROFILE = load_profile(ps_key)
 
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = True
-    
-    LOG_CONFIG = load_conf('logging_verbose')
+# azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
+# AZURE_PROFILE = load_profile(azure_key)
 
-    ODOO_PROFILE = load_profile('Odoo_PREPROD')
-    PS_PROFILE = load_profile('Prestashop_STAGING')
-    AZURE_PROFILE = load_profile('Azure_SQL_DEV')
+PLACEHOLDER_PROFILE = {
+    'dbtype': 'stub',
+    'url': 'http://localhost',
+    'dbname': 'stub',
+    'username': 'stub_user',
+    'password': 'blah'
+}
 
-if os.environ['KSPYDER_ENVIRONMENT'] == 'dev':
-
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = False
-    
-    LOG_CONFIG = load_conf('logging')
-
-    ODOO_PROFILE = load_profile('Odoo_PREPROD')
-    PS_PROFILE = load_profile('Prestashop_STAGING')
-    AZURE_PROFILE = load_profile('Azure_SQL_DEV')
-
-if os.environ['KSPYDER_ENVIRONMENT'] == 'prod':
-
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = False
-
-    LOG_CONFIG = load_conf('logging')
-
-    ODOO_PROFILE = load_profile('Odoo_PROD')
-    PS_PROFILE = load_profile('Prestashop_PROD')
-    AZURE_PROFILE = load_profile('Azure_SQL_PROD')
+ODOO_PROFILE = PLACEHOLDER_PROFILE
+PS_PROFILE = PLACEHOLDER_PROFILE
+AZURE_PROFILE = PLACEHOLDER_PROFILE
