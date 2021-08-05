@@ -1,0 +1,17 @@
+ResourceGroups:
+    class: ResourceContainers
+    base_name: Microsoft.Resources/Subscriptions/ResourceGroups
+    fields:
+        id:
+            dbname: id
+            type: Integer
+            primary_key: true
+        name:
+            dbname: name
+            type: String(255)
+        tags:
+            dbname: tags
+            type: String(255)
+        location:
+            dbname: location
+            type: String(255)

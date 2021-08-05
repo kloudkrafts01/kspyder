@@ -1,7 +1,12 @@
 import os,sys,re
 import yaml
+<<<<<<< HEAD
 from .azure_utils import AZ_SECRETS
+=======
+from .azure_utils import AzureClient
+>>>>>>> Dirty start to remove Azure SQL dependencies
 
+AZURE_CLIENT = AzureClient()
 
 # default number of days' history to be fetched and page size for source queries
 # DEFAULT_TIMESPAN = 1
@@ -31,7 +36,7 @@ sys.path.insert(0,LOG_FOLDER)
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
 
-def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=AZ_SECRETS):
+def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
     """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
     with open(profilepath,'r') as conf:
@@ -59,6 +64,7 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
+<<<<<<< HEAD
 BASE_CONFIG = load_conf('baseconfig')
 ENV = os.environ['KSPYDER_ENVIRONMENT']
 
@@ -75,11 +81,23 @@ DUMP_JSON = BASE_CONFIG[ENV]['DUMP_JSON']
 log_key = BASE_CONFIG[ENV]['LOG_CONFIG']
 LOG_CONFIG = load_conf(log_key)
 
-odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
-ODOO_PROFILE = load_profile(odoo_key)
+# odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
+# ODOO_PROFILE = load_profile(odoo_key)
 
-ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
-PS_PROFILE = load_profile(ps_key)
+# ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
+# PS_PROFILE = load_profile(ps_key)
 
-azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
-AZURE_PROFILE = load_profile(azure_key)
+# azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
+# AZURE_PROFILE = load_profile(azure_key)
+
+PLACEHOLDER_PROFILE = {
+    'dbtype': 'stub',
+    'url': 'http://localhost',
+    'dbname': 'stub',
+    'username': 'stub_user',
+    'password': 'blah'
+}
+
+ODOO_PROFILE = PLACEHOLDER_PROFILE
+PS_PROFILE = PLACEHOLDER_PROFILE
+AZURE_PROFILE = PLACEHOLDER_PROFILE
