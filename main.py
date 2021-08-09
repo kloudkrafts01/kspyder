@@ -8,7 +8,7 @@ from common.extract import get_data
 from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
 
-from Connectors import odooRPC, prestashopSQL
+from Connectors import odooRPC, prestashopSQL, azureResourceGraph
 from Connectors.azureSQL import AzureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
@@ -70,6 +70,17 @@ def extract_from_odoo():
         jsonpath,dataset = get_data(odooRPC,model_name,last_days=None)
     else:
         jsonpath,dataset = get_data(odooRPC,model_name,last_days=last_days)
+
+    return jsonpath,dataset
+
+def extract_azureRG():
+
+    logger.info('Extracting Azure Resource Graph Model: {}'.format(model_name))
+
+    if fetch_all:
+        jsonpath,dataset = get_data(azureResourceGraph,model_name,last_days=None)
+    else:
+        jsonpath,dataset = get_data(azureResourceGraph,model_name,last_days=last_days)
 
     return jsonpath,dataset
 

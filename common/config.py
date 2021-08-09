@@ -60,6 +60,13 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
+ENV = os.environ["KSPYDER_ENVIRONMENT"]
+conf = load_conf("baseconfig")
+
+DUMP_JSON = conf[ENV]["DUMP_JSON"]
+log_config_key = conf[ENV]["LOG_CONFIG"]
+LOG_CONFIG = load_conf(log_config_key)
+
 # odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
 # ODOO_PROFILE = load_profile(odoo_key)
 

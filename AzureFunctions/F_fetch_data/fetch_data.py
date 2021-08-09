@@ -3,12 +3,13 @@
 from common.spLogging import logger
 from common.extract import get_data
 
-from Connectors import odooRPC, prestashopSQL
+from Connectors import odooRPC, prestashopSQL, azureResourceGraph
 from Connectors.azureSQL import AzureSQLConnector
 
 VALID_SOURCES = {
     'odoo': odooRPC,
-    'prestashop': prestashopSQL
+    'prestashop': prestashopSQL,
+    'azureRG': azureResourceGraph
 }
 
 
