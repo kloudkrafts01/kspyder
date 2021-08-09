@@ -1,10 +1,6 @@
 import os,sys,re
 import yaml
-<<<<<<< HEAD
-from .azure_utils import AZ_SECRETS
-=======
 from .azure_utils import AzureClient
->>>>>>> Dirty start to remove Azure SQL dependencies
 
 AZURE_CLIENT = AzureClient()
 
@@ -64,7 +60,6 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
-<<<<<<< HEAD
 BASE_CONFIG = load_conf('baseconfig')
 ENV = os.environ['KSPYDER_ENVIRONMENT']
 

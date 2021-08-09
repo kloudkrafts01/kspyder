@@ -8,7 +8,7 @@ class AzureClient:
     def __init__(self):
         self.credential = DefaultAzureCredential()
 
-# # Azure Key Vault config
+# Azure Key Vault config
 # AZURE_VAULT_NAME = os.environ['AZURE_VAULT_NAME']
 
 # class AzureVaultClient(AzureClient):
