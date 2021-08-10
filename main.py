@@ -1,5 +1,6 @@
 #!python3
 
+from common.mongo_connector import MongoDBConnector
 import json
 import argparse
 import logging
@@ -99,6 +100,11 @@ def insert_to_azure():
     
     azconn = AzureSQLConnector.load_default()
     azconn.insert_from_jsonfile(input_file)
+
+def insert_to_mongo():
+
+    mgconn = MongoDBConnector()
+    mgconn.insert_from_jsonfile(input_file)
 
 def expand():
 
