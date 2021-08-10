@@ -41,3 +41,20 @@ NetworkSecurityGroupRules:
         properties:
             dbname: properties
             type: Object
+
+VirtualMachines:
+    base_name: Microsoft.Compute/VirtualMachines
+    fields:
+        name: 
+            dbname: name
+            type: String(255)
+            primary_key: true
+        tags:
+            dbname: tags
+            type: String(255)
+        location:
+            dbname: location
+            type: String(255)
+        properties:
+            dbname: properties
+            type: Object

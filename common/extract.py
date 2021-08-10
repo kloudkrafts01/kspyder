@@ -16,7 +16,7 @@ def get_data(connector,model_name,last_days=DEFAULT_TIMESPAN):
         logger.info("UTC start datetime is {}".format(yesterday))
         sd += [connector.UPD_FIELD_NAME,'>=',yesterday],
 
-    dataset = fetch_dataset(connector,model_name,search_domains=sd)
+    count, dataset = fetch_dataset(connector,model_name,search_domains=sd)
 
     if dataset == []:
         logger.info('no results were found.')
@@ -24,7 +24,8 @@ def get_data(connector,model_name,last_days=DEFAULT_TIMESPAN):
     full_dataset = {
         'header': {
             'schema': connector.SCHEMA_NAME,
-            'model': model_name
+            'model': model_name,
+            'count': count
         },
         'data': dataset
     }
@@ -60,7 +61,7 @@ def fetch_dataset(connector,model_name,search_domains=[]):
                     logger.error(traceback.format_exc())
                     continue
     
-    return output_rows
+    return total_count,output_rows
 
 def batch_fetch(connector,client,model,search_domains=[],start_row=0,batch_size=None):
 
