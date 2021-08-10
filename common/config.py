@@ -70,6 +70,7 @@ if 'PAGE_SIZE' in BASE_CONFIG[ENV].keys():
     PAGE_SIZE = BASE_CONFIG[ENV]['PAGE_SIZE']
 
 CONNECTOR_MAP = BASE_CONFIG['CONNECTOR_MAP']
+APP_NAME = BASE_CONFIG['APP_NAME']
 
 # Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
 DUMP_JSON = BASE_CONFIG[ENV]['DUMP_JSON']
