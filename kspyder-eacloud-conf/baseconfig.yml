@@ -1,5 +1,6 @@
 DEFAULT_TIMESPAN: 1
 PAGE_SIZE: 300
+APP_NAME: eacloud
 
 CONNECTOR_MAP:
   azureRG: azureResourceGraph

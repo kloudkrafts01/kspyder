@@ -1,0 +1,11 @@
+VM_Sizings:
+    collection: VirtualMachines
+    operations:
+      project:
+          name: name
+          env: tags.Environment
+          location: location
+          app: tags.Application
+          app_details: tags.Application_details
+          workload: tags.Workload
+          SKU: properties.hardwareProfile.vmSize

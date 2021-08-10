@@ -66,6 +66,7 @@ conf = load_conf("baseconfig")
 DEFAULT_TIMESPAN = conf["DEFAULT_TIMESPAN"]
 CONNECTOR_MAP = conf["CONNECTOR_MAP"]
 PAGE_SIZE = conf["PAGE_SIZE"]
+APP_NAME = conf["APP_NAME"]
 
 DUMP_JSON = conf[ENV]["DUMP_JSON"]
 log_config_key = conf[ENV]["LOG_CONFIG"]

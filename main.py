@@ -74,6 +74,10 @@ def insert_to_mongo():
     mgconn = MongoDBConnector()
     mgconn.insert_from_jsonfile(input_file)
 
+def pass_mongo_queries():
+    mgconn = MongoDBConnector()
+    mgconn.execute_queries()
+
 def expand():
 
     result = extend_data.main(params)
