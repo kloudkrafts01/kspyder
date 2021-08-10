@@ -50,11 +50,11 @@ def fetch_dataset(connector,model_name,search_domains=[]):
         for results in ex_iter:
 
             for row in results:
-                logger.debug('raw item: {}'.format(row))
+                # logger.debug('raw item: {}'.format(row))
                 try:
                     # cleaning and formatting the item for the dataset
                     new_row = connector.forge_item(row,model)
-                    logger.debug("forged item : {}".format(new_row))
+                    # logger.debug("forged item : {}".format(new_row))
                     output_rows += new_row,
 
                 except Exception as ie:

@@ -6,5 +6,11 @@ temp/*
 .python_packages
 .venv
 .vscode
-log/**
+log/*
 local_only/*
+**.tfvars
+**.tfstate
+**/state.json
+bash_profile
+sp_data.json
+.idea

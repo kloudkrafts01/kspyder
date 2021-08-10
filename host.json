@@ -12,10 +12,10 @@
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[2.*, 3.0.0)"
   },
-  "functionTimeout": "02:00:00",
+  "functionTimeout": "06:00:00",
   "extensions": {
     "durableTask": {
-      "hubName": "%BGSPYDER_ENVIRONMENT%"
+      "hubName": "%KSPYDER_ENVIRONMENT%"
     }
   }
 }

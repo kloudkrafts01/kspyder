@@ -5,8 +5,8 @@ from .azure_utils import AzureClient
 AZURE_CLIENT = AzureClient()
 
 # default number of days' history to be fetched and page size for source queries
-DEFAULT_TIMESPAN = 1
-PAGE_SIZE = 500
+# DEFAULT_TIMESPAN = 1
+# PAGE_SIZE = 500
 
 # specify which config you want to apply. The config files will be looked up in th 'CONF_${USE_CONFIG}' folder.
 USE_CONFIG = os.environ["KSPYDER_CONF"]
