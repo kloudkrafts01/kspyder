@@ -60,22 +60,19 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
-BASE_CONFIG = load_conf('baseconfig')
-ENV = os.environ['KSPYDER_ENVIRONMENT']
+ENV = os.environ["KSPYDER_ENVIRONMENT"]
+conf = load_conf("baseconfig")
 
-# Set global, environment-independant variables
-DEFAULT_TIMESPAN = BASE_CONFIG['DEFAULT_TIMESPAN']
-PAGE_SIZE = BASE_CONFIG['PAGE_SIZE']
-if 'PAGE_SIZE' in BASE_CONFIG[ENV].keys():
-    PAGE_SIZE = BASE_CONFIG[ENV]['PAGE_SIZE']
+DEFAULT_TIMESPAN = conf["DEFAULT_TIMESPAN"]
+CONNECTOR_MAP = conf["CONNECTOR_MAP"]
+PAGE_SIZE = conf["PAGE_SIZE"]
+APP_NAME = conf["APP_NAME"]
 
 CONNECTOR_MAP = BASE_CONFIG['CONNECTOR_MAP']
 APP_NAME = BASE_CONFIG['APP_NAME']
 
-# Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
-DUMP_JSON = BASE_CONFIG[ENV]['DUMP_JSON']
-log_key = BASE_CONFIG[ENV]['LOG_CONFIG']
-LOG_CONFIG = load_conf(log_key)
+# odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
+# ODOO_PROFILE = load_profile(odoo_key)
 
 # odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
 # ODOO_PROFILE = load_profile(odoo_key)

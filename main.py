@@ -49,7 +49,7 @@ def build_db():
 def destroy_db():
 
     azconn = AzureSQLConnector.load_default()
-    azconn.delete_db(schema=source)
+    azconn.delete_db(schema_name=source)
 
 def extract():
 
