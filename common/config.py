@@ -63,6 +63,10 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 ENV = os.environ["KSPYDER_ENVIRONMENT"]
 conf = load_conf("baseconfig")
 
+DEFAULT_TIMESPAN = conf["DEFAULT_TIMESPAN"]
+CONNECTOR_MAP = conf["CONNECTOR_MAP"]
+PAGE_SIZE = conf["PAGE_SIZE"]
+
 DUMP_JSON = conf[ENV]["DUMP_JSON"]
 log_config_key = conf[ENV]["LOG_CONFIG"]
 LOG_CONFIG = load_conf(log_config_key)

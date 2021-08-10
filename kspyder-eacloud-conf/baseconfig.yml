@@ -4,7 +4,6 @@ PAGE_SIZE: 300
 CONNECTOR_MAP:
   azureRG: azureResourceGraph
 
-
 local:
   DUMP_JSON: true
   LOG_CONFIG: logging_verbose

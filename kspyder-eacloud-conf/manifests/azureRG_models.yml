@@ -29,19 +29,7 @@ NetworkSecurityGroups:
         properties:
             dbname: properties
             type: Object
-
         
-NetworkSecurityGroupRules:
-    base_name: Microsoft.Network/networkSecurityGroups/securityRules
-    fields:
-        name:
-            dbname: name
-            type: String(255)
-            primary_key: true
-        properties:
-            dbname: properties
-            type: Object
-
 VirtualMachines:
     base_name: Microsoft.Compute/VirtualMachines
     fields:
