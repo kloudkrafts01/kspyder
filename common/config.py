@@ -37,8 +37,9 @@ def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
 
     with open(profilepath,'r') as conf:
         profile = yaml.full_load(conf)[profile]
-        password = secrets.get_secret(profile['secretkey']).value
-        profile['password'] = password
+        if 'secretkey' in profile.keys():
+            password = secrets.get_secret(profile['secretkey']).value
+            profile['password'] = password
 
     return profile
 
@@ -70,6 +71,9 @@ APP_NAME = conf["APP_NAME"]
 
 CONNECTOR_MAP = BASE_CONFIG['CONNECTOR_MAP']
 APP_NAME = BASE_CONFIG['APP_NAME']
+
+azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
+AZ_PRICING_PROFILE = load_profile(azprice_key)
 
 # odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
 # ODOO_PROFILE = load_profile(odoo_key)

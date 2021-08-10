@@ -9,6 +9,10 @@ Azure_EA_RO:
     dbtype: azure_api
     username: azure_client
 
+Azure_Pricing:
+    dbtype: rest_api
+    url: https://prices.azure.com/api/retail/prices
+
 PLACEHOLDER_PROFILE:
     dbtype: stub
     url: http://localhost
