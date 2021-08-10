@@ -1,6 +1,5 @@
 #!python3
 
-from common.mongo_connector import MongoDBConnector
 import json
 import argparse
 from importlib import import_module
@@ -9,7 +8,9 @@ from common.extract import get_data
 from common.config import CONNECTOR_MAP, DEFAULT_TIMESPAN
 from common.spLogging import logger
 
+from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
+
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
@@ -52,13 +53,16 @@ def destroy_db():
 
 def extract():
 
-    logger.info("Extracting schema: {} - models: {}".format(source,model_name))
-    
     connector = import_module(CONNECTOR_MAP[source])
-    for model_name in models:
-        jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
+
+    full_results = []
     
-    return jsonpath,dataset
+    for model_name in models:
+        logger.info("Extracting schema: {} - models: {}".format(source,model_name))
+        jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
+        full_results += {'jsonpath': jsonpath, 'dataset': dataset},
+    
+    return full_results
 
 def insert_to_azure():
     
@@ -69,6 +73,10 @@ def insert_to_mongo():
 
     mgconn = MongoDBConnector()
     mgconn.insert_from_jsonfile(input_file)
+
+def pass_mongo_queries():
+    mgconn = MongoDBConnector()
+    mgconn.execute_queries()
 
 def expand():
 
