@@ -62,15 +62,16 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
     return conf_dict
 
 ENV = os.environ["KSPYDER_ENVIRONMENT"]
-conf = load_conf("baseconfig")
+BASE_CONFIG = load_conf("baseconfig")
 
-DEFAULT_TIMESPAN = conf["DEFAULT_TIMESPAN"]
-CONNECTOR_MAP = conf["CONNECTOR_MAP"]
-PAGE_SIZE = conf["PAGE_SIZE"]
-APP_NAME = conf["APP_NAME"]
+DEFAULT_TIMESPAN = BASE_CONFIG["DEFAULT_TIMESPAN"]
+CONNECTOR_MAP = BASE_CONFIG["CONNECTOR_MAP"]
+PAGE_SIZE = BASE_CONFIG["PAGE_SIZE"]
+APP_NAME = BASE_CONFIG["APP_NAME"]
 
-CONNECTOR_MAP = BASE_CONFIG['CONNECTOR_MAP']
-APP_NAME = BASE_CONFIG['APP_NAME']
+DUMP_JSON = BASE_CONFIG[ENV]["DUMP_JSON"]
+log_config_key = BASE_CONFIG[ENV]["LOG_CONFIG"]
+LOG_CONFIG = load_conf(log_config_key)
 
 azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
 AZ_PRICING_PROFILE = load_profile(azprice_key)

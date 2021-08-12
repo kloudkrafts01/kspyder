@@ -3,7 +3,8 @@ from Connectors.azureResourceGraph import read_query
 import json
 from pymongo import MongoClient
 
-from common.config import APP_NAME, load_conf
+from common.config import APP_NAME, DUMP_JSON, load_conf
+from common.utils import json_dump
 from common.spLogging import logger
 
 MONGO_QUERIES = load_conf("mongodb_queries",subfolder="manifests")
@@ -40,19 +41,24 @@ class MongoDBConnector():
     def execute_queries(self):
 
         for query_name,query_conf in MONGO_QUERIES.items():
-            logger.info("Preparing Mongo Query: {}".format(query_conf))
-            result = self.read_query(query_conf)
+            logger.info("Preparing Mongo Query {}: {}".format(query_name,query_conf))
+            results = self.read_query(query_conf)
+            results_list = list(results)
+
+            logger.debug(results_list)
+
+            if DUMP_JSON:
+                json_dump(results_list,APP_NAME,query_name)
     
     def read_query(self,query_conf):
 
+        results_list = []
         model_name, queryPipeline = build_mongo_query(query_conf)
         collection = self.db[model_name]
 
         logger.info("Executing mongo Query on Collection {}: {}".format(model_name,queryPipeline))
 
         results = collection.aggregate(queryPipeline)
-        for result in results:
-            logger.debug(result)
 
         return results
 
@@ -63,14 +69,6 @@ def build_mongo_query(query_conf):
 
     for operation_name,operation in query_conf['operations'].items():
         
-        opsKey = '${}'.format(operation_name)
-        logger.debug("opsKey: {}".format(opsKey))
-        logger.debug("operation: {}".format(operation))
-        opsDict = {}
-
-        for key,name in operation.items():
-            opsDict[key] = '${}'.format(name)
-
-        queryPipeline += {opsKey: opsDict},
+        queryPipeline += {operation_name: operation},
 
     return model_name, queryPipeline

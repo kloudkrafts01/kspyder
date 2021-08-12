@@ -1,11 +1,25 @@
 VM_Sizings:
     collection: VirtualMachines
     operations:
-      project:
-          name: name
-          env: tags.Environment
-          location: location
-          app: tags.Application
-          app_details: tags.Application_details
-          workload: tags.Workload
-          SKU: properties.hardwareProfile.vmSize
+      $project:
+          name: $name
+          env: $tags.Environment
+          location: $location
+          app: $tags.Application
+          app_details: $tags.Application_details
+          workload: $tags.Workload
+          SKU: $properties.hardwareProfile.vmSize
+
+VM_Sizings_myWizard:
+    collection: VirtualMachines
+    operations:
+      $match:
+        tags.Application: MyWizard
+      $project:
+          name: $name
+          env: $tags.Environment
+          location: $location
+          app: $tags.Application
+          app_details: $tags.Application_details
+          workload: $tags.Workload
+          SKU: $properties.hardwareProfile.vmSize
