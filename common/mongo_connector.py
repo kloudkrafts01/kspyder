@@ -25,7 +25,6 @@ class MongoDBConnector():
 
         logger.info("Inserting dataset to Mongo Collection: {}".format(model_name))
 
-        # db = self.client[APP_NAME]
         collection = self.db[model_name]
         result = collection.insert_many(data)
 
@@ -38,9 +37,17 @@ class MongoDBConnector():
                 json_data = json.load(jf)
                 self.insert_dataset(json_data)
 
-    def execute_queries(self):
+    def execute_queries(self, query_names=None):
+        
+        queries = {}
+        
+        #extracting a subset of the MONGO_QUERIES dicitonary if query names were explicitly provided
+        if query_names:
+            queries = {query_name: MONGO_QUERIES[query_name] for query_name in set(query_names)}
+        else:
+            queries = MONGO_QUERIES
 
-        for query_name,query_conf in MONGO_QUERIES.items():
+        for query_name,query_conf in queries.items():
             logger.info("Preparing Mongo Query {}: {}".format(query_name,query_conf))
             results = self.read_query(query_conf)
             results_list = list(results)

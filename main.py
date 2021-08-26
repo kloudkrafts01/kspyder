@@ -76,7 +76,7 @@ def insert_to_mongo():
 
 def pass_mongo_queries():
     mgconn = MongoDBConnector()
-    mgconn.execute_queries()
+    mgconn.execute_queries(query_names=models)
 
 def expand():
 
