@@ -5,6 +5,11 @@ from .utils import json_dump
 from .config import DEFAULT_TIMESPAN, DUMP_JSON
 from .spLogging import logger
 
+class GenericExtractor():
+
+    def __init__(self,model_name):
+        self.model_name = model_name
+
 def get_data(connector,model_name,last_days=DEFAULT_TIMESPAN):
 
     sd = []
