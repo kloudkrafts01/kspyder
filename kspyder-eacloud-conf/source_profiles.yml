@@ -1,10 +1,3 @@
-Odoo_PREPROD:
-    dbtype: odoo_rpc
-    url: https://preprod.erp.bngl.fr
-    dbname: archive
-    username: alexandre.mougel@bonnegueule.fr
-    secretkey: odoo-amougel
-
 Azure_EA_RO:
     dbtype: azure_api
     username: azure_client
