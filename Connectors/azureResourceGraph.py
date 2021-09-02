@@ -1,5 +1,6 @@
 #!python3
 
+from common.extract import GenericExtractor
 import os
 
 from azure.mgmt.resourcegraph import ResourceGraphClient
@@ -8,88 +9,96 @@ from azure.mgmt.resourcegraph.models import QueryRequest
 from common.config import AZURE_CLIENT, PAGE_SIZE, load_conf
 from common.spLogging import logger
 
-MODELS = load_conf('azureRG_models', subfolder='manifests')
-# UNPACKING = MODELS.pop('_UnpackingFields')
-MODELS_LIST = list(MODELS.keys())
+DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
+
+CONF = load_conf('azureRG_models', subfolder='manifests')
 
 # mandatory connector config
-SCHEMA_NAME = 'azureRG'
-UPD_FIELD_NAME = 'write_date'
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
-class AzureRGcontext:
+MODELS = CONF['Models']
+MODELS_LIST = list(MODELS.keys())
+UNPACKING = CONF['UnpackingFields']
 
-    def __init__(self, subscription_id):
+# class AzureRGcontext:
+
+#     def __init__(self, subscription_id):
+#         self.subscription_id = subscription_id
+#         self.connection = ResourceGraphClient(
+#             credential=AZURE_CLIENT.credential,
+#             subscription_id=subscription_id
+#         )
+
+class AzureRGConnector(GenericExtractor):
+
+    def __init__(self, subscription_id=DEFAULT_SCOPE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+        
         self.subscription_id = subscription_id
-        self.connection = ResourceGraphClient(
+        self.client = ResourceGraphClient(
             credential=AZURE_CLIENT.credential,
             subscription_id=subscription_id
         )
+        self.schema = schema
+        self.models = models
+        self.update_field = update_field
 
-def get_client(model_name):
+    def get_count(self, model, search_domains=[]):
 
-    # If "SUBSCRIPTION_ID" is not set in the environment variable, you need to set it manually: export SUBSCRIPTION_ID="{SUBSCRIPTION_ID}"
-    SUBSCRIPTION_ID = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
+        queryStr = self.forge_query(model, count=True)
 
-    client = AzureRGcontext(SUBSCRIPTION_ID)
-    model = MODELS[model_name]
+        query = QueryRequest(
+                query=queryStr,
+                subscriptions = [self.subscription_id]
+            )
+        query_response = self.client.resources(query)
 
-    return client, model
+        total_count = query_response.data[0]['Count']
 
-def get_count(client, model, search_domains=[]):
+        return total_count
 
-    queryStr = forge_query(model, count=True)
+    def read_query(self,model,search_domains=[],start_row=0):
 
-    query = QueryRequest(
-            query=queryStr,
-            subscriptions = [client.subscription_id]
-        )
-    query_response = client.connection.resources(query)
+        queryStr = self.forge_query(model)
+        
+        query = QueryRequest(
+                query=queryStr,
+                subscriptions = [self.subscription_id]
+            )
+        query_response = self.client.resources(query)
+        print("Basic query :\n{}".format(query_response))
 
-    total_count = query_response.data[0]['Count']
-
-    return total_count
-
-def read_query(client,model,search_domains=[],start_row=0):
-
-    queryStr = forge_query(model)
-    
-    query = QueryRequest(
-            query=queryStr,
-            subscriptions = [client.subscription_id]
-        )
-    query_response = client.connection.resources(query)
-    print("Basic query :\n{}".format(query_response))
-
-    return query_response.data
+        return query_response.data
 
 
-def forge_query(model, page_size=PAGE_SIZE, count=False):
+    def forge_query(self, model, page_size=PAGE_SIZE, count=False):
 
-    class_scope = None
-    if 'class' in model.keys():
-        class_scope = model['class']
-    else:
-        class_scope = 'Resources'
+        class_scope = None
+        if 'class' in model.keys():
+            class_scope = model['class']
+        else:
+            class_scope = 'Resources'
 
-    base_name = model['base_name']
-    fieldnames = ''
-    for key in model['fields'].keys():
-        fieldnames += key + ","
-    #remove trailing comma
-    fieldnames = fieldnames[0:-1]
+        base_name = model['base_name']
+        fieldnames = ''
+        for key in model['fields'].keys():
+            fieldnames += key + ","
+        #remove trailing comma
+        fieldnames = fieldnames[0:-1]
 
-    queryStr = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
-    if count:
-        queryStr += " | count"
-    else:
-        queryStr += " | limit {}".format(page_size)
+        queryStr = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
+        if count:
+            queryStr += " | count"
+        else:
+            queryStr += " | limit {}".format(page_size)
 
-    logger.debug("QUERY STR : {}".format(queryStr))
+        logger.debug("QUERY STR : {}".format(queryStr))
 
-    return queryStr
+        return queryStr
 
-def forge_item(input_dict,model):
-    '''TODO function to forge outputs from Azure Resource Graph API'''
+    def forge_item(self,input_dict,model):
+        '''TODO function to forge outputs from Azure Resource Graph API'''
 
-    return input_dict
+        return input_dict
 

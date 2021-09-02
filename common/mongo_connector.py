@@ -1,9 +1,9 @@
 from sqlalchemy.orm import query_expression
-from Connectors.azureResourceGraph import SCHEMA_NAME, read_query
+from Connectors.azureResourceGraph import SCHEMA_NAME
 import json
 from pymongo import MongoClient
 
-from common.config import APP_NAME, DUMP_JSON, DUMP_CSV, load_conf
+from common.config import APP_NAME, DUMP_JSON, load_conf
 from common.utils import json_dump, csv_dump
 from common.spLogging import logger
 

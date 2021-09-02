@@ -3,8 +3,9 @@
 import os
 import json, csv, datetime
 from bson import ObjectId
+from importlib import import_module
 
-from .config import TEMP_FOLDER
+from .config import TEMP_FOLDER,CONNECTOR_MAP
 
 class bJSONEncoder(json.JSONEncoder):
 
@@ -48,3 +49,17 @@ def csv_dump(dictData,schema,name):
 
     return filepath
 
+def get_client(source):
+
+    # get the names from config
+    connector_name = CONNECTOR_MAP[source]['connector']
+    client_name = CONNECTOR_MAP[source]['client']
+
+    # import the right connector
+    connector = import_module(connector_name)
+
+    # instantiate a connector client
+    client_class = getattr(connector,client_name)
+    client = client_class()
+
+    return client

@@ -2,11 +2,10 @@
 
 import json
 import argparse
-from importlib import import_module
 
-from common.extract import get_data
-from common.config import CONNECTOR_MAP, DEFAULT_TIMESPAN
+from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
+from common.utils import get_client
 
 from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
@@ -53,13 +52,21 @@ def destroy_db():
 
 def extract():
 
-    connector = import_module(CONNECTOR_MAP[source])
+    # # import the right connector
+    # package_name = 'Connectors.{}'.format(CONNECTOR_MAP[source]['package'])
+    # connector_name = CONNECTOR_MAP[source]['connector']
+    # connector = import_module(connector_name, package_name)
+
+    # # instantiate a connector client
+    # client = getattr(connector,connector_name)
+
+    client = get_client(source)
 
     full_results = []
     
     for model_name in models:
-        logger.info("Extracting schema: {} - models: {}".format(source,model_name))
-        jsonpath,dataset = get_data(connector,model_name,last_days=params['last_days'])
+        logger.info("Extracting schema: {} - model: {}".format(source,model_name))
+        jsonpath,dataset = client.get_data(model_name,last_days=params['last_days'])
         full_results += {'jsonpath': jsonpath, 'dataset': dataset},
     
     return full_results

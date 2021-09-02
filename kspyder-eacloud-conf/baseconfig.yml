@@ -3,7 +3,9 @@ PAGE_SIZE: 300
 APP_NAME: eacloud
 
 CONNECTOR_MAP:
-  azureRG: azureResourceGraph
+  azureRG: 
+    connector: azureResourceGraph
+    client: AzureRGConnector
   mongoDB: mongoDB
 
 local:

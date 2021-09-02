@@ -4,17 +4,17 @@ import traceback
 from importlib import import_module
 
 from common.spLogging import logger
-from common.extract import get_data
+from common.utils import get_client
 from common.config import CONNECTOR_MAP
 
-from Connectors import odooRPC, prestashopSQL, azureResourceGraph
+# from Connectors import odooRPC, prestashopSQL, azureResourceGraph
 from Connectors.azureSQL import AzureSQLConnector
 
-VALID_SOURCES = {
-    'odoo': odooRPC,
-    'prestashop': prestashopSQL,
-    'azureRG': azureResourceGraph
-}
+# VALID_SOURCES = {
+#     'odoo': odooRPC,
+#     'prestashop': prestashopSQL,
+#     'azureRG': azureResourceGraph
+# }
 
 
 def main(params: dict) -> dict:
@@ -32,9 +32,11 @@ def main(params: dict) -> dict:
         initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(trigger,source,models,last_days)
         logger.info(initStr)
 
+        client = get_client(source)
+
         for model_name in models:
             logger.info('Extracting data from Model: {}'.format(model_name))
-            jsonpath,dataset = get_data(source,model_name,last_days=last_days)
+            jsonpath,dataset = client.get_data(model_name,last_days=last_days)
             # push to Azure SQL
             result = azconn.insert_dataset(dataset)
             results[model_name] = result
