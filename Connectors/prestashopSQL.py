@@ -1,5 +1,6 @@
 #!python3
 
+from common.extract import GenericExtractor
 import datetime,decimal
 
 import common.sql_connector as sc
@@ -9,119 +10,125 @@ from common.spLogging import logger
 MODELS = load_conf('ps_models', subfolder='manifests')
 
 MODELS_LIST = list(MODELS.keys())
+
+# Load the Connector's config
+CONF = load_conf('ps_models', subfolder='manifests')
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+UNPACKING = CONF['UnpackingFields']
+MODELS = CONF['Models']
+
+MODELS_LIST = list(MODELS.keys())
 MODELS_TO_UPDATE = list(x for x in MODELS.keys() if MODELS[x]['update'])
 CATALOGS = list(x for x in MODELS.keys() if MODELS[x]['update'] is False)
-UNPACKING = {}
 
-SCHEMA_NAME = 'prestashop'
-UPD_FIELD_NAME = 'date_upd'
+class prestashopSQLExtractor(GenericExtractor):
+        
+    def __init__(self, profile=PS_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 
+        presta_conn = sc.GenericSQLConnector.from_profile(profile)
+        self.client = presta_conn.engine.connect()
 
-def get_client(model_name):
+        self.schema = schema
+        self.model = models
+        self.update_field = update_field
 
-    presta_conn = sc.GenericSQLConnector.from_profile(PS_PROFILE)
-    client = presta_conn.engine.connect()
+    def get_count(self, model, search_domains=[]):
 
-    model = MODELS[model_name]
+        countStr = 'SELECT COUNT(*)' + self.build_domain_query( model, search_domains=search_domains )
+        logger.debug('Applying count query string: {}'.format(countStr))
+        total_count = self.client.execute(countStr).fetchone()[0]
 
-    return client, model
+        return total_count
 
-def get_count(client, model, search_domains=[]):
+    def read_query(self,model,search_domains=[],start_row=None):
 
-    countStr = 'SELECT COUNT(*)' + build_domain_query( model, search_domains=search_domains )
-    logger.debug('Applying count query string: {}'.format(countStr))
-    total_count = client.execute(countStr).fetchone()[0]
+        queryStr = self.build_read_query( model, search_domains=search_domains, offset=start_row )
+        logger.debug('Applying the following queryStr: {}'.format(queryStr))
+        results = self.client.execute(queryStr).fetchall()
 
-    return total_count
+        return results
 
+    def build_read_query(self, model, search_domains=[], offset=None, limit=PAGE_SIZE):
 
-def read_query(client,model,search_domains=[],start_row=None):
+        # table_name = model['ps_table']
+        fields = model['fields']
 
-    queryStr = build_read_query( model, search_domains=search_domains, offset=start_row )
-    logger.debug('Applying the following queryStr: {}'.format(queryStr))
-    results = client.execute(queryStr).fetchall()
+        # building the first part of the 'read' query
+        queryStr = 'SELECT '
+        for fieldname,value in fields.items():
+            queryStr += "c.{}, ".format(fieldname)
+        # remove the last trailing comma and space
+        queryStr = queryStr[0:-2]
 
-    return results
+        queryStr += self.build_domain_query(model, search_domains=search_domains, offset=offset, limit=limit)
 
-def build_read_query(model, search_domains=[], offset=None, limit=PAGE_SIZE):
+        return queryStr
 
-    # table_name = model['ps_table']
-    fields = model['fields']
+    def build_domain_query(self, model, search_domains=[], offset=None, limit=None):
 
-    # building the first part of the 'read' query
-    queryStr = 'SELECT '
-    for fieldname,value in fields.items():
-        queryStr += "c.{}, ".format(fieldname)
-    # remove the last trailing comma and space
-    queryStr = queryStr[0:-2]
+        table_name = model['ps_table']
+        order_by = model['order_by']
 
-    queryStr += build_domain_query(model, search_domains=search_domains, offset=offset, limit=limit)
+        # determines if the model has a parent table. 
+        # If yes, then the parent table is the one with the built-in 'date_upd' field that we need to get differential results
+        has_parent = ('parent' in model.keys())
 
-    return queryStr
-
-def build_domain_query(model, search_domains=[], offset=None, limit=None):
-
-    table_name = model['ps_table']
-    order_by = model['order_by']
-
-    # determines if the model has a parent table. 
-    # If yes, then the parent table is the one with the built-in 'date_upd' field that we need to get differential results
-    has_parent = ('parent' in model.keys())
-
-    # building the full name of the table that is to be queried : the table itself or the join with its parent table
-    full_name = "{} as c".format(table_name)
-    if has_parent:
-        parent_table = model['parent']['table']
-        key = model['parent']['key']
-        full_name = "{} as p JOIN {} as c ON p.{}=c.{}".format(
-            parent_table,
-            table_name,
-            key,
-            key
-        )
-    domainStr = ' FROM {}'.format(full_name)
-
-    count = 0
-    if model in MODELS_TO_UPDATE:
-        for domain in search_domains:
-            domainStr += " {} {}.{} {} '{}'".format(
-                ('WHERE' if count==0 else 'AND'),
-                ('p' if has_parent else 'c'),
-                domain[0],
-                domain[1],
-                domain[2]
+        # building the full name of the table that is to be queried : the table itself or the join with its parent table
+        full_name = "{} as c".format(table_name)
+        if has_parent:
+            parent_table = model['parent']['table']
+            key = model['parent']['key']
+            full_name = "{} as p JOIN {} as c ON p.{}=c.{}".format(
+                parent_table,
+                table_name,
+                key,
+                key
             )
+        domainStr = ' FROM {}'.format(full_name)
+
+        count = 0
+        if model in MODELS_TO_UPDATE:
+            for domain in search_domains:
+                domainStr += " {} {}.{} {} '{}'".format(
+                    ('WHERE' if count==0 else 'AND'),
+                    ('p' if has_parent else 'c'),
+                    domain[0],
+                    domain[1],
+                    domain[2]
+                )
+                count += 1
+
+        for key,value in order_by.items():
+            domainStr += ' ORDER BY c.{} {}'.format(key,value)
+
+        if limit:
+            domainStr += ' LIMIT {}'.format(limit)
+
+        if offset:
+            domainStr += ' OFFSET {}'.format(offset)
+        
+        domainStr += ';'
+
+        return domainStr
+
+    def forge_item(self,row,model):
+
+        output = {}
+        count = 0    
+        
+        fields = model['fields']
+
+        for in_fieldname,field in fields.items():
+
+            out_fieldname = field['dbname']
+            field_value = row[count]
+            if isinstance(field_value, (datetime.date, datetime.datetime)):
+                field_value = field_value.isoformat()
+            elif isinstance(field_value, decimal.Decimal):
+                field_value = float(field_value)
+            output[out_fieldname] = field_value
             count += 1
 
-    for key,value in order_by.items():
-        domainStr += ' ORDER BY c.{} {}'.format(key,value)
-
-    if limit:
-        domainStr += ' LIMIT {}'.format(limit)
-
-    if offset:
-        domainStr += ' OFFSET {}'.format(offset)
-    
-    domainStr += ';'
-
-    return domainStr
-
-def forge_item(row,model):
-
-    output = {}
-    count = 0    
-    
-    fields = model['fields']
-
-    for in_fieldname,field in fields.items():
-
-        out_fieldname = field['dbname']
-        field_value = row[count]
-        if isinstance(field_value, (datetime.date, datetime.datetime)):
-            field_value = field_value.isoformat()
-        elif isinstance(field_value, decimal.Decimal):
-            field_value = float(field_value)
-        output[out_fieldname] = field_value
-        count += 1
-
-    return output
+        return output

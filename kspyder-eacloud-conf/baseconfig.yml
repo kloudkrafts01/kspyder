@@ -6,7 +6,16 @@ CONNECTOR_MAP:
   azureRG: 
     connector: azureResourceGraph
     client: AzureRGConnector
-  mongoDB: mongoDB
+  odoo:
+    connector: odooRPC
+    client: OdooRPCConnector
+  prestashop:
+    connector: prestashopSQL
+    client: prestashopSQLExtractor
+  mongoDB: 
+    connector: mongo_connector
+    client: MongoDBConnector
+
 
 local:
   DUMP_JSON: true

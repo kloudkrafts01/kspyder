@@ -1,5 +1,6 @@
 #!python3
 
+from Connectors.azureResourceGraph import CONNECTOR_CONF
 from common.extract import GenericExtractor
 import xmlrpc.client
 import ssl
@@ -8,11 +9,12 @@ from common.config import ODOO_PROFILE, PAGE_SIZE, load_conf
 
 
 # Load the Connector's config
-CONNECTOR_CONF = load_conf('odoo_models', subfolder='manifests')
+CONF = load_conf('odoo_models', subfolder='manifests')
+CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
-UNPACKING = CONNECTOR_CONF['UnpackingFields']
-MODELS = CONNECTOR_CONF['Models']
+UNPACKING = CONF['UnpackingFields']
+MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 
 class OdooClient:
@@ -69,10 +71,10 @@ class OdooClient:
 
 class OdooRPCConnector(GenericExtractor):
 
-    def __init__(self,odoo_profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
+    def __init__(self,profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 
         # instantiate an Odoo XML-RPC client
-        self.client = OdooClient.from_profile(odoo_profile)
+        self.client = OdooClient.from_profile(profile)
 
         self.schema = schema
         self.models = models
@@ -89,7 +91,7 @@ class OdooRPCConnector(GenericExtractor):
         return results
 
 
-    def forge_item(odoo_dict,model):
+    def forge_item(self,odoo_dict,model):
         '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
         The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
 
