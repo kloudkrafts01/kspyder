@@ -1,0 +1,26 @@
+DEFAULT_TIMESPAN: 1
+PAGE_SIZE: 300
+APP_NAME: eacloud
+
+CONNECTOR_MAP:
+  azureRG: 
+    connector: azureResourceGraph
+    client: AzureRGConnector
+  odoo:
+    connector: odooRPC
+    client: OdooRPCConnector
+  prestashop:
+    connector: prestashopSQL
+    client: prestashopSQLExtractor
+  mongoDB: 
+    connector: mongo_connector
+    client: MongoDBConnector
+
+
+local:
+  DUMP_JSON: true
+  LOG_CONFIG: logging_verbose
+  ODOO_PROFILE: PLACEHOLDER_PROFILE
+  PS_PROFILE: PLACEHOLDER_PROFILE
+  AZURE_PROFILE: PLACEHOLDER_PROFILE
+  AZ_PRICING_PROFILE: Azure_Pricing

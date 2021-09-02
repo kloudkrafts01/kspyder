@@ -1,0 +1,12 @@
+{
+  "scriptFile": "db_actions.py",
+  "disabled": false,
+  "bindings": [
+    {
+      "name": "params",
+      "activity": "db_activity",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+    ]
+}

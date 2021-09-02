@@ -1,0 +1,120 @@
+VM_list:
+  collection: VirtualMachines
+  dump_csv: true
+  operations:
+    $project:
+        name: $name
+        env: $tags.Environment
+        location: $location
+        app: $tags.Application
+        app_details: $tags.Application_details
+        workload: $tags.Workload
+        OS: $properties.storageProfile.imageReference.offer
+        OSversion: $properties.storageProfile.imageReference.version
+        SKU: $properties.hardwareProfile.vmSize
+
+# VM_Sizings:
+#   collection: VirtualMachines
+#   operations:
+#     # $sortByCount: $properties.hardwareProfile.vmSize
+#     # $unwind:
+#     #   path: $properties.hardwareProfile
+#     $group:
+#       _id: $propertes.hardwareProfile.vmSize
+#       env:
+#         $first: $tags.Environment
+#       app:
+#         $first: $tags.Application
+#     $sortByCount: 
+#       $mergeObjects: 
+#         - $env
+#         - $app
+#         - $properties.hardwareProfile.vmSize
+
+      
+VM_OSDisk_Sizing:
+  collection: VirtualMachines
+  dump_csv: true
+  operations:
+    $project:
+      vm_name: $name
+      env: $tags.Environment
+      location: $location
+      app: $tags.Application
+      app_details: $tags.Application_details
+      workload: $tags.Workload
+      osdisk_size: $properties.storageProfile.osDisk.diskSizeGB
+    # $set:
+    #   osdisk_size: $os_disk.diskSizeGB
+    # $unset:
+    #   - os_disk
+    # $unwind:
+    #   path: $data_disks
+    # $group:
+    #   _id: $vm_name
+    #   app:
+    #     $first: $app
+    #   osdisk_size:
+    #     $first: $osdisk_size
+    #   data_disk_size:
+    #     $sum: $data_disk.diskSizeGB
+    # $set:
+    #   vm_name: $_id
+    # $unset:
+    #   - _id
+
+VM_DataDisk_Sizing:
+  collection: VirtualMachines
+  dump_csv: true
+  operations:
+    $project:
+      vm_name: $name
+      env: $tags.Environment
+      location: $location
+      app: $tags.Application
+      app_details: $tags.Application_details
+      workload: $tags.Workload
+      data_disks: $properties.storageProfile.dataDisks
+    $unwind:
+      path: $data_disks
+    $group:
+      _id: $vm_name
+      env:
+        $first: $env
+      app:
+        $first: $app
+      app_details:
+        $first: $app_details
+      data_disk_size:
+        $sum: $data_disks.diskSizeGB
+    $set:
+      vm_name: $_id
+    $unset:
+      - _id
+    
+
+NSG_Rules:
+  collection: NetworkSecurityGroups
+  dump_csv: false 
+  operations:
+    $unwind:
+      path: $properties.securityRules
+    $project:
+      NSG: $name
+      rule_id: $properties.securityRules.id
+      rule: $properties.securityRules.name
+      protocol: $properties.securityRules.properties.protocol
+      source_prefix: $properties.securityRules.properties.sourceAddressPrefix
+      source_ports: $properties.securityRules.properties.sourcePortRange
+      source_ASG: $properties.securityRules.sourceApplicationSecurityGroups.id
+      dest_prefix: $properties.securityRules.properties.destinationAddressPrefix
+      dest_ports: $properties.securityRules.properties.destinationPortRange
+      dest_ASG: $properties.securityRules.properties.destinationApplicationSecurityGroups.id
+      direction: $properties.securityRules.properties.direction
+      priority: $properties.securityRules.properties.priority
+      access: $properties.securityRules.properties.access
+    $sort:
+      rule: 1
+    # $unwind:
+    #   path: $dest_ASG
+ 

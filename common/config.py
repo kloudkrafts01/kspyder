@@ -1,11 +1,12 @@
 import os,sys,re
 import yaml
-from AzureFunctions.azure_utils import AZ_SECRETS
+from .azure_utils import AzureClient
 
+AZURE_CLIENT = AzureClient()
 
 # default number of days' history to be fetched and page size for source queries
-DEFAULT_TIMESPAN = 1
-PAGE_SIZE = 500
+# DEFAULT_TIMESPAN = 1
+# PAGE_SIZE = 500
 
 # specify which config you want to apply. The config files will be looked up in th 'CONF_${USE_CONFIG}' folder.
 USE_CONFIG = os.environ["KSPYDER_CONF"]
@@ -31,13 +32,14 @@ sys.path.insert(0,LOG_FOLDER)
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
 
-def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=AZ_SECRETS):
+def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
     """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
     with open(profilepath,'r') as conf:
         profile = yaml.full_load(conf)[profile]
-        password = secrets.get_secret(profile['secretkey']).value
-        profile['password'] = password
+        if 'secretkey' in profile.keys():
+            password = secrets.get_secret(profile['secretkey']).value
+            profile['password'] = password
 
     return profile
 
@@ -59,37 +61,42 @@ def load_conf(name,folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
+ENV = os.environ["KSPYDER_ENVIRONMENT"]
+BASE_CONFIG = load_conf("baseconfig")
 
-# Sets the global variables depending on the environment : Local dev machine, Dev/test cloud environment, or PROD cloud environment
-if os.environ['KSPYDER_ENVIRONMENT'] == 'local':
+DEFAULT_TIMESPAN = BASE_CONFIG["DEFAULT_TIMESPAN"]
+CONNECTOR_MAP = BASE_CONFIG["CONNECTOR_MAP"]
+PAGE_SIZE = BASE_CONFIG["PAGE_SIZE"]
+APP_NAME = BASE_CONFIG["APP_NAME"]
 
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = True
-    
-    LOG_CONFIG = load_conf('logging_verbose')
+DUMP_JSON = BASE_CONFIG[ENV]["DUMP_JSON"]
+# DUMP_CSV = BASE_CONFIG[ENV]["DUMP_CSV"]
+log_config_key = BASE_CONFIG[ENV]["LOG_CONFIG"]
+LOG_CONFIG = load_conf(log_config_key)
 
-    ODOO_PROFILE = load_profile('Odoo_PREPROD')
-    PS_PROFILE = load_profile('Prestashop_STAGING')
-    AZURE_PROFILE = load_profile('Azure_SQL_DEV')
+azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
+AZ_PRICING_PROFILE = load_profile(azprice_key)
 
-if os.environ['KSPYDER_ENVIRONMENT'] == 'dev':
+# odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
+# ODOO_PROFILE = load_profile(odoo_key)
 
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = False
-    
-    LOG_CONFIG = load_conf('logging')
+# odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
+# ODOO_PROFILE = load_profile(odoo_key)
 
-    ODOO_PROFILE = load_profile('Odoo_PREPROD')
-    PS_PROFILE = load_profile('Prestashop_STAGING')
-    AZURE_PROFILE = load_profile('Azure_SQL_DEV')
+# ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
+# PS_PROFILE = load_profile(ps_key)
 
-if os.environ['KSPYDER_ENVIRONMENT'] == 'prod':
+# azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
+# AZURE_PROFILE = load_profile(azure_key)
 
-    # if 'True', dataset artifacts will be saved locally as JSON
-    DUMP_JSON = False
+PLACEHOLDER_PROFILE = {
+    'dbtype': 'stub',
+    'url': 'http://localhost',
+    'dbname': 'stub',
+    'username': 'stub_user',
+    'password': 'blah'
+}
 
-    LOG_CONFIG = load_conf('logging')
-
-    ODOO_PROFILE = load_profile('Odoo_PROD')
-    PS_PROFILE = load_profile('Prestashop_PROD')
-    AZURE_PROFILE = load_profile('Azure_SQL_PROD')
+ODOO_PROFILE = PLACEHOLDER_PROFILE
+PS_PROFILE = PLACEHOLDER_PROFILE
+AZURE_PROFILE = PLACEHOLDER_PROFILE

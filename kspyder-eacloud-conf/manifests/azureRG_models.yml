@@ -1,0 +1,107 @@
+Connector:
+    schema: azureRG
+    update_field: write_date
+
+UnpackingFields:
+    default: null
+
+Models:
+    ResourceGroups:    
+        class: ResourceContainers
+        base_name: Microsoft.Resources/Subscriptions/ResourceGroups
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            tags:
+                dbname: tags
+                type: Object
+            location:
+                dbname: location
+                type: String(255)
+            properties:
+                dbname: properties
+                type: Object
+
+    VirtualNetworks:
+        base_name: Microsoft.Network/VirtualNetworks
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    Subnets:
+        base_name: Microsoft.Network/VirtualNetworks/subnets
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            properties:
+                dbname: properties
+                type: Object
+
+    NetworkSecurityGroups:
+        base_name: Microsoft.Network/networkSecurityGroups
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+            
+    ApplicationSecurityGroups:
+        base_name: Microsoft.Network/ApplicationSecurityGroups
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    VirtualMachines:
+        base_name: Microsoft.Compute/VirtualMachines
+        fields:
+            name: 
+                dbname: name
+                type: String(255)
+                primary_key: true
+            tags:
+                dbname: tags
+                type: Object
+            location:
+                dbname: location
+                type: String(255)
+            properties:
+                dbname: properties
+                type: Object

@@ -1,0 +1,261 @@
+Connector:
+    schema: prestashop
+    update_field: date_upd
+
+UnpackingFields:
+    default: null
+
+Models:
+
+    Clients:
+        ps_table: ps_customer
+        fields:
+            id_customer: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            date_add: 
+                dbname: CreatedAt
+                type: DateTime
+            date_upd: 
+                dbname: LastUpdated
+                type: DateTime
+            id_gender: 
+                dbname: GenderId
+                type: Integer
+            id_default_group: 
+                dbname: DefaultGroupId
+                type: Integer
+            birthday: 
+                dbname: BirthDate
+                type: String(10)
+        order_by:
+            id_customer: DESC
+        update: true
+
+    CustomerGroups:
+        ps_table: ps_group_lang
+        parent:
+            table: ps_group
+            key: id_group
+        fields:
+            id_group: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_lang: 
+                dbname: Lang
+                type: Integer
+            name: 
+                dbname: GroupName
+                type: String(255)
+        order_by:
+            id_group: ASC
+        update: false
+
+    WebReturns:
+        ps_table: ps_order_return
+        fields:
+            id_order_return: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_customer: 
+                dbname: ClientId
+                type: Integer
+            id_order: 
+                dbname: WebOrderId
+                type: Integer
+            state: 
+                dbname: ReturnState
+                type: String(50)
+            date_add: 
+                dbname: CreatedAt
+                type: DateTime
+            date_upd: 
+                dbname: LastUpdated
+                type: DateTime
+        order_by:
+            id_order_return: DESC
+        update: true
+
+    WebReturnLines:
+        ps_table: ps_order_return_detail
+        parent:
+            table: ps_order_return
+            key: id_order_return
+        fields:
+            id_order_return: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_order_detail: 
+                dbname: WebOrderLineId
+                type: Integer
+            product_quantity: 
+                dbname: ReturnedQty
+                type: Integer
+        order_by:
+            id_order_return: DESC
+        update: true
+
+    Addresses:
+        ps_table: ps_address
+        fields:
+            id_address: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_customer: 
+                dbname: ClientId
+                type: Integer
+            id_country: 
+                dbname: CountryId
+                type: Integer
+            city: 
+                dbname: City
+                type: String(255)
+            postcode: 
+                dbname: ZipCode
+                type: String(100)
+            date_add: 
+                dbname: CreatedAt
+                type: DateTime
+            date_upd: 
+                dbname: LastUpdated
+                type: DateTime
+            active: 
+                dbname: IsActive
+                type: Boolean
+            deleted: 
+                dbname: IsDeleted
+                type: Boolean
+        order_by:
+            id_address: DESC
+        update: true
+
+    Countries:
+        ps_table: ps_country_lang
+        fields:
+            id_country: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_lang: 
+                dbname: Lang
+                type: Integer
+            name: 
+                dbname: CountryName
+                type: String(255)
+        order_by:
+            id_country: ASC
+        update: false
+
+    Carriers:
+        ps_table: ps_carrier
+        fields:
+            id_carrier: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            name: 
+                dbname: CarrierName
+                type: String(255)
+            active: 
+                dbname: IsActive
+                type: Boolean
+            deleted: 
+                dbname: IsDeleted
+                type: Boolean
+        order_by:
+            id_carrier: ASC
+        update: false
+            
+
+    WebOrders:
+        ps_query: get_eshop_orders_summary
+        ps_table: ps_orders
+        fields:
+            id_order: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_customer: 
+                dbname: ClientId
+                type: Integer
+            reference: 
+                dbname: OrderRef
+                type: String(25)
+            date_add: 
+                dbname: DateOrder
+                type: DateTime
+            total_paid_tax_excl: 
+                dbname: AmountHT
+                type: Numeric
+            total_paid_tax_incl: 
+                dbname: AmountTTC
+                type: Numeric
+            current_state: 
+                dbname: OrderState
+                type: String(25)
+            invoice_number: 
+                dbname: InvoiceRef
+                type: String(25)
+            id_address_delivery: 
+                dbname: DeliveryAddressId
+                type: Integer
+            id_address_invoice: 
+                dbname: InvoicingAddressId
+                type: Integer
+            id_carrier: 
+                dbname: CarrierId
+                type: Integer
+        order_by:
+            id_order: DESC
+        update: true
+
+
+    WebOrderLines:
+        ps_query: get_eshop_order_details
+        ps_table: ps_order_detail
+        parent: 
+            table: ps_orders
+            key: id_order
+        fields:
+            id_order_detail: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            id_order: 
+                dbname: WebOrderId
+                type: Integer
+            product_id: 
+                dbname: ProductId
+                type: Integer
+            product_name: 
+                dbname: ProductName
+                type: String(100)
+            product_ean13: 
+                dbname: EAN
+                type: String(13)
+            product_quantity: 
+                dbname: ProductQty
+                type: Integer
+            product_quantity_return: 
+                dbname: ReturnedQty
+                type: Integer
+            unit_price_tax_excl: 
+                dbname: UnitPriceHT
+                type: Numeric
+            unit_price_tax_incl: 
+                dbname: UnitPriceTTC
+                type: Numeric
+            total_price_tax_excl: 
+                dbname: TotalPriceHT
+                type: Numeric
+            total_price_tax_incl: 
+                dbname: TotalPriceTTC
+                type: Numeric
+        order_by: 
+            id_order_detail: DESC
+        update: true

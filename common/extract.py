@@ -5,73 +5,91 @@ from .utils import json_dump
 from .config import DEFAULT_TIMESPAN, DUMP_JSON
 from .spLogging import logger
 
-def get_data(connector,model_name,last_days=DEFAULT_TIMESPAN):
+class GenericExtractor():
 
-    sd = []
-    if last_days:
-        today = datetime.datetime.utcnow()
-        delta = datetime.timedelta(days=last_days)
-        yesterday = today - delta
+    def __init__(self):
+        self.client = "This is an empty client from the GenericExtractor interface. Please instantiate an actual Class over it"
+        self.schema = "Empty schema from the GenericExtractor interface"
+        self.models = {"default": "Empty schema from the GenericExtractor interface"}
 
-        logger.info("UTC start datetime is {}".format(yesterday))
-        sd += [connector.UPD_FIELD_NAME,'>=',yesterday],
+    def get_count(self,model_name):
+        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    dataset = fetch_dataset(connector,model_name,search_domains=sd)
+    def read_query(self,model_name):
+        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    if dataset == []:
-        logger.info('no results were found.')
+    def forge_item(self,model_name):
+        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    full_dataset = {
-        'header': {
-            'schema': connector.SCHEMA_NAME,
-            'model': model_name
-        },
-        'data': dataset
-    }
 
-    jsonpath = None
-    if DUMP_JSON:
-        jsonpath = json_dump(full_dataset,connector.SCHEMA_NAME,model_name)
+    def get_data(self,model_name,last_days=DEFAULT_TIMESPAN):
 
-    return jsonpath,full_dataset
+        sd = []
+        if last_days:
+            today = datetime.datetime.utcnow()
+            delta = datetime.timedelta(days=last_days)
+            yesterday = today - delta
 
-def fetch_dataset(connector,model_name,search_domains=[]):
+            logger.info("UTC start datetime is {}".format(yesterday))
+            sd += [self.update_field,'>=',yesterday],
 
-    output_rows = []    
-    client, model = connector.get_client(model_name)
-    total_count = connector.get_count(client,model,search_domains)
+        count, dataset = self.fetch_dataset(model_name,search_domains=sd)
 
-    if total_count > 0:    
+        if dataset == []:
+            logger.info('no results were found.')
+
+        full_dataset = {
+            'header': {
+                'schema': self.schema,
+                'model': model_name,
+                'count': count
+            },
+            'data': dataset
+        }
+
+        jsonpath = None
+        if DUMP_JSON:
+            jsonpath = json_dump(full_dataset,self.schema,model_name)
+
+        return jsonpath,full_dataset
+
+    def fetch_dataset(self,model_name,search_domains=[]):
+
+        output_rows = []    
+        model = self.models[model_name]
+        total_count = self.get_count(model,search_domains)
+
+        if total_count > 0:    
+            
+            logger.info('Found a total of {} items.'.format(total_count))        
+            ex_iter = self.batch_fetch(model,search_domains=search_domains,batch_size=total_count)
+
+            for results in ex_iter:
+
+                for row in results:
+                    # logger.debug('raw item: {}'.format(row))
+                    try:
+                        # cleaning and formatting the item for the dataset
+                        new_row = self.forge_item(row,model)
+                        # logger.debug("forged item : {}".format(new_row))
+                        output_rows += new_row,
+
+                    except Exception as ie:
+                        logger.error(traceback.format_exc())
+                        continue
         
-        logger.info('Found a total of {} items.'.format(total_count))        
-        ex_iter = batch_fetch(connector,client,model,search_domains=search_domains,batch_size=total_count)
+        return total_count,output_rows
 
-        for results in ex_iter:
+    def batch_fetch(self,model,search_domains=[],start_row=0,batch_size=None):
 
-            for row in results:
-                logger.debug('raw item: {}'.format(row))
-                try:
-                    # cleaning and formatting the item for the dataset
-                    new_row = connector.forge_item(row,model)
-                    logger.debug("forged item : {}".format(new_row))
-                    output_rows += new_row,
+        while batch_size > 0:
 
-                except Exception as ie:
-                    logger.error(traceback.format_exc())
-                    continue
-    
-    return output_rows
+            results = self.read_query(model,search_domains=search_domains,start_row=start_row)
 
-def batch_fetch(connector,client,model,search_domains=[],start_row=0,batch_size=None):
-
-    while batch_size > 0:
-
-        results = connector.read_query(client,model,search_domains=search_domains,start_row=start_row)
-
-        how_many = len(results)
-        logger.debug("caught {} items starting at row = {}".format(how_many,start_row))
-        yield results
-        
-        start_row += how_many
-        batch_size = batch_size - how_many
-        print("{} more to go.".format(batch_size))
+            how_many = len(results)
+            logger.debug("caught {} items starting at row = {}".format(how_many,start_row))
+            yield results
+            
+            start_row += how_many
+            batch_size = batch_size - how_many
+            print("{} more to go.".format(batch_size))
