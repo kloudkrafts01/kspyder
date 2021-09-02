@@ -1,18 +1,19 @@
 #!python3
 
+from common.extract import GenericExtractor
 import xmlrpc.client
 import ssl
 
 from common.config import ODOO_PROFILE, PAGE_SIZE, load_conf
 
-MODELS = load_conf('odoo_models', subfolder='manifests')
-UNPACKING = MODELS.pop('_UnpackingFields')
+
+# Load the Connector's config
+CONNECTOR_CONF = load_conf('odoo_models', subfolder='manifests')
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+UNPACKING = CONNECTOR_CONF['UnpackingFields']
+MODELS = CONNECTOR_CONF['Models']
 MODELS_LIST = list(MODELS.keys())
-
-# mandatory connector config
-SCHEMA_NAME = 'odoo'
-UPD_FIELD_NAME = 'write_date'
-
 
 class OdooClient:
     """Simple class to instanciate an XML-RPC client connected to the Odoo API and provide querying methods"""
@@ -66,54 +67,57 @@ class OdooClient:
         return result
 
 
-def get_client(model_name):
+class OdooRPCConnector(GenericExtractor):
 
-    # instantiate an Odoo XML-RPC client
-    client = OdooClient.from_profile(ODOO_PROFILE)
-    model = MODELS[model_name]
+    def __init__(self,odoo_profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 
-    return client, model
+        # instantiate an Odoo XML-RPC client
+        self.client = OdooClient.from_profile(odoo_profile)
 
-def get_count(client, model, search_domains=[]):
+        self.schema = schema
+        self.models = models
+        self.update_field = update_field
 
-    total_count = client.get_records_count(model,search_domains=search_domains)
-    return total_count
+    def get_count(self, model, search_domains=[]):
 
-def read_query(client,model,search_domains=[],start_row=0):
+        total_count = self.client.get_records_count(model,search_domains=search_domains)
+        return total_count
 
-    results = client.search_read(model,search_domains=search_domains,offset=start_row)
-    return results
+    def read_query(self,model,search_domains=[],start_row=0):
+
+        results = self.client.search_read(model,search_domains=search_domains,offset=start_row)
+        return results
 
 
-def forge_item(odoo_dict,model):
-    '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
-    The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
+    def forge_item(odoo_dict,model):
+        '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
+        The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
 
-    new_dict = {}
-    fields = model['fields']
+        new_dict = {}
+        fields = model['fields']
 
-    for key,value in odoo_dict.items():
+        for key,value in odoo_dict.items():
 
-        isInFieldMap = (key in fields)
-        isInUnpack = (key in UNPACKING)
+            isInFieldMap = (key in fields)
+            isInUnpack = (key in UNPACKING)
 
-        if isInFieldMap and isInUnpack and value:
+            if isInFieldMap and isInUnpack and value:
 
-            new_key = fields[key]['dbname']
-            new_dict[new_key] = value[0]
-            additional_field = UNPACKING[key]
-            
-            if additional_field is not None:
-                additional_key = additional_field['dbname']
-                new_dict[additional_key] = value[1]
+                new_key = fields[key]['dbname']
+                new_dict[new_key] = value[0]
+                additional_field = UNPACKING[key]
+                
+                if additional_field is not None:
+                    additional_key = additional_field['dbname']
+                    new_dict[additional_key] = value[1]
 
-        elif isInFieldMap:
-            
-            new_key = fields[key]['dbname']
-            new_dict[new_key] = value
+            elif isInFieldMap:
+                
+                new_key = fields[key]['dbname']
+                new_dict[new_key] = value
 
-        else:
-            new_dict[key] = value
+            else:
+                new_dict[key] = value
 
-    return new_dict
+        return new_dict
 
