@@ -4,11 +4,11 @@
 
 kspyder is a lightweight and very simple Python ETL framework. It was designed originally to fit the needs of an SMB for very simple-to-configure and simple-to-operate data pipelines.
 
-The main concern (and first use case) was to be able to extract data from either SQL or API Data Sources and store it in an SQL database that would be used for Business Data analysis (typically through MS PowerBI or Tableau), and to be able to :
+The main concern (and first use case) was to be able to extract data from either SQL or API Data Sources and store it in a Target SQL database that would be used for Business Data analysis (typically through MS PowerBI or Tableau), and to be able to :
 
 - Strip out any potential PII from that data before persisting it to the target database that would be accessible to Data Analysts
 - Manage Throttling and Pagination in a simple way without having to re-code it for each new Data Source
-- Iterate A LOT on the definition and/or transformation of Target database schemas and tables used by Data Analysts, with minimal code modification
+- Iterate A LOT on the definition and/or transformation of Target database schemas and tables, using simple declarative configurations
 - Industrialize and secure the execution of that ETL with a Cloud-based Orchestration service.
 - ALL data transient in the pipelines AND stored in the target DBs have to be considered entirely expendable : the target DBs should be allowed to be destroyed and recreated/repopulated at any point without consequences for the business
 
@@ -24,7 +24,7 @@ There are two current use cases for getting and using document-type data :
 kspyder is 100% Python.
 
 - Management of the SQL-type schema definitions is done through a wrapper leveraging the SQLAlchemy ORM
-- Most connectors, either to APIs or DBs (SQL qnd mongoDB), are simple Python classes, some of them using more generic Interface
+- Most connectors, either to APIs or DBs (SQL and mongoDB), are simple Python classes, some of them using more generic Interface
 - The original choice for Cloud-based, Async Orchestration was [Azure Durable Functions](https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=csharp), but the code can be adapted to leverage other orchestration frameworks
 - For Transform and Wrangling of tabular (SQL-type) data, a pandas wrapper class is used
 - All configurations (API connectors, SQL wrappers, pandas transformation pipelines, mongoDB aggregation pipelines) are managed by parsing simple YAML files placed in a configuration folder
@@ -39,7 +39,7 @@ The main principles are :
 - The Connector inherits from a GenericExtractor interface that provides pagination, throttling and standard dict-type output formats
 - The Connector outputs JSON data through stdout that can be dumped to local JSON files or local CSV files as well, depending on the global config
 - If Models in the YAML config change :
-    - Several methods using SQLAlchemy have to be triggered, to alter or recreate entire tables in the Target db accordingly
+    - Several methods using SQLAlchemy have to be triggered, to alter or recreate entire tables in the Target db accordingly, following a Terraform-like "plan-apply" pattern
     - outputs from the Connector will change accordingly at next run without any further action needed
 
 This section of documentation is to be completed, but the main info are as follows in this diagram.
