@@ -1,4 +1,3 @@
-from sqlalchemy.orm import query_expression
 from Connectors.azureResourceGraph import SCHEMA_NAME
 import json
 from pymongo import MongoClient

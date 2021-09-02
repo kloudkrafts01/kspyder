@@ -3,7 +3,7 @@ Connector:
     update_field: write_date
 
 UnpackingFields:
-    id: none
+    default: null
 
 Models:
     ResourceGroups:    

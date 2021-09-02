@@ -7,7 +7,6 @@ from common.config import load_conf, AZ_PRICING_PROFILE
 from common.spLogging import logger
 
 MODELS = load_conf('azureRG_models', subfolder='manifests')
-# UNPACKING = MODELS.pop('_UnpackingFields')
 MODELS_LIST = list(MODELS.keys())
 
 # mandatory connector config

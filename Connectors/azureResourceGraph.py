@@ -22,14 +22,6 @@ MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
-# class AzureRGcontext:
-
-#     def __init__(self, subscription_id):
-#         self.subscription_id = subscription_id
-#         self.connection = ResourceGraphClient(
-#             credential=AZURE_CLIENT.credential,
-#             subscription_id=subscription_id
-#         )
 
 class AzureRGConnector(GenericExtractor):
 

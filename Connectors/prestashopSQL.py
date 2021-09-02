@@ -1,9 +1,9 @@
 #!python3
 
-from common.extract import GenericExtractor
 import datetime,decimal
 
-import common.sql_connector as sc
+from common.sql_connector import GenericSQLConnector
+from common.extract import GenericExtractor
 from common.config import PS_PROFILE, PAGE_SIZE, load_conf
 from common.spLogging import logger
 
@@ -23,11 +23,11 @@ MODELS_LIST = list(MODELS.keys())
 MODELS_TO_UPDATE = list(x for x in MODELS.keys() if MODELS[x]['update'])
 CATALOGS = list(x for x in MODELS.keys() if MODELS[x]['update'] is False)
 
-class prestashopSQLExtractor(GenericExtractor):
+class prestashopSQLExtractor(GenericExtractor,GenericSQLConnector):
         
     def __init__(self, profile=PS_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 
-        presta_conn = sc.GenericSQLConnector.from_profile(profile)
+        presta_conn = GenericSQLConnector.from_profile(profile)
         self.client = presta_conn.engine.connect()
 
         self.schema = schema

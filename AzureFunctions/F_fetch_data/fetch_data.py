@@ -10,12 +10,6 @@ from common.config import CONNECTOR_MAP
 # from Connectors import odooRPC, prestashopSQL, azureResourceGraph
 from Connectors.azureSQL import AzureSQLConnector
 
-# VALID_SOURCES = {
-#     'odoo': odooRPC,
-#     'prestashop': prestashopSQL,
-#     'azureRG': azureResourceGraph
-# }
-
 
 def main(params: dict) -> dict:
 
