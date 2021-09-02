@@ -1,5 +1,6 @@
 VM_list:
   collection: VirtualMachines
+  dump_csv: true
   operations:
     $project:
         name: $name
@@ -33,6 +34,7 @@ VM_list:
       
 VM_OSDisk_Sizing:
   collection: VirtualMachines
+  dump_csv: true
   operations:
     $project:
       vm_name: $name
@@ -63,6 +65,7 @@ VM_OSDisk_Sizing:
 
 VM_DataDisk_Sizing:
   collection: VirtualMachines
+  dump_csv: true
   operations:
     $project:
       vm_name: $name
@@ -92,6 +95,7 @@ VM_DataDisk_Sizing:
 
 NSG_Rules:
   collection: NetworkSecurityGroups
+  dump_csv: false 
   operations:
     $unwind:
       path: $properties.securityRules
