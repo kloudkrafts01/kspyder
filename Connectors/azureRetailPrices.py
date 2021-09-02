@@ -1,5 +1,6 @@
 #!python3
 
+from common.extract import GenericExtractor
 import os, requests
 
 from common.config import load_conf, AZ_PRICING_PROFILE
@@ -13,31 +14,29 @@ MODELS_LIST = list(MODELS.keys())
 SCHEMA_NAME = 'azureRetailPrices'
 UPD_FIELD_NAME = 'write_date'
 
-class AzurePricingConnector:
+class AzurePricingConnector(GenericExtractor):
 
-    def __init__(self, endpoint):
+    def __init__(self, endpoint, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
+
         self.endpoint = endpoint
+        self.client = AzurePricingConnector(AZ_PRICING_PROFILE['url'])
+        self.schema = schema
+        self.models = models
+        self.update_field = update_field
 
-def get_client(model_name):
-    
-    client = AzurePricingConnector(AZ_PRICING_PROFILE['url'])
-    model = MODELS[model_name]
+    def get_count(self, model, search_domains=[]):
 
-    return client, model
+        total_count = 0
 
-def get_count(client, model, search_domains=[]):
+        return total_count
 
-    total_count = 0
+    def read_query(self,model,search_domains=[],start_row=0):
 
-    return total_count
-
-def read_query(client,model,search_domains=[],start_row=0):
-
-    return 'TODO'
+        return 'TODO'
 
 
-def forge_item(input_dict,model):
-    '''TODO function to forge outputs from Azure Resource Graph API'''
+    def forge_item(self,input_dict,model):
+        '''TODO function to forge outputs from Azure Resource Graph API'''
 
-    return input_dict
+        return input_dict
 
