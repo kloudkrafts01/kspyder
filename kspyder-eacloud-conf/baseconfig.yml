@@ -4,6 +4,7 @@ APP_NAME: eacloud
 
 CONNECTOR_MAP:
   azureRG: azureResourceGraph
+  mongoDB: mongoDB
 
 local:
   DUMP_JSON: true
