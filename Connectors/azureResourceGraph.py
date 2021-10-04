@@ -9,8 +9,6 @@ from azure.mgmt.resourcegraph.models import QueryRequest
 from common.config import AZURE_CLIENT, PAGE_SIZE, load_conf
 from common.spLogging import logger
 
-DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
-
 CONF = load_conf('azureRG_models', subfolder='manifests')
 
 # mandatory connector config
@@ -22,15 +20,39 @@ MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
+def format_azprofiles(input=None):
+
+    raw_profiles = load_conf(input,folder='local_only')
+    output_dict = {}
+    for profile in raw_profiles:
+        name = profile['name']
+        output_dict[name] = profile
+    
+    return output_dict
+
+# DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
+AZURE_PROFILES = format_azprofiles('azure_subs')
+DEFAULT_PROFILE = [x for x in AZURE_PROFILES.values() if x['isDefault']][0]
+
 
 class AzureRGConnector(GenericExtractor):
 
-    def __init__(self, subscription_id=DEFAULT_SCOPE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+    def __init__(self, profile=DEFAULT_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
         
-        self.subscription_id = subscription_id
+        # # retrieve the correct scope (ie Azure Subscription) from input
+        # if scope == 'DEFAULT':
+        #     self.profile = profile
+        # else:
+        #     self.scope_obj = [x for x in AZURE_PROFILES if x['name']==scope ][0]
+        self.profile = profile
+        logger.debug("AzureRG PROFILE OBJ: {}".format(self.profile))
+
+        self.scope_id = self.profile['id']
+        self.scope = self.profile['name']
+
         self.client = ResourceGraphClient(
-            credential=AZURE_CLIENT.credential,
-            subscription_id=subscription_id
+            credential = AZURE_CLIENT.credential,
+            subscription_id = self.scope_id
         )
         self.schema = schema
         self.models = models
@@ -42,7 +64,7 @@ class AzureRGConnector(GenericExtractor):
 
         query = QueryRequest(
                 query=queryStr,
-                subscriptions = [self.subscription_id]
+                subscriptions = [self.scope_id]
             )
         query_response = self.client.resources(query)
 
@@ -56,7 +78,7 @@ class AzureRGConnector(GenericExtractor):
         
         query = QueryRequest(
                 query=queryStr,
-                subscriptions = [self.subscription_id]
+                subscriptions = [self.scope_id]
             )
         query_response = self.client.resources(query)
         print("Basic query :\n{}".format(query_response))

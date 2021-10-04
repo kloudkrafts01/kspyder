@@ -1,3 +1,4 @@
+from re import match
 from Connectors.azureResourceGraph import SCHEMA_NAME
 import json
 from pymongo import MongoClient
@@ -37,7 +38,7 @@ class MongoDBConnector():
                 json_data = json.load(jf)
                 self.insert_dataset(json_data)
 
-    def execute_queries(self, query_names=None):
+    def execute_queries(self, query_names=None, search_domain=None):
         
         queries = {}
         #extracting a subset of the MONGO_QUERIES dicitonary if query names were explicitly provided
@@ -48,6 +49,33 @@ class MongoDBConnector():
 
         for query_name,query_conf in queries.items():
             logger.info("Preparing Mongo Query {}: {}".format(query_name,query_conf))
+
+            #if search domains were given, pile them up into a $match aggregation clause, with AND logic
+            if search_domain:
+                
+                # matches = []
+
+                # for sd in search_domains:
+                sd = search_domain
+                field = sd[0]
+                operator = sd[1]
+                value = sd[2]
+
+                sd_conf = {}
+                if operator == '=':
+                    sd_conf = {field: value}
+                elif operator == '~=':
+                    sd_conf = { field: {'$regex': value} }
+                else:
+                    raise ValueError
+
+                    # matches += sd_conf,
+
+                match_conf = { '$match': sd_conf }
+
+                old_conf = query_conf['operations']
+                query_conf['operations'] = { **match_conf, **old_conf }
+
             result_dataset = self.execute_query(query_name,query_conf)
 
             if DUMP_JSON:

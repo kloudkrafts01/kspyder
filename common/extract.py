@@ -7,10 +7,11 @@ from .spLogging import logger
 
 class GenericExtractor():
 
-    def __init__(self):
+    def __init__(self,**kwargs):
         self.client = "This is an empty client from the GenericExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the GenericExtractor interface"
-        self.models = {"default": "Empty schema from the GenericExtractor interface"}
+        self.scope = "Empty scope from the GenericExtractor interface"
+        self.models = [{"default": "Empty schema from the GenericExtractor interface"}]
 
     def get_count(self,model_name):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
@@ -22,7 +23,9 @@ class GenericExtractor():
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
 
-    def get_data(self,model_name,last_days=DEFAULT_TIMESPAN):
+    def get_data(self,model_name,last_days=DEFAULT_TIMESPAN,**params):
+
+        logger.debug("Extractor object: {}".format(self.__dict__))
 
         sd = []
         if last_days:
@@ -41,8 +44,10 @@ class GenericExtractor():
         full_dataset = {
             'header': {
                 'schema': self.schema,
+                'scope': self.scope,
                 'model': model_name,
-                'count': count
+                'count': count,
+                'params': params
             },
             'data': dataset
         }

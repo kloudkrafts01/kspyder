@@ -71,7 +71,7 @@ class OdooClient:
 
 class OdooRPCConnector(GenericExtractor):
 
-    def __init__(self,profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
+    def __init__(self, profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME,**params):
 
         # instantiate an Odoo XML-RPC client
         self.client = OdooClient.from_profile(profile)

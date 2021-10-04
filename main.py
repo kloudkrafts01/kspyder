@@ -2,6 +2,7 @@
 
 import json
 import argparse
+from re import search
 
 from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
@@ -23,6 +24,8 @@ input_file = 'file'
 last_days = None
 fetch_all = None
 action = None
+scope = None
+search_domain = None
 
 params = {}
 
@@ -60,15 +63,18 @@ def extract():
     # # instantiate a connector client
     # client = getattr(connector,connector_name)
 
-    client = get_client(source)
-
     full_results = []
+
+    for current_scope in scope:
     
-    for model_name in models:
-        logger.info("Extracting schema: {} - model: {}".format(source,model_name))
-        jsonpath,dataset = client.get_data(model_name,last_days=params['last_days'])
-        full_results += {'jsonpath': jsonpath, 'dataset': dataset},
-    
+        client = get_client(source)
+        
+        for model_name in models:
+            logger.info("Extracting schema: {} - model: {}".format(source,model_name))
+            # scopedict = {'scope': scope}
+            jsonpath,dataset = client.get_data(model_name,**params)
+            full_results += {'jsonpath': jsonpath, 'dataset': dataset},
+        
     return full_results
 
 def insert_to_azure():
@@ -83,7 +89,7 @@ def insert_to_mongo():
 
 def pass_mongo_queries():
     mgconn = MongoDBConnector()
-    mgconn.execute_queries(query_names=models)
+    mgconn.execute_queries(query_names=models,search_domain=search_domain)
 
 def expand():
 
@@ -115,11 +121,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
+    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scope,default=['DEFAULT'])
     parser.add_argument('-m','--model',action='store',type=str,nargs='+',dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)
     parser.add_argument('-x','--action',action='store',type=str,dest=action)
+    parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
+    
 
     args = parser.parse_args()
 
@@ -129,13 +138,17 @@ if __name__ == "__main__":
     models = args.model
     input_file = args.file
     action = args.action
+    scope = args.scope
+    search_domain = args.searchdomain
     
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
         'model': models,
+        'search_domain': search_domain,
         'source': source,
-        'action': action
+        'action': action,
+        'scope': scope
     }
 
     print(params)

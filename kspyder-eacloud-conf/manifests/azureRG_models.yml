@@ -24,6 +24,102 @@ Models:
                 dbname: properties
                 type: Object
 
+    VirtualWAN:
+        base_name: Microsoft.Network/virtualWans
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    PublicIPs:
+        base_name: Microsoft.Network/publicIPAddresses
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    KeyVaults:
+        base_name: Microsoft.KeyVaults/vaults
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    PolicyInsights:
+        base_name: Microsoft.PolicyInsights/attestations
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            properties:
+                dbname: properties
+                type: Object
+
+    VirtualHubs:
+        base_name: Microsoft.Network/virtualHubs
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
+    VirtualHubRouteTables:
+        base_name: Microsoft.Network/virtualHubs/hubRouteTables
+        fields:
+            name:
+                dbname: name
+                type: String(255)
+                primary_key: true
+            location:
+                dbname: location
+                type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            properties:
+                dbname: properties
+                type: Object
+
     VirtualNetworks:
         base_name: Microsoft.Network/VirtualNetworks
         fields:
@@ -41,8 +137,8 @@ Models:
                 dbname: properties
                 type: Object
 
-    Subnets:
-        base_name: Microsoft.Network/VirtualNetworks/subnets
+    NetworkInterfaces:
+        base_name: Microsoft.Network/networkInterfaces
         fields:
             name:
                 dbname: name
@@ -51,6 +147,12 @@ Models:
             location:
                 dbname: location
                 type: String(255)
+            tags:
+                dbname: tags
+                type: Object
+            extendedLocation:
+                dbname: extendedLocation
+                type: Object
             properties:
                 dbname: properties
                 type: Object

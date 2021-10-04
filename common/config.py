@@ -1,5 +1,5 @@
 import os,sys,re
-import yaml
+import yaml,json
 from .azure_utils import AzureClient
 
 AZURE_CLIENT = AzureClient()
@@ -41,23 +41,43 @@ def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
             password = secrets.get_secret(profile['secretkey']).value
             profile['password'] = password
 
+        if 'config' in profile.keys():
+            profile_conf = load_conf(profile['config'],folder='local_only')
+            
+
     return profile
 
-def load_conf(name,folder=CONF_FOLDER,subfolder=None):
+def load_conf(name,type="yaml",folder=CONF_FOLDER,subfolder=None):
     """Simply Loads a YAML file and passes the result as a dict"""
+
+    conf_dict = {}
 
     if subfolder:
         folder = os.path.join(folder,subfolder)
     
-    # Add the .yml extension to the conf name if not already present
-    yml_ext = re.compile('(\.yml|\.yaml)$')
-    if re.search(yml_ext, name) is None:
-        name = '{}.yml'.format(name)
+    if type=="json":
+        json_ext = re.compile('(\.yml)$')
+        if re.search(json_ext, name) is None:
+            name = '{}.json'.format(name)
+        
+        conf_path = os.path.join(folder,name)
 
-    conf_path = os.path.join(folder,name)
+        with open(conf_path,'r') as conf:
+            conf_dict = json.loads(conf)
 
-    with open(conf_path,'r') as conf:
-        conf_dict = yaml.full_load(conf)
+    elif type=="yaml":
+        # Add the .yml extension to the conf name if not already present
+        yml_ext = re.compile('(\.yml|\.yaml)$')
+        if re.search(yml_ext, name) is None:
+            name = '{}.yml'.format(name)
+
+        conf_path = os.path.join(folder,name)
+
+        with open(conf_path,'r') as conf:
+            conf_dict = yaml.full_load(conf)
+    
+    else:
+        ValueError("common.config :: Invalid value provided for Config Type ! Valid options are 'json' or 'yaml'.")
 
     return conf_dict
 
@@ -76,6 +96,8 @@ LOG_CONFIG = load_conf(log_config_key)
 
 azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
 AZ_PRICING_PROFILE = load_profile(azprice_key)
+
+
 
 # odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']
 # ODOO_PROFILE = load_profile(odoo_key)

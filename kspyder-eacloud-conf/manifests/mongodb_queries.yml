@@ -13,24 +13,20 @@ VM_list:
         OSversion: $properties.storageProfile.imageReference.version
         SKU: $properties.hardwareProfile.vmSize
 
-# VM_Sizings:
-#   collection: VirtualMachines
-#   operations:
-#     # $sortByCount: $properties.hardwareProfile.vmSize
-#     # $unwind:
-#     #   path: $properties.hardwareProfile
-#     $group:
-#       _id: $propertes.hardwareProfile.vmSize
-#       env:
-#         $first: $tags.Environment
-#       app:
-#         $first: $tags.Application
-#     $sortByCount: 
-#       $mergeObjects: 
-#         - $env
-#         - $app
-#         - $properties.hardwareProfile.vmSize
-
+VM_Sizings:
+  collection: VM_list
+  dump_csv: true
+  operations:
+    $group:
+      _id: $SKU
+      location:
+        $first: $location
+      env:
+        $first: $env
+      app:
+        $first: $app
+      totalCount:
+        $sum: 1
       
 VM_OSDisk_Sizing:
   collection: VirtualMachines
@@ -42,8 +38,7 @@ VM_OSDisk_Sizing:
       location: $location
       app: $tags.Application
       app_details: $tags.Application_details
-      workload: $tags.Workload
-      osdisk_size: $properties.storageProfile.osDisk.diskSizeGB
+      disk_size: $properties.storageProfile.osDisk.diskSizeGB
     # $set:
     #   osdisk_size: $os_disk.diskSizeGB
     # $unset:
@@ -85,17 +80,31 @@ VM_DataDisk_Sizing:
         $first: $app
       app_details:
         $first: $app_details
-      data_disk_size:
+      location:
+        $first: $location
+      disk_size:
         $sum: $data_disks.diskSizeGB
     $set:
       vm_name: $_id
     $unset:
       - _id
     
+Subnets:
+  collection: VirtualNetworks
+  dump_csv: true
+  operations:
+    $unwind:
+      path: $properties.subnets
+    $project:
+      vnet: $name
+      subnet_name: $properties.subnets.name
+      id: $properties.subnets.id
+      address_prefix: $properties.subnets.properties.addressPrefix
+      NSG: $properties.subnets.properties.networkSecurityGroup.id
 
 NSG_Rules:
   collection: NetworkSecurityGroups
-  dump_csv: false 
+  dump_csv: true 
   operations:
     $unwind:
       path: $properties.securityRules
@@ -118,3 +127,14 @@ NSG_Rules:
     # $unwind:
     #   path: $dest_ASG
  
+
+# VM_ASG_mapping:
+#   collection: VirtualMachines
+#   dump_csv: false
+#   operations:
+
+
+# ASG:
+#   collection: ApplicationSecurityGroups
+#   dump_csv: false
+#   operations:

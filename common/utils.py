@@ -49,7 +49,7 @@ def csv_dump(dictData,schema,name):
 
     return filepath
 
-def get_client(source):
+def get_client(source, **kwargs):
 
     # get the names from config
     connector_name = CONNECTOR_MAP[source]['connector']
@@ -60,6 +60,6 @@ def get_client(source):
 
     # instantiate a connector client
     client_class = getattr(connector,client_name)
-    client = client_class()
+    client = client_class(**kwargs)
 
     return client
