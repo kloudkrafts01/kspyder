@@ -114,9 +114,11 @@ NSG_Rules:
       rule: $properties.securityRules.name
       protocol: $properties.securityRules.properties.protocol
       source_prefix: $properties.securityRules.properties.sourceAddressPrefix
+      source_prefixes: $properties.securityRules.properties.sourceAddressPrefixes
       source_ports: $properties.securityRules.properties.sourcePortRange
       source_ASG: $properties.securityRules.sourceApplicationSecurityGroups.id
       dest_prefix: $properties.securityRules.properties.destinationAddressPrefix
+      dest_prefixes: $properties.securityRules.properties.destinationAddressPrefixes
       dest_ports: $properties.securityRules.properties.destinationPortRange
       dest_ASG: $properties.securityRules.properties.destinationApplicationSecurityGroups.id
       direction: $properties.securityRules.properties.direction
