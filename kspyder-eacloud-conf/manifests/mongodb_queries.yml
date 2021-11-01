@@ -113,6 +113,7 @@ NSG_Rules:
       rule_id: $properties.securityRules.id
       rule: $properties.securityRules.name
       protocol: $properties.securityRules.properties.protocol
+      subnets: $properties.subnets.id
       source_prefix: $properties.securityRules.properties.sourceAddressPrefix
       source_prefixes: $properties.securityRules.properties.sourceAddressPrefixes
       source_ports: $properties.securityRules.properties.sourcePortRange
@@ -128,7 +129,27 @@ NSG_Rules:
       rule: 1
     # $unwind:
     #   path: $dest_ASG
- 
+
+NIC_list:
+  collection: NetworkInterfaces
+  dump_csv: true 
+  operations:
+    $unwind:
+      path: $properties.ipConfigurations
+    $project:
+      NIC: $name
+      guid: $properties.resourceGuid
+      app: $tags.Application
+      workload: $tags.Workload
+      virtual_machine: $properties.virtualMachine
+      private_ip: $properties.ipConfigurations.properties.privateIPAddress
+      private_ip_allocation: $properties.ipConfigurations.properties.privateIPAllocationMethod
+      subnet: $properties.ipConfigurations.properties.subnet
+      ASGs: $properties.ipConfigurations.properties.applicationSecurityGroups
+    $sort:
+      name: 1
+
+
 
 # VM_ASG_mapping:
 #   collection: VirtualMachines
