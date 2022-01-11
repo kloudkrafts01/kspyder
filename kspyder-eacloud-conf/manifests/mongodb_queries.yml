@@ -12,6 +12,10 @@ VM_list:
         OS: $properties.storageProfile.imageReference.offer
         OSversion: $properties.storageProfile.imageReference.version
         SKU: $properties.hardwareProfile.vmSize
+        support_tier: $tags.SupportTier
+        backup_tier: $tags.BackupTier
+        update_ring: $tags.UpdateRing
+        update_wave: $tags.UpdateWave
 
 VM_Sizings:
   collection: VM_list
@@ -117,7 +121,7 @@ NSG_Rules:
       source_prefix: $properties.securityRules.properties.sourceAddressPrefix
       source_prefixes: $properties.securityRules.properties.sourceAddressPrefixes
       source_ports: $properties.securityRules.properties.sourcePortRange
-      source_ASG: $properties.securityRules.sourceApplicationSecurityGroups.id
+      source_ASG: $properties.securityRules.sourceApplicationSecurityGroups
       dest_prefix: $properties.securityRules.properties.destinationAddressPrefix
       dest_prefixes: $properties.securityRules.properties.destinationAddressPrefixes
       dest_ports: $properties.securityRules.properties.destinationPortRange
@@ -150,6 +154,16 @@ NIC_list:
       name: 1
 
 
+vHub_list:
+  collection: VirtualHubs
+  dump_csv: true
+  operations:
+    $project:
+      Name: $name
+      Location: $location
+      SKU: $properties.sku
+      IP_range: $properties.addressPrefix
+      Router_IPs: $properties.virtualRouterIps
 
 # VM_ASG_mapping:
 #   collection: VirtualMachines

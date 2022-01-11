@@ -22,7 +22,6 @@ class GenericExtractor():
     def forge_item(self,model_name):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-
     def get_data(self,model_name,last_days=DEFAULT_TIMESPAN,**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
@@ -54,7 +53,7 @@ class GenericExtractor():
 
         jsonpath = None
         if DUMP_JSON:
-            jsonpath = json_dump(full_dataset,self.schema,model_name)
+            jsonpath = json_dump(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
 
         return jsonpath,full_dataset
 

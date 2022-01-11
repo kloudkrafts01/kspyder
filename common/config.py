@@ -97,6 +97,7 @@ LOG_CONFIG = load_conf(log_config_key)
 azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
 AZ_PRICING_PROFILE = load_profile(azprice_key)
 
+AZURERG_DEFAULT_SCOPE = BASE_CONFIG[ENV]['AZURERG_DEFAULT_SCOPE']
 
 
 # odoo_key = BASE_CONFIG[ENV]['ODOO_PROFILE']

@@ -6,10 +6,10 @@ import os
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 
-from common.config import AZURE_CLIENT, PAGE_SIZE, load_conf
+from common.config import AZURE_CLIENT, AZURERG_DEFAULT_SCOPE, PAGE_SIZE, load_conf
 from common.spLogging import logger
 
-CONF = load_conf('azureRG_models', subfolder='manifests')
+CONF = load_conf('azureRG_models', subfolder='manifests') 
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
@@ -32,24 +32,26 @@ def format_azprofiles(input=None):
 
 # DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
 AZURE_PROFILES = format_azprofiles('azure_subs')
+AZURE_SCOPES = list(AZURE_PROFILES.keys())
 DEFAULT_PROFILE = [x for x in AZURE_PROFILES.values() if x['isDefault']][0]
+
 
 
 class AzureRGConnector(GenericExtractor):
 
-    def __init__(self, profile=DEFAULT_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+    def __init__(self, scope=AZURERG_DEFAULT_SCOPE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
         
-        # # retrieve the correct scope (ie Azure Subscription) from input
-        # if scope == 'DEFAULT':
-        #     self.profile = profile
-        # else:
-        #     self.scope_obj = [x for x in AZURE_PROFILES if x['name']==scope ][0]
-        self.profile = profile
-        logger.debug("AzureRG PROFILE OBJ: {}".format(self.profile))
 
+        if scope == '_default_':
+            scope = AZURERG_DEFAULT_SCOPE
+        
+        self.scope = scope
+        # self.AVAILABLE_SCOPES = AZURE_SCOPES
+        self.profile = AZURE_PROFILES[self.scope]
         self.scope_id = self.profile['id']
-        self.scope = self.profile['name']
-
+        
+        logger.debug("AzureRG PROFILE OBJ: {}".format(self.profile))
+        
         self.client = ResourceGraphClient(
             credential = AZURE_CLIENT.credential,
             subscription_id = self.scope_id
@@ -81,7 +83,6 @@ class AzureRGConnector(GenericExtractor):
                 subscriptions = [self.scope_id]
             )
         query_response = self.client.resources(query)
-        print("Basic query :\n{}".format(query_response))
 
         return query_response.data
 

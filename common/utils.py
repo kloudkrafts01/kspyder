@@ -35,7 +35,7 @@ def csv_dump(dictData,schema,name):
 
     fieldnameset = set()
 
-    for i in range(0,min(20,len(dictData))):
+    for i in range(0,min(1000,len(dictData))):
         fieldset = set(dictData[i].keys())
         fieldnameset |= fieldset
     

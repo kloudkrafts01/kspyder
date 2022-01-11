@@ -16,7 +16,7 @@ class MongoDBConnector():
         self.client = MongoClient('localhost',27017)
         self.db = self.client[SCHEMA_NAME]
 
-    def insert_dataset(self,dataset):
+    def insert_dataset(self,dataset,key='name'):
 
         header = dataset['header']
         schema_name = header['schema']
