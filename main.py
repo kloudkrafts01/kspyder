@@ -11,6 +11,8 @@ from common.utils import get_client
 from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
 
+from Connectors.azureResourceGraph import AZURE_SCOPES
+
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
@@ -55,20 +57,11 @@ def destroy_db():
 
 def extract():
 
-    # # import the right connector
-    # package_name = 'Connectors.{}'.format(CONNECTOR_MAP[source]['package'])
-    # connector_name = CONNECTOR_MAP[source]['connector']
-    # connector = import_module(connector_name, package_name)
-
-    # # instantiate a connector client
-    # client = getattr(connector,connector_name)
-    # client = get_client(source)
-    # full_results = client.get_data(scopes,models)
-
     full_results = []
 
     for current_scope in scopes:
-    
+        
+        logger.info("Instantiating Extractor {} with context : {}".format(source,current_scope))
         client = get_client(source, scope = current_scope)  
         
         for model_name in models:
@@ -84,7 +77,11 @@ def get_to_mongo():
     results = extract()
     mgconn = MongoDBConnector()
     for result in results:
-        mgconn.insert_dataset(result['dataset'])
+        try:
+            mgconn.insert_dataset(result['dataset'])
+        except Exception as e:
+            logger.error("get_to_mongo :: Caught Exception: {}".format(e))
+            continue
 
 
 def insert_to_azure():
@@ -131,7 +128,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
-    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scopes,default=['_default_'])
+    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scopes,default=AZURE_SCOPES)
     parser.add_argument('-m','--model',action='store',type=str,nargs='+',dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)

@@ -62,6 +62,27 @@ VM_OSDisk_Sizing:
     # $unset:
     #   - _id
 
+VM_by_SupportTier:
+  collection: VirtualMachines
+  dump_csv: true
+  operations:
+    $project:
+      vm_name: $name
+      location: $location
+      tier: $tags.SupportTier
+    $unwind:
+      path: $tier
+    $group:
+      _id: $tier
+      location:
+        $first: $location
+      total_count:
+        $sum: 1
+    $set:
+      support_tier: $_id
+    $unset:
+      - _id
+
 VM_DataDisk_Sizing:
   collection: VirtualMachines
   dump_csv: true
