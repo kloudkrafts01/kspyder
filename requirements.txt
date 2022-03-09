@@ -13,3 +13,4 @@ SQLAlchemy-Utils==0.36.5
 cython==0.29.21
 numpy==1.20.0
 pandas==1.2.0
+openpyxl==3.0.9

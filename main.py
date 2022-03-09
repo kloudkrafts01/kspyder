@@ -10,7 +10,6 @@ from common.utils import get_client
 
 from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
-
 from Connectors.azureResourceGraph import AZURE_SCOPES
 
 
@@ -97,6 +96,14 @@ def insert_to_mongo():
 def pass_mongo_queries():
     mgconn = MongoDBConnector()
     mgconn.execute_queries(query_names=models,search_domain=search_domain)
+
+def transform_xls():
+
+    for model_name in models:
+        pdxls = get_client(source,pipeline_def=model_name)
+        dataframes = pdxls.apply_transforms()
+
+
 
 def expand():
 

@@ -19,6 +19,7 @@ FUNCTIONS_FOLDER = os.path.join(ROOT_FOLDER,'AzureFunctions')
 CONNECTORS_FOLDER = os.path.join(ROOT_FOLDER,'Connectors')
 TEMP_FOLDER = os.path.join(ROOT_FOLDER,'temp')
 LOG_FOLDER = os.path.join(ROOT_FOLDER,'log')
+DATA_FOLDER = os.path.join(ROOT_FOLDER,'inputs')
 
 sys.path.insert(0,COMMONS_FOLDER)
 sys.path.insert(0,CONF_FOLDER)
@@ -27,6 +28,7 @@ sys.path.insert(0,FUNCTIONS_FOLDER)
 sys.path.insert(0,CONNECTORS_FOLDER)
 sys.path.insert(0,TEMP_FOLDER)
 sys.path.insert(0,LOG_FOLDER)
+sys.path.insert(0,DATA_FOLDER)
 
 
 # source db profiles config

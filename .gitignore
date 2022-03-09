@@ -15,3 +15,6 @@ local_only/*
 bash_profile
 sp_data.json
 .idea
+kspyder-eacloud-conf
+kspyder-alex-conf
+inputs/**

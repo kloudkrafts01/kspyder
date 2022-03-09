@@ -155,7 +155,7 @@ NSG_Rules:
     # $unwind:
     #   path: $dest_ASG
 
-NIC_list:
+NIC_List:
   collection: NetworkInterfaces
   dump_csv: true 
   operations:

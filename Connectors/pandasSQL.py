@@ -11,11 +11,11 @@ class PandasSQLConnector(GenericSQLConnector):
     def load_default(cls):
         return cls.from_profile(AZURE_PROFILE)
 
-    def load_tables(self,schema,table_list):
+    def load_tables(self,table_list,source=None):
         
         dfs = {} 
         for table in table_list:
-            dfs[table] = pd.read_sql_table(table,self.engine,schema=schema,index_col='Id')
+            dfs[table] = pd.read_sql_table(table,self.engine,schema=source,index_col='Id')
         return dfs
 
     def save(self,df,schema,table):
@@ -29,7 +29,7 @@ class PandasSQLConnector(GenericSQLConnector):
 
         source = transforms['Source']
         table_list = transforms['Tables']
-        dataframes = self.load_tables(source,table_list)
+        dataframes = self.load_tables(table_list,source=source)
 
         df = None
 
