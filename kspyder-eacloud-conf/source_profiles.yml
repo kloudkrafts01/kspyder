@@ -3,7 +3,6 @@ AzureRG_EA:
     username: azure_client
     config: azure_subs
 
-
 Azure_Pricing:
     name: Azure Pricing API
     dbtype: rest_api

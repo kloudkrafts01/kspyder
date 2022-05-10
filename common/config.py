@@ -1,8 +1,10 @@
 import os,sys,re
 import yaml,json
-from .azure_utils import AzureClient
+from .azure_utils import AzureClient, AzureVaultClient
 
 AZURE_CLIENT = AzureClient()
+AZ_VAULT = AzureVaultClient()
+AZ_SECRETS = AZ_VAULT.secret_client
 
 # default number of days' history to be fetched and page size for source queries
 # DEFAULT_TIMESPAN = 1
@@ -34,7 +36,7 @@ sys.path.insert(0,DATA_FOLDER)
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
 
-def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=None):
+def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=AZ_SECRETS):
     """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
     with open(profilepath,'r') as conf:
@@ -111,8 +113,8 @@ AZURERG_DEFAULT_SCOPE = BASE_CONFIG[ENV]['AZURERG_DEFAULT_SCOPE']
 # ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
 # PS_PROFILE = load_profile(ps_key)
 
-# azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
-# AZURE_PROFILE = load_profile(azure_key)
+azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
+AZURE_PROFILE = load_profile(azure_key)
 
 PLACEHOLDER_PROFILE = {
     'dbtype': 'stub',
@@ -124,4 +126,4 @@ PLACEHOLDER_PROFILE = {
 
 ODOO_PROFILE = PLACEHOLDER_PROFILE
 PS_PROFILE = PLACEHOLDER_PROFILE
-AZURE_PROFILE = PLACEHOLDER_PROFILE
+# AZURE_PROFILE = PLACEHOLDER_PROFILE

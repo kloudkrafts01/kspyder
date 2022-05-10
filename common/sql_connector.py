@@ -24,9 +24,9 @@ STR_PATTERN = re.compile('(String)\((\d+)\)')
 
 class GenericSQLConnector():
 
-    def __init__(self,sqltype,url,dbname,username,password):
+    def __init__(self,dbtype,url,dbname,username,password):
 
-        self.type = sqltype
+        self.type = dbtype
         self.url = url
         self.dbname = dbname
         __username = username
@@ -51,7 +51,7 @@ class GenericSQLConnector():
                     db = self.dbname
                 )
 
-        elif self.type == 'mssql':
+        if self.type == 'mssql':
             self.protocol = 'mssql+pyodbc'
             self.port = '1433'
             __driver= '{ODBC Driver 17 for SQL Server}'
@@ -68,14 +68,15 @@ class GenericSQLConnector():
             __cstring_safe = urllib.parse.quote_plus(__cstring)
             conn_url = "{}:///?odbc_connect={}".format(self.protocol,__cstring_safe)
 
-        else:
-            raise Exception
+        # else:
+        #     raise Exception
 
         self.engine = sqlalchemy.create_engine(conn_url)
         self.SessionFactory = sessionmaker(bind=self.engine)
               
     @classmethod
     def from_profile(cls,profile):
+        
         return cls(
             profile['dbtype'],
             profile['url'],
