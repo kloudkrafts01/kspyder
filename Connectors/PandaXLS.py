@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from common.panda_pipelines import PandaPipeline
 from common.config import DATA_FOLDER, TEMP_FOLDER
+from common.spLogging import logger
 
 
 class PandaXLSConnector(PandaPipeline):
@@ -22,12 +23,14 @@ class PandaXLSConnector(PandaPipeline):
         for filename in file_list:
             filepath = os.path.join(source,filename)
             tablename, extname = os.path.splitext(filename)
-            print("Pandas loading file: {}".format(filepath))
+            logger.debug("Pandas loading file: {}".format(filepath))
             self.dataframes[tablename] = pd.read_excel(filepath)
 
     def save(self,df,sheetname):
         
         if df.empty:
-            print("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(sheetname))
+            logger.info("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(sheetname))
             return
         df.to_excel(self.xlswriter,sheet_name=sheetname,index=True,index_label=df.index.name)
+
+    

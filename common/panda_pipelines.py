@@ -4,6 +4,8 @@ from importlib import import_module
 
 from common.config import load_conf
 
+from .utils import json_dump
+
 class PandaPipeline():
 
     def __init__(self):
@@ -68,6 +70,23 @@ class PandaPipeline():
 
     def passthrough(self,origin_df):
             return origin_df
+
+    def export_to_json(self,origin_df, model_name, **params):
+
+        dataset = origin_df.to_json(orient='records')
+
+        full_dataset = {
+            'header': {
+                'schema': self.schema,
+                'scope': self.scope,
+                'model': model_name,
+                'count': origin_df.size,
+                'params': params
+            },
+            'data': dataset
+        }
+
+        json_dump(full_dataset,self.schema,model_name)
 
     def reduce_df_axis(self,origin_df):
 
@@ -267,3 +286,44 @@ class PandaPipeline():
             dataframes += self.dataframes[df_name],
 
         return pd.concat(dataframes)
+
+def cast_dtypes(self,origin_df,typemap):
+
+        df = origin_df.astype(typemap)
+        return df
+
+def addup_columns(self,origin_df,output_name,origin_column,add_columns=[]):
+
+    df = origin_df
+    df[output_name] = df[origin_column]
+    for colname in add_columns:
+        df[output_name] = df[output_name].add(df[colname],fill_value=0.0)
+
+    return df
+
+def substitute_str(self,origin_df,colnames,strmaps):
+    
+    df = origin_df
+    for colname in colnames:
+        for strmap in strmaps:
+            df[colname] = df[colname].str.replace(strmap['old'],strmap['new'])
+    
+    return df
+
+def add_fill_column(self,origin_df,fill_columns):
+
+    df = origin_df
+    for item in fill_columns:
+        df[item['colname']] = item['fill_value']
+
+    return df
+
+def filter_duplicates(self, origin_df, colnames, sort_by, keep='first'):
+
+    sorted_df = origin_df.reset_index().sort_values(by=sort_by)
+    filtered_df = sorted_df.duplicated(subset=colnames,keep=keep)
+    mask = sorted_df.loc[filtered_df].index
+
+    df = sorted_df.drop(mask)
+
+    return df
