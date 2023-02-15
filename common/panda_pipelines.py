@@ -287,43 +287,43 @@ class PandaPipeline():
 
         return pd.concat(dataframes)
 
-def cast_dtypes(self,origin_df,typemap):
+    def cast_dtypes(self,origin_df,typemap):
 
-        df = origin_df.astype(typemap)
+            df = origin_df.astype(typemap)
+            return df
+
+    def addup_columns(self,origin_df,output_name,origin_column,add_columns=[]):
+
+        df = origin_df
+        df[output_name] = df[origin_column]
+        for colname in add_columns:
+            df[output_name] = df[output_name].add(df[colname],fill_value=0.0)
+
         return df
 
-def addup_columns(self,origin_df,output_name,origin_column,add_columns=[]):
+    def substitute_str(self,origin_df,colnames,strmaps):
+        
+        df = origin_df
+        for colname in colnames:
+            for strmap in strmaps:
+                df[colname] = df[colname].str.replace(strmap['old'],strmap['new'])
+        
+        return df
 
-    df = origin_df
-    df[output_name] = df[origin_column]
-    for colname in add_columns:
-        df[output_name] = df[output_name].add(df[colname],fill_value=0.0)
+    def add_fill_column(self,origin_df,fill_columns):
 
-    return df
+        df = origin_df
+        for item in fill_columns:
+            df[item['colname']] = item['fill_value']
 
-def substitute_str(self,origin_df,colnames,strmaps):
-    
-    df = origin_df
-    for colname in colnames:
-        for strmap in strmaps:
-            df[colname] = df[colname].str.replace(strmap['old'],strmap['new'])
-    
-    return df
+        return df
 
-def add_fill_column(self,origin_df,fill_columns):
+    def filter_duplicates(self, origin_df, colnames, sort_by, keep='first'):
 
-    df = origin_df
-    for item in fill_columns:
-        df[item['colname']] = item['fill_value']
+        sorted_df = origin_df.reset_index().sort_values(by=sort_by)
+        filtered_df = sorted_df.duplicated(subset=colnames,keep=keep)
+        mask = sorted_df.loc[filtered_df].index
 
-    return df
+        df = sorted_df.drop(mask)
 
-def filter_duplicates(self, origin_df, colnames, sort_by, keep='first'):
-
-    sorted_df = origin_df.reset_index().sort_values(by=sort_by)
-    filtered_df = sorted_df.duplicated(subset=colnames,keep=keep)
-    mask = sorted_df.loc[filtered_df].index
-
-    df = sorted_df.drop(mask)
-
-    return df
+        return df
