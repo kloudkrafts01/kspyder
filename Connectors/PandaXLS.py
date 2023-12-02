@@ -26,11 +26,11 @@ class PandaXLSConnector(PandaPipeline):
             logger.debug("Pandas loading file: {}".format(filepath))
             self.dataframes[tablename] = pd.read_excel(filepath)
 
-    def save(self,df,sheetname):
+    def save(self,df,tablename):
         
         if df.empty:
-            logger.info("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(sheetname))
+            logger.info("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(tablename))
             return
-        df.to_excel(self.xlswriter,sheet_name=sheetname,index=True,index_label=df.index.name)
+        df.to_excel(self.xlswriter,sheet_name=tablename,index=True,index_label=df.index.name)
 
     

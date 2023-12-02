@@ -33,11 +33,6 @@ params = {}
 
 def fetch():
 
-    orc_input = {
-        'params': params,
-        'body': 'TODO'
-    }
-
     result = fetch_data.main(params)
     logger.info(result)
 
