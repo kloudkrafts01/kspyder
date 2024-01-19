@@ -19,7 +19,7 @@ class GenericExtractor():
     def read_query(self,model_name):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def forge_item(self,model_name):
+    def forge_item(self,item,model_name):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
     def get_data(self,model_name,last_days=DEFAULT_TIMESPAN,**params):
@@ -97,3 +97,9 @@ class GenericExtractor():
             start_row += how_many
             batch_size = batch_size - how_many
             print("{} more to go.".format(batch_size))
+
+
+class DirectExtractor(GenericExtractor):
+    # child Interface bypassing the 'forge item' step
+    def forge_item(self,item,model_name):
+        return item

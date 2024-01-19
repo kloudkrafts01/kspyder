@@ -1,17 +1,28 @@
 import os,sys,re
 import yaml,json
 from .azure_utils import AzureClient, AzureVaultClient
+from .secret_utils import SecretParser
 
-AZURE_CLIENT = AzureClient()
-AZ_VAULT = AzureVaultClient()
-AZ_SECRETS = AZ_VAULT.secret_client
+AZURE_CLIENT = None
+AZ_VAULT = None
+SECRETS = None
 
-# default number of days' history to be fetched and page size for source queries
-# DEFAULT_TIMESPAN = 1
-# PAGE_SIZE = 500
+# load environment variables
+env = os.environ
 
-# specify which config you want to apply. The config files will be looked up in th 'CONF_${USE_CONFIG}' folder.
-USE_CONFIG = os.environ["KSPYDER_CONF"]
+ENV = env["KSPYDER_ENVIRONMENT"]
+USE_AZKV = env["KSPYDER_USE_AZ_KEYVAULT"]
+LOCAL_SECRETS = env["KSPYDER_LOCAL_SECRETS"]
+# specify which config you want to apply. The config files will be looked up in the 'CONF_${USE_CONFIG}' folder.
+USE_CONFIG = env["KSPYDER_CONF"]
+
+if USE_AZKV:
+    AZURE_CLIENT = AzureClient()
+    AZ_VAULT = AzureVaultClient()
+    SECRETS = AZ_VAULT.secret_client
+else:
+    SECRETS = SecretParser(store=LOCAL_SECRETS)
+    
 
 # Python path config
 COMMONS_FOLDER = os.path.dirname(__file__)
@@ -36,7 +47,7 @@ sys.path.insert(0,DATA_FOLDER)
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
 
-def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=AZ_SECRETS):
+def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=SECRETS):
     """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
     with open(profilepath,'r') as conf:
@@ -85,7 +96,6 @@ def load_conf(name,type="yaml",folder=CONF_FOLDER,subfolder=None):
 
     return conf_dict
 
-ENV = os.environ["KSPYDER_ENVIRONMENT"]
 BASE_CONFIG = load_conf("baseconfig")
 
 DEFAULT_TIMESPAN = BASE_CONFIG["DEFAULT_TIMESPAN"]
@@ -113,8 +123,8 @@ AZURERG_DEFAULT_SCOPE = BASE_CONFIG[ENV]['AZURERG_DEFAULT_SCOPE']
 # ps_key = BASE_CONFIG[ENV]['PS_PROFILE']
 # PS_PROFILE = load_profile(ps_key)
 
-azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
-AZURE_PROFILE = load_profile(azure_key)
+# azure_key = BASE_CONFIG[ENV]['AZURE_PROFILE']
+# AZURE_PROFILE = load_profile(azure_key)
 
 PLACEHOLDER_PROFILE = {
     'dbtype': 'stub',
@@ -126,4 +136,4 @@ PLACEHOLDER_PROFILE = {
 
 ODOO_PROFILE = PLACEHOLDER_PROFILE
 PS_PROFILE = PLACEHOLDER_PROFILE
-# AZURE_PROFILE = PLACEHOLDER_PROFILE
+AZURE_PROFILE = PLACEHOLDER_PROFILE
