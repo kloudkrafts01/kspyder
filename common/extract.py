@@ -1,8 +1,8 @@
 import datetime
 import traceback
 
-from .utils import json_dump
-from .config import DEFAULT_TIMESPAN, DUMP_JSON
+# from .utils import dump_json
+from .config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER
 from .spLogging import logger
 
 class GenericExtractor():
@@ -53,7 +53,7 @@ class GenericExtractor():
 
         jsonpath = None
         if DUMP_JSON:
-            jsonpath = json_dump(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
+            jsonpath = BASE_FILE_HANDLER.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
 
         return jsonpath,full_dataset
 

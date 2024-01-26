@@ -1,4 +1,3 @@
-import yaml
 import logging
 import logging.config
 

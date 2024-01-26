@@ -4,9 +4,9 @@ import json
 import argparse
 from re import search
 
-from common.config import DEFAULT_TIMESPAN
+from common.config import DEFAULT_TIMESPAN, CONNECTOR_MAP
 from common.spLogging import logger
-from common.utils import get_client
+# from common.utils import get_client
 
 from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
@@ -121,6 +121,21 @@ def apply_db_changes():
 def manage_db():
     result = db_actions.main(params)
     return result
+
+def get_client(source, **kwargs):
+
+    # get the names from config
+    connector_name = CONNECTOR_MAP[source]["connector"]
+    client_name = CONNECTOR_MAP[source]["client"]
+
+    # import the right connector
+    connector = import_module(connector_name)
+
+    # instantiate a connector client
+    client_class = getattr(connector,client_name)
+    client = client_class(**kwargs)
+
+    return client
 
 if __name__ == "__main__":
 

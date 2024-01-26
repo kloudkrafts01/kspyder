@@ -1,5 +1,5 @@
-import os,yaml
-from .utils import full_load
+import os
+from .utils import FileHandler
 
 class Secret:
 
@@ -21,7 +21,8 @@ class SecretParser:
         """WARNING : This is a dummy class method to emulate secret fetching locally.
         It is only here for use in local development and not secure at all. Use at your own risk"""
 
-        secrets_dict = full_load(open(self.storepath,'r'))
+        fh = FileHandler(input_folder=self.storepath)
+        secrets_dict = fh.load_yaml('secrets')
         if secret_key in secrets_dict:
             return Secret(
                 secret_key=secret_key,

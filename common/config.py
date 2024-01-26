@@ -1,5 +1,6 @@
 import os,sys,re
 import yaml,json
+from .utils import FileHandler
 from .azure_utils import AzureClient, AzureVaultClient
 from .secret_utils import SecretParser
 
@@ -43,6 +44,7 @@ sys.path.insert(0,TEMP_FOLDER)
 sys.path.insert(0,LOG_FOLDER)
 sys.path.insert(0,DATA_FOLDER)
 
+BASE_FILE_HANDLER = FileHandler(input_folder=CONF_FOLDER,output_folder=TEMP_FOLDER)
 
 # source db profiles config
 SOURCE_PROFILES = os.path.join(CONF_FOLDER,'source_profiles.yml')
@@ -57,46 +59,46 @@ def load_profile(profile,profilepath=SOURCE_PROFILES,secrets=SECRETS):
             profile['password'] = password
 
         if 'config' in profile.keys():
-            profile_conf = load_conf(profile['config'],folder='local_only')
+            profile_conf = BASE_FILE_HANDLER.load_yaml(profile['config'],folder='local_only')
             
 
     return profile
 
-def load_conf(name,type="yaml",folder=CONF_FOLDER,subfolder=None):
-    """Simply Loads a YAML file and passes the result as a dict"""
+# def load_conf(name,type="yaml",folder=CONF_FOLDER,subfolder=None):
+#     """Simply Loads a YAML file and passes the result as a dict"""
 
-    conf_dict = {}
+#     conf_dict = {}
 
-    if subfolder:
-        folder = os.path.join(folder,subfolder)
+#     if subfolder:
+#         folder = os.path.join(folder,subfolder)
     
-    if type=="json":
-        json_ext = re.compile('(\.yml)$')
-        if re.search(json_ext, name) is None:
-            name = '{}.json'.format(name)
+#     if type=="json":
+#         json_ext = re.compile('(\.yml)$')
+#         if re.search(json_ext, name) is None:
+#             name = '{}.json'.format(name)
         
-        conf_path = os.path.join(folder,name)
+#         conf_path = os.path.join(folder,name)
 
-        with open(conf_path,'r') as conf:
-            conf_dict = json.loads(conf)
+#         with open(conf_path,'r') as conf:
+#             conf_dict = json.loads(conf)
 
-    elif type=="yaml":
-        # Add the .yml extension to the conf name if not already present
-        yml_ext = re.compile('(\.yml|\.yaml)$')
-        if re.search(yml_ext, name) is None:
-            name = '{}.yml'.format(name)
+#     elif type=="yaml":
+#         # Add the .yml extension to the conf name if not already present
+#         yml_ext = re.compile('(\.yml|\.yaml)$')
+#         if re.search(yml_ext, name) is None:
+#             name = '{}.yml'.format(name)
 
-        conf_path = os.path.join(folder,name)
+#         conf_path = os.path.join(folder,name)
 
-        with open(conf_path,'r') as conf:
-            conf_dict = yaml.full_load(conf)
+#         with open(conf_path,'r') as conf:
+#             conf_dict = yaml.full_load(conf)
     
-    else:
-        ValueError("common.config :: Invalid value provided for Config Type ! Valid options are 'json' or 'yaml'.")
+#     else:
+#         ValueError("common.config :: Invalid value provided for Config Type ! Valid options are 'json' or 'yaml'.")
 
-    return conf_dict
+#     return conf_dict
 
-BASE_CONFIG = load_conf("baseconfig")
+BASE_CONFIG = BASE_FILE_HANDLER.load_yaml("baseconfig")
 
 DEFAULT_TIMESPAN = BASE_CONFIG["DEFAULT_TIMESPAN"]
 CONNECTOR_MAP = BASE_CONFIG["CONNECTOR_MAP"]
@@ -105,8 +107,9 @@ APP_NAME = BASE_CONFIG["APP_NAME"]
 
 DUMP_JSON = BASE_CONFIG[ENV]["DUMP_JSON"]
 # DUMP_CSV = BASE_CONFIG[ENV]["DUMP_CSV"]
+
 log_config_key = BASE_CONFIG[ENV]["LOG_CONFIG"]
-LOG_CONFIG = load_conf(log_config_key)
+LOG_CONFIG = BASE_FILE_HANDLER.load_yaml(log_config_key)
 
 azprice_key = BASE_CONFIG[ENV]['AZ_PRICING_PROFILE']
 AZ_PRICING_PROFILE = load_profile(azprice_key)
