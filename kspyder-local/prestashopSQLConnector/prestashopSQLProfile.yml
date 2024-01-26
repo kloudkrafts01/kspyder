@@ -1,0 +1,6 @@
+name: Stub Profile
+dbtype: stub
+url: http://localhost
+dbname: stub_db
+username: stub_username
+secretkey: stub_pwd

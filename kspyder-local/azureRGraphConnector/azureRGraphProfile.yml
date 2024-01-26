@@ -1,0 +1,3 @@
+dbtype: azure_api
+username: azure_client
+config: azure_subs

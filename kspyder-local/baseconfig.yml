@@ -1,0 +1,41 @@
+DEFAULT_TIMESPAN: 1
+PAGE_SIZE: 300
+APP_NAME: kspyder_local
+DUMP_JSON: true
+# Challenge the dependency b/w logging handler and config.py
+LOG_CONFIG: logging_semiverbose
+
+# Get rid of this soon
+CONNECTOR_MAP:
+  azureRG: 
+    connector: azureResourceGraph
+    client: AzureRGConnector
+  odoo:
+    connector: odooRPC
+    client: OdooRPCConnector
+  prestashop:
+    connector: prestashopSQL
+    client: prestashopSQLExtractor
+  mongoDB: 
+    connector: mongo_connector
+    client: MongoDBConnector
+  pandaXLS: 
+    connector: PandaXLS
+    client: PandaXLSConnector
+  pandaSQL: 
+    connector: PandaSQL
+    client: PandaSQLConnector
+
+# Move this to ENV variables for direct use by secretsHandler
+USE_AZKV : false
+SECRET_STORE: local_only/secrets.yaml
+
+Modules:
+  - odooRPCConnector
+  - prestashopSQLConnector
+  - azureSQLConnector
+  - azureRGraphConnector
+  - pandaPipelinesEngine
+  - pandaXLSConnector
+  - pandaSQLConnector
+  - mongoDBConnector
