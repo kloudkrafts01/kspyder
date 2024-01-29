@@ -3,6 +3,7 @@
 import subprocess
 
 from common.extract import GenericExtractor
+from common.spLogging import logger
 
 from common.config import ODOO_PROFILE, PAGE_SIZE, BASE_FILE_HANDLER as fh
 
@@ -21,10 +22,37 @@ class aliyunCLIClient:
     """Class to process the raw output of an Aliyun CLI command, because the python sdk sucks.
     This WILL NOT set or authenticate to your Aliyun context, you have to run locally 'aliyun configure'"""
 
-    def __init__(self):
+    def __init__(self, update_field=UPD_FIELD_NAME):
         
-        pass
+        self.update_field = update_field
     
+    def build_command(self,model,scope,search_domains=[]):
+
+        command_str = ''
+        # build the basics : 'scope' is supposed to be one type of query that fits the model
+        if scope in model['scopes']:
+            command_str = 'aliyun {} {} '.format(model['class'], scope)
+        else:
+            errmsg_tmpl = '{} :: {} is not a valid scope for the {} model.\nAccepted scopes are: {}'
+            errmsg = errmsg_tmpl.format(__name__, scope, model, model['scopes'])
+            logger.error(errmsg)
+            raise ValueError(errmsg)
+
+        # add search filters if any
+        for domain in search_domains:
+            if domain[0] == self.update_field:
+                last_time = 
+                timefilter = '--Filter.1.Key {} --Filter.1.Value {} '.format(self.update_field, last_time)
+                command_str += timefilter
+            command_str += '--{} {} '.format(domain[0], domain[2])
+        
+
+
+        return command_str
+
+
+
+
     def get_records_count(self,model,search_domains=[]):
         
         result = self.models.execute_kw(

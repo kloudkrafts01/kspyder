@@ -1,22 +1,23 @@
 Connector:
     schema: aliyunCLIConnector
-    update_field: UpdateDate
+    update_field: CreationStartTime
 
 UnpackingFields: null
     
 Models:
     RAMUsers:
         base_name: User
-        related_queries:
+        class: ram
+        scopes:
             - ListUsers
             - ListUsersForGroup
         fields:
-            id:
-                dbname: UserId
+            username:
+                dbname: UserName
                 type: String(255)
                 primary_key: true
-            user_name:
-                dbname: UserName
+            id:
+                dbname: UserId
                 type: String(255)
             create_date:
                 dbname: CreateDate

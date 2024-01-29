@@ -10,6 +10,8 @@ class GenericExtractor():
         self.client = "This is an empty client from the GenericExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the GenericExtractor interface"
         self.scope = "Empty scope from the GenericExtractor interface"
+        self.update_field = "Empty update_field from the GenericExtractor interface"
+        self.exec_time = datetime.datetime.utcnow()
         self.models = [{"default": "Empty schema from the GenericExtractor interface"}]
 
     def get_count(self,model_name):
@@ -26,10 +28,10 @@ class GenericExtractor():
         logger.debug("Extractor object: {}".format(self.__dict__))
 
         sd = []
+
         if last_days:
-            today = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=last_days)
-            yesterday = today - delta
+            yesterday = self.exec_time - delta
 
             logger.info("UTC start datetime is {}".format(yesterday))
             sd += [self.update_field,'>=',yesterday],
