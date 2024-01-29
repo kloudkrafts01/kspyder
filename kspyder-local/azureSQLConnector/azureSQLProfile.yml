@@ -1,5 +1,16 @@
-dbtype: mssql
-url: wearelog-kspyder-ger.database.windows.net
-dbname: kspyder-prod
-username: serveradmin
-secretkey: kspyder-ger-serveradmin
+kspyder_sql_log_prod:
+- name: dbname
+  type: string
+  value: kspyder-prod
+- name: dbtype
+  type: string
+  value: mssql
+- name: url
+  type: secret
+  value: kspyder_sql_log_prod_url
+- name: username
+  type: secret
+  value: kspyder_sql_log_prod_username
+- name: secretkey
+  type: secret
+  value: kspyder_sql_log_prod_password

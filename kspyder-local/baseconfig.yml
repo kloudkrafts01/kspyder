@@ -26,10 +26,6 @@ CONNECTOR_MAP:
     connector: PandaSQL
     client: PandaSQLConnector
 
-# Move this to ENV variables for direct use by secretsHandler
-USE_AZKV : false
-SECRET_STORE: local_only/secrets.yaml
-
 Modules:
   - odooRPCConnector
   - prestashopSQLConnector

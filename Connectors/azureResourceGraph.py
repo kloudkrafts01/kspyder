@@ -6,59 +6,60 @@ import os
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 
-from common.config import AZURE_CLIENT, AZURERG_DEFAULT_SCOPE, PAGE_SIZE, load_conf
+from common.config import AZURE_CLIENT, PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
+from common.profileHandler import profileHandler
 
-CONF = load_conf('azureRG_models', subfolder='manifests') 
+# build config folder path from module's name
+CONF_PATH = os.path.join(CONF_FOLDER,__name__)
+CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
-SCHEMA_NAME = CONNECTOR_CONF['schema']
-UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+SCHEMA_NAME = CONF['schema']
+UPD_FIELD_NAME = CONF['update_field']
 
 MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
-def format_azprofiles(input=None):
+# def format_azprofiles(input=None):
 
-    raw_profiles = load_conf(input,folder='local_only')
-    output_dict = {}
-    for profile in raw_profiles:
-        name = profile['name']
-        output_dict[name] = profile
+#     raw_profiles = load_conf(input,folder='local_only')
+#     output_dict = {}
+#     for profile in raw_profiles:
+#         name = profile['name']
+#         output_dict[name] = profile
     
-    return output_dict
+#     return output_dict
 
-# DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
-AZURE_PROFILES = format_azprofiles('azure_subs')
-AZURE_SCOPES = list(AZURE_PROFILES.keys())
-DEFAULT_PROFILE = [x for x in AZURE_PROFILES.values() if x['isDefault']][0]
+# # DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
+# AZURE_PROFILES = format_azprofiles('azure_subs')
+# AZURE_SCOPES = list(AZURE_PROFILES.keys())
+# DEFAULT_PROFILE = [x for x in AZURE_PROFILES.values() if x['isDefault']][0]
 
 
 
 class AzureRGConnector(GenericExtractor):
 
-    def __init__(self, scope=AZURERG_DEFAULT_SCOPE, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
-        
+    def __init__(self, scope, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 
-        if scope == '_default_':
-            scope = AZURERG_DEFAULT_SCOPE
-        
         self.scope = scope
-        # self.AVAILABLE_SCOPES = AZURE_SCOPES
-        self.profile = AZURE_PROFILES[self.scope]
-        self.scope_id = self.profile['id']
-        
-        logger.debug("AzureRG PROFILE OBJ: {}".format(self.profile))
-        
-        self.client = ResourceGraphClient(
-            credential = AZURE_CLIENT.credential,
-            subscription_id = self.scope_id
-        )
         self.schema = schema
         self.models = models
         self.update_field = update_field
+
+        # initialize Azure Resource Graph Client from profile info
+        ph = profileHandler(input_folder=CONF_PATH)
+        self.profile = ph.load_profile('azureRGraphProfile', scope=self.scope)
+        self.subscription_id = self.profile['id']
+        
+        logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
+        
+        self.client = ResourceGraphClient(
+            credential = AZURE_CLIENT.credential,
+            subscription_id = self.subscription_id
+        )
 
     def get_count(self, model, search_domains=[]):
 

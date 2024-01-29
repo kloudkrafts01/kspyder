@@ -67,7 +67,7 @@ class bJSONEncoder(json.JSONEncoder):
 
 class FileHandler():
 
-    def __init__(self,input_folder=".",output_folder="."):
+    def __init__(self,input_folder=".",output_folder=".",**kwargs):
         
         self.input_folder = os.path.abspath(input_folder)
         self.output_folder = os.path.abspath(output_folder)
