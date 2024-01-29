@@ -1,7 +1,6 @@
 import datetime
 import traceback
 
-# from .utils import dump_json
 from .config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from .spLogging import logger
 
