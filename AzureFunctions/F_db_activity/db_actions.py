@@ -4,7 +4,7 @@
 from importlib import import_module
 import traceback
 
-from common.config import CONNECTOR_MAP
+from common.config import MODULES_LIST
 from common.spLogging import logger
 from Connectors.azureSQL import AzureSQLConnector
 
@@ -16,7 +16,7 @@ def main(params: dict) -> dict:
         
         azconn = AzureSQLConnector.load_default()
         schema = params['source']
-        schema_list = ([schema] if schema else CONNECTOR_MAP.keys())
+        schema_list = ([schema] if schema else MODULES_LIST)
         action = params['action']
         models = params['model']
 

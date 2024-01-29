@@ -4,8 +4,7 @@ import traceback
 from importlib import import_module
 
 from common.spLogging import logger
-from common.utils import get_client
-from common.config import CONNECTOR_MAP
+from common.clientHandler import clientHandler
 
 # from Connectors import odooRPC, prestashopSQL, azureResourceGraph
 from Connectors.azureSQL import AzureSQLConnector
@@ -26,7 +25,7 @@ def main(params: dict) -> dict:
         initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(trigger,source,models,last_days)
         logger.info(initStr)
 
-        client = get_client(source)
+        client = clientHandler.get_client(source)
 
         for model_name in models:
             logger.info('Extracting data from Model: {}'.format(model_name))
@@ -57,12 +56,7 @@ def format_params(params):
 
     source = None
     source_name = params['source']
-    # get the right module from source_name, if valid
-    if source_name in CONNECTOR_MAP.keys():
-        source = import_module(CONNECTOR_MAP[source_name])
-    else:
-        errmsg = "Invalid source name provided for fetch_data ! please provide a valid source name."
-        raise ValueError(errmsg)
+    source = import_module(source_name)
     
     # typecast last_days to 'int' if it has been provided
     last_days = (int(params['last_days']) if params['last_days'] is not None else None)
