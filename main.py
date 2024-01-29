@@ -2,10 +2,11 @@
 
 import json
 import argparse
-from re import search
+# from re import search
 
 from common.config import DEFAULT_TIMESPAN, MODULES_LIST
 from common.spLogging import logger
+from common.clientHandler import clientHandler
 
 from common.mongo_connector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
@@ -53,7 +54,7 @@ def extract():
     for current_scope in scopes:
         
         logger.info("Instantiating Extractor {} with context : {}".format(source,current_scope))
-        client = get_client(source, scope = current_scope)  
+        client = clientHandler.get_client(source, scope = current_scope)  
         
         for model_name in models:
             logger.info("Extracting schema: {} - model: {}".format(source,model_name))
@@ -92,7 +93,7 @@ def pass_mongo_queries():
 def transform_xls():
 
     for model_name in models:
-        pdxls = get_client(source,pipeline_def=model_name)
+        pdxls = clientHandler.get_client(source,pipeline_def=model_name)
         dataframes = pdxls.apply_transforms()
 
 
@@ -119,27 +120,24 @@ def manage_db():
     result = db_actions.main(params)
     return result
 
-def get_client(source, **kwargs):
-    """Simple method to return a client from a given 'source' value.
-        This method assumes that the 'source' given is valid, and corresponds to a callable module
-        The module must provide a class named exactly like itself
-        e.g. from azureRGConnector impor azureRGConnector"""
-    # # get the names from config
-    # connector_name = CONNECTOR_MAP[source]["connector"]
-    # client_name = CONNECTOR_MAP[source]["client"]
+# def get_client(source, **kwargs):
+#     """Simple method to return a client from a given 'source' value.
+#         This method assumes that the 'source' given is valid, and corresponds to a callable module
+#         The module must provide a class named exactly like itself
+#         e.g. from azureRGConnector impor azureRGConnector"""
 
-    if source in MODULES_LIST:
-        # import the right connector
-        connector = import_module(source)
+#     if source in MODULES_LIST:
+#         # import the right connector
+#         connector = import_module(source)
 
-        # instantiate a connector client
-        client_class = getattr(connector,source)
-        client = client_class(**kwargs)
+#         # instantiate a connector client
+#         client_class = getattr(connector,source)
+#         client = client_class(**kwargs)
 
-        return client
+#         return client
     
-    else:
-        raise ValueError('{} :: {} is not a valid source.\nAccepted sources are:\n{}'.format(__name__,source,MODULES_LIST))
+#     else:
+#         raise ValueError('{} :: {} is not a valid source.\nAccepted sources are:\n{}'.format(__name__,source,MODULES_LIST))
 
 if __name__ == "__main__":
 
