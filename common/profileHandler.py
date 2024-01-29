@@ -1,7 +1,7 @@
 import os
 
-from .secret_utils import secretsHandler
-from .utils import FileHandler
+from .secretsHandler import secretsHandler
+from .fileHandler import FileHandler
 
 USE_CONFIG = os.environ["KSPYDER_CONF"]
 ENV_CONFIG = os.path.abspath(USE_CONFIG)
