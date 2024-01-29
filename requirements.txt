@@ -13,3 +13,4 @@ SQLAlchemy-Utils
 cython
 numpy
 pandas
+pymongo

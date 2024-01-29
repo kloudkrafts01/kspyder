@@ -1,6 +1,5 @@
 #!python3
 
-from Connectors.azureResourceGraph import CONNECTOR_CONF
 from common.extract import GenericExtractor
 import xmlrpc.client
 import ssl

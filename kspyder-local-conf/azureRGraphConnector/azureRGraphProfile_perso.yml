@@ -4,13 +4,13 @@ common:
     value: AzureCloud
   - name: tenantId
     type: secret
-    value: ea_tenant_id
+    value: contoso-tenant-id
   - name: homeTenantId
     type: secret
-    value: ea_tenant_id
+    value: contoso-tenant-id
   - name: user.name
     type: secret
-    value: azure_ea_user
+    value: training-user
   - name: user.type
     type: string
     value: user
@@ -21,10 +21,10 @@ common:
 default:
   - name: name
     type: string
-    value: EA HUB Sandbox 1
+    value: AZ-104 Training
   - name: id
     type: secret
-    value: ea_hub_sandbox_1_id
+    value: az104-training-sub-id
   - name: state
     type: string
     value: Enabled
@@ -32,31 +32,16 @@ default:
     type: boolean
     value: true
 
-EA Spoke Sandbox 1:
+AZ-104 Training:
   - name: name
     type: string
-    value: EA Spoke Sandbox 1
+    value: AZ-104 Training
   - name: id
     type: secret
-    value: ea_spoke_sandbox_1_id
+    value: az104-training-sub-id
   - name: state
     type: string
     value: Enabled
   - name: isDefault
     type: boolean
-    value: false
-
-
-EAU1 GMMI Non-Production:
-  - name: name
-    type: string
-    value: EAU1 GMMI Non-Production
-  - name: id
-    type: secret
-    value: eau1_gmmi_non_prod_id
-  - name: state
-    type: string
-    value: Enabled
-  - name: isDefault
-    type: boolean
-    value: false
+    value: true

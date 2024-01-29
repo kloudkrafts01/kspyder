@@ -14,11 +14,11 @@ class profileHandler(FileHandler,secretsHandler):
         secretsHandler.__init__(self)
 
 
-    def load_profile(self,profile_name,scope='default'):
+    def load_profile(self,profile_name,subpath=None,scope='default'):
         """Loads a YAML file and returns the db or API client definition named '$profile' as a dict, retrieving passwords from Azure Key Vault"""
 
         # with open(profilepath,'r') as conf:
-        profile_conf = self.load_yaml(profile_name)
+        profile_conf = self.load_yaml(profile_name,subpath=subpath)
         profile_data = []
         profile = {}
 
@@ -36,7 +36,7 @@ class profileHandler(FileHandler,secretsHandler):
 
             # If secret value, decode it with the Secrets client
             if field_definition['type'] == 'secret':
-                decoded_value = self.secrets_client.get_secret(field_definition['value'])
+                decoded_value = self.secrets_client.get_secret(field_definition['value']).value
                 value = decoded_value
             
             # Insert the decoded key/value pair into the profile dict
