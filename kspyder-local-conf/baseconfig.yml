@@ -3,7 +3,7 @@ PAGE_SIZE: 300
 APP_NAME: kspyder_local
 DUMP_JSON: true
 # Challenge the dependency b/w logging handler and config.py
-LOG_CONFIG: logging_semiverbose
+LOG_CONFIG: logging_verbose
 
 # Get rid of this soon
 # CONNECTOR_MAP:

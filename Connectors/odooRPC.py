@@ -1,14 +1,16 @@
 #!python3
 
+from common.profileHandler import profileHandler
 from common.extract import GenericExtractor
 import xmlrpc.client
 import ssl
 
-from common.config import ODOO_PROFILE, PAGE_SIZE, load_conf
+from common.config import ODOO_PROFILE, PAGE_SIZE, BASE_FILE_HANDLER as fh
 
 
 # Load the Connector's config
-CONF = load_conf('odoo_models', subfolder='manifests')
+# CONF = load_conf('odoo_models', subfolder='manifests')
+CONF = fh.load_yaml('odooRPCModels', subfolder=__name__)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
@@ -31,7 +33,11 @@ class OdooClient:
         self.models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.url),context=ssl._create_unverified_context())
 
     @classmethod
-    def from_profile(cls,profile):
+    def from_profile(cls,profile_name):
+
+        ph = profileHandler(input_folder=CONF)
+        profile = ph.load_profile(profile_name=profile_name)
+
         return cls(
             profile['url'],
             profile['dbname'],

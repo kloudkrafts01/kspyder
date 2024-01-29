@@ -1,7 +1,7 @@
 Connector:
     schema: azureRG
     update_field: write_date
-    default_scope: 'EAEU Europe Hub'
+    default_scope: 'AZ-104 training'
 
 UnpackingFields:
     default: null

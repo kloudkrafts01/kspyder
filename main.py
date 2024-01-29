@@ -4,7 +4,7 @@ import json
 import argparse
 # from re import search
 
-from common.config import DEFAULT_TIMESPAN, MODULES_LIST
+from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
 from common.clientHandler import clientHandler
 
@@ -27,6 +27,8 @@ scopes = None
 search_domain = None
 
 params = {}
+
+ch = clientHandler()
 
 
 def fetch():
@@ -54,7 +56,7 @@ def extract():
     for current_scope in scopes:
         
         logger.info("Instantiating Extractor {} with context : {}".format(source,current_scope))
-        client = clientHandler.get_client(source, scope = current_scope)  
+        client = ch.get_client(source, scope = current_scope)  
         
         for model_name in models:
             logger.info("Extracting schema: {} - model: {}".format(source,model_name))
@@ -93,7 +95,7 @@ def pass_mongo_queries():
 def transform_xls():
 
     for model_name in models:
-        pdxls = clientHandler.get_client(source,pipeline_def=model_name)
+        pdxls = ch.get_client(source,pipeline_def=model_name)
         dataframes = pdxls.apply_transforms()
 
 
@@ -120,24 +122,6 @@ def manage_db():
     result = db_actions.main(params)
     return result
 
-# def get_client(source, **kwargs):
-#     """Simple method to return a client from a given 'source' value.
-#         This method assumes that the 'source' given is valid, and corresponds to a callable module
-#         The module must provide a class named exactly like itself
-#         e.g. from azureRGConnector impor azureRGConnector"""
-
-#     if source in MODULES_LIST:
-#         # import the right connector
-#         connector = import_module(source)
-
-#         # instantiate a connector client
-#         client_class = getattr(connector,source)
-#         client = client_class(**kwargs)
-
-#         return client
-    
-#     else:
-#         raise ValueError('{} :: {} is not a valid source.\nAccepted sources are:\n{}'.format(__name__,source,MODULES_LIST))
 
 if __name__ == "__main__":
 
@@ -146,7 +130,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
-    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scopes)
+    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scopes,default=['default'])
     parser.add_argument('-m','--model',action='store',type=str,nargs='+',dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)

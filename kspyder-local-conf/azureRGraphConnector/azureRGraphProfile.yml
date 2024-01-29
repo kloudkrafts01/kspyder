@@ -21,7 +21,7 @@ common:
 default:
   - name: name
     type: string
-    value: AZ-104 Training
+    value: AZ-104 training
   - name: id
     type: secret
     value: az104-training-sub-id
