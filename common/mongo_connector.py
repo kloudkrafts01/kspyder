@@ -1,13 +1,10 @@
-from re import match
-from Connectors.azureResourceGraph import SCHEMA_NAME
 import json
 from pymongo import MongoClient
 
-from common.config import APP_NAME, DUMP_JSON, load_conf
-from common.utils import json_dump, csv_dump
+from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 
-MONGO_QUERIES = load_conf("mongodb_queries",subfolder="manifests")
+MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
 SCHEMA_NAME = APP_NAME
 
 class MongoDBConnector():
@@ -79,10 +76,10 @@ class MongoDBConnector():
             result_dataset = self.execute_query(query_name,query_conf)
 
             if DUMP_JSON:
-                json_dump(result_dataset,APP_NAME,query_name)
+                fh.dump_json(result_dataset,APP_NAME,query_name)
 
             if query_conf['dump_csv']:
-                csv_dump(result_dataset['data'],APP_NAME,query_name)
+                fh.dump_csv(result_dataset['data'],APP_NAME,query_name)
 
     def execute_query(self,query_name,query_conf):
 

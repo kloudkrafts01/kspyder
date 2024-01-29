@@ -1,6 +1,3 @@
-#!python3
-
-from common.extract import GenericExtractor
 import os
 
 from azure.mgmt.resourcegraph import ResourceGraphClient
@@ -9,6 +6,7 @@ from azure.mgmt.resourcegraph.models import QueryRequest
 from common.config import AZURE_CLIENT, PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from common.profileHandler import profileHandler
+from common.extract import GenericExtractor
 
 # build config folder path from module's name
 CONF_PATH = os.path.join(CONF_FOLDER,__name__)
@@ -23,24 +21,8 @@ MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
-# def format_azprofiles(input=None):
 
-#     raw_profiles = load_conf(input,folder='local_only')
-#     output_dict = {}
-#     for profile in raw_profiles:
-#         name = profile['name']
-#         output_dict[name] = profile
-    
-#     return output_dict
-
-# # DEFAULT_SCOPE = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
-# AZURE_PROFILES = format_azprofiles('azure_subs')
-# AZURE_SCOPES = list(AZURE_PROFILES.keys())
-# DEFAULT_PROFILE = [x for x in AZURE_PROFILES.values() if x['isDefault']][0]
-
-
-
-class AzureRGConnector(GenericExtractor):
+class azureRGraphConnector(GenericExtractor):
 
     def __init__(self, scope, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 

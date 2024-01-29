@@ -1,6 +1,5 @@
 #!python3
 
-from Connectors.azureResourceGraph import CONNECTOR_CONF
 from common.extract import GenericExtractor
 import pandas as pd
 import os,re
@@ -28,7 +27,7 @@ class XLSConnector(GenericExtractor):
         self.dataframes = self.load_tables()
 
     def load_tables(self,source_folder=DATA_FOLDER):
-        '''Loads all excel files in teh input folder whose names match one Model name in the schema's YML config'''
+        '''Loads all excel files in the input folder whose names match one Model name in the schema's YML config'''
 
         file_list = os.listdir(source_folder)
         models_list = list(x['base_name'] for x in self.models)

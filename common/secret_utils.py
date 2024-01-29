@@ -25,7 +25,17 @@ class AzureKeyVaultClient(AzureClient):
         AzureClient.__init__(self)
         self.vault_name = vault_name
         self.vault_url = "https://{}.vault.azure.net/".format(vault_name)
-        self.secret_client = SecretClient(vault_url=self.vault_url, credential=self.credential)
+        self.secrets_client = SecretClient(vault_url=self.vault_url, credential=self.credential)
+
+class LocalSecret:
+
+    def __init__(self, name:str, value:str) -> None:
+        self.name = name
+        self.value = value
+        self.properties = {
+            'secret_type': 'local',
+            'secure': False
+        }
 
 class LocalSecretsParser:
     """WARNING : This is a dummy class to emulate secret fetching methods.
@@ -42,9 +52,9 @@ class LocalSecretsParser:
         It is only here for use in local development and not secure at all. Use at your own risk"""
         with open(self.storepath,'r') as sp:
             secrets_dict = yaml.full_load(sp)
-            
+
         if secret_key in secrets_dict.keys():
-            return secrets_dict[secret_key]
+            return LocalSecret(secret_key, secrets_dict[secret_key])
         else:
             raise KeyError(f'{secret_key} not found in {self.storepath}')
         
@@ -61,7 +71,9 @@ class secretsHandler():
         if self.vault_type == 'local':
             self.secrets_client = LocalSecretsParser(self.vault_name)
         elif self.vault_type == 'azure_keyvault':
-            self.secrets_client = AzureKeyVaultClient(self.vault_name)
+            self.keyvault_client = AzureKeyVaultClient(self.vault_name)
+            self.secrets_client = self.keyvault_client.secrets_client
         else:
             raise KeyError(f'Unrecognized {self.vault_type} for {__name__}')
+        
 
