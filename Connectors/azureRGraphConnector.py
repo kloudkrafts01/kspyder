@@ -25,7 +25,7 @@ UNPACKING = CONF['UnpackingFields']
 
 class azureRGraphConnector(GenericExtractor):
 
-    def __init__(self, scope, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+    def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 
         self.scope = scope
         self.schema = schema
@@ -46,9 +46,9 @@ class azureRGraphConnector(GenericExtractor):
             subscription_id = self.subscription_id
         )
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model, **params):
 
-        queryStr = self.forge_query(model, count=True)
+        queryStr = self.build_query(model, count=True)
 
         query = QueryRequest(
                 query=queryStr,
@@ -60,9 +60,9 @@ class azureRGraphConnector(GenericExtractor):
 
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
+    def read_query(self,model, **params):
 
-        queryStr = self.forge_query(model)
+        queryStr = self.build_query(model)
         
         query = QueryRequest(
                 query=queryStr,
@@ -73,7 +73,7 @@ class azureRGraphConnector(GenericExtractor):
         return query_response.data
 
 
-    def forge_query(self, model, page_size=PAGE_SIZE, count=False):
+    def build_query(self, model, page_size=PAGE_SIZE, count=False):
 
         class_scope = None
         if 'class' in model.keys():

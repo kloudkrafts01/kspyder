@@ -85,18 +85,18 @@ class OdooRPCConnector(GenericExtractor):
         self.models = models
         self.update_field = update_field
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model=None, search_domains=[]):
 
-        total_count = self.client.get_records_count(model,search_domains=search_domains)
+        total_count = self.client.get_records_count(model=model,search_domains=search_domains)
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
+    def read_query(self,model=None,search_domains=[],start_row=0):
 
-        results = self.client.search_read(model,search_domains=search_domains,offset=start_row)
+        results = self.client.search_read(model=model,search_domains=search_domains,offset=start_row)
         return results
 
 
-    def forge_item(self,odoo_dict,model):
+    def forge_item(self,odoo_dict,model=None):
         '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
         The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
 

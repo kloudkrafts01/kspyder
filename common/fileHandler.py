@@ -23,15 +23,13 @@ class FileHandler():
         self.output_folder = os.path.abspath(output_folder)
 
         
-    def load_json(self,name,subpath=None):
+    def load_json(self,name,subpath=None,input=None):
         """Simply Loads a JSON file and passes the result as a dict"""
 
         dict_data = {}
 
-        if subpath:
-            folder = os.path.join(self.input_folder,subpath)
-        else:
-            folder = self.input_folder
+        input_folder = (input if input else self.input_folder)
+        folder = (os.path.join(input_folder,subpath) if subpath else input_folder)
     
         json_ext = re.compile('(\.json)$')
         if re.search(json_ext, name) is None:
@@ -44,15 +42,13 @@ class FileHandler():
         
         return dict_data
 
-    def load_yaml(self,name,subpath=None):
+    def load_yaml(self,name,subpath=None,input=None):
         """Simply Loads a YAML file and passes the result as a dict"""
 
         dict_data = {}
-
-        if subpath:
-            folder = os.path.join(self.input_folder,subpath)
-        else:
-            folder = self.input_folder
+        
+        input_folder = (input if input else self.input_folder)
+        folder = (os.path.join(input_folder,subpath) if subpath else input_folder)
 
         # Add the .yml extension to the conf name if not already present
         yml_ext = re.compile('(\.yml|\.yaml)$')

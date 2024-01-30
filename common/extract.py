@@ -1,7 +1,6 @@
 import datetime
 import traceback
 
-# from .utils import dump_json
 from .config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from .spLogging import logger
 
@@ -11,31 +10,33 @@ class GenericExtractor():
         self.client = "This is an empty client from the GenericExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the GenericExtractor interface"
         self.scope = "Empty scope from the GenericExtractor interface"
+        self.update_field = "Empty update_field from the GenericExtractor interface"
         self.models = [{"default": "Empty schema from the GenericExtractor interface"}]
 
-    def get_count(self,model_name):
+    def get_count(self,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def read_query(self,model_name):
+    def read_query(self,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def forge_item(self,item,model_name):
+    def forge_item(self,item,model_name,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self,model_name,last_days=DEFAULT_TIMESPAN,**params):
+    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
 
         sd = []
+
         if last_days:
-            today = datetime.datetime.utcnow()
+            now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=last_days)
-            yesterday = today - delta
+            yesterday = now - delta
 
             logger.info("UTC start datetime is {}".format(yesterday))
             sd += [self.update_field,'>=',yesterday],
 
-        count, dataset = self.fetch_dataset(model_name,search_domains=sd)
+        count, dataset = self.fetch_dataset(model_name=model_name,search_domains=sd,**params)
 
         if dataset == []:
             logger.info('no results were found.')
@@ -57,16 +58,16 @@ class GenericExtractor():
 
         return jsonpath,full_dataset
 
-    def fetch_dataset(self,model_name,search_domains=[]):
+    def fetch_dataset(self,model_name=None,search_domains=[],**params):
 
         output_rows = []    
         model = self.models[model_name]
-        total_count = self.get_count(model,search_domains)
+        total_count = self.get_count(model,search_domains=search_domains,**params)
 
         if total_count > 0:    
             
             logger.info('Found a total of {} items.'.format(total_count))        
-            ex_iter = self.batch_fetch(model,search_domains=search_domains,batch_size=total_count)
+            ex_iter = self.batch_fetch(model,search_domains=search_domains,batch_size=total_count,**params)
 
             for results in ex_iter:
 
@@ -74,7 +75,7 @@ class GenericExtractor():
                     # logger.debug('raw item: {}'.format(row))
                     try:
                         # cleaning and formatting the item for the dataset
-                        new_row = self.forge_item(row,model)
+                        new_row = self.forge_item(row,model,**params)
                         # logger.debug("forged item : {}".format(new_row))
                         output_rows += new_row,
 
@@ -84,11 +85,11 @@ class GenericExtractor():
         
         return total_count,output_rows
 
-    def batch_fetch(self,model,search_domains=[],start_row=0,batch_size=None):
+    def batch_fetch(self,model,search_domains=[],start_row=0,batch_size=None,**params):
 
         while batch_size > 0:
 
-            results = self.read_query(model,search_domains=search_domains,start_row=start_row)
+            results = self.read_query(model,search_domains=search_domains,start_row=start_row,**params)
 
             how_many = len(results)
             logger.debug("caught {} items starting at row = {}".format(how_many,start_row))

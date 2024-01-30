@@ -25,6 +25,7 @@ fetch_all = None
 action = None
 scopes = None
 search_domain = None
+query_domain = None
 
 params = {}
 
@@ -61,7 +62,7 @@ def extract():
         for model_name in models:
             logger.info("Extracting schema: {} - model: {}".format(source,model_name))
             # scopedict = {'scope': scope}
-            jsonpath,dataset = client.get_data(model_name,**params)
+            jsonpath,dataset = client.get_data(model_name=model_name,**params)
             full_results += {'jsonpath': jsonpath, 'dataset': dataset},
         
     return full_results
@@ -137,6 +138,7 @@ if __name__ == "__main__":
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)
     parser.add_argument('-x','--action',action='store',type=str,dest=action)
     parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
+    parser.add_argument('-q','--querydomain',action='store',type=str,nargs=1,dest=query_domain)
     
 
     args = parser.parse_args()
@@ -149,12 +151,14 @@ if __name__ == "__main__":
     action = args.action
     scopes = args.scope
     search_domain = args.searchdomain
+    query_domain = args.querydomain
     
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
-        'model': models,
+        'models': models,
         'search_domain': search_domain,
+        'query_domain': query_domain,
         'source': source,
         'action': action,
         'scope': scopes
