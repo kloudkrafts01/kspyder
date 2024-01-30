@@ -41,61 +41,61 @@ Models:
         query_domains:
             - DescribeInstances
         fields:
-            id:
-                dbname: InstanceId
+            InstanceId:
+                dbname: id
                 type: String(255)
                 primary_key: true
-            instance_name:
-                dbname: InstanceName
+            InstanceName:
+                dbname: instance_name
                 type: String(255)
-            resource_group_id:
-                dbname: ResourceGroupId
+            ResourceGroupId:
+                dbname: resource_group_id
                 type: String(255)
-            region_id:
-                dbname: RegionId
+            RegionId:
+                dbname: region_id
                 type: String(64)
-            vpc_attributes:
-                dbname: VpcAttributes
+            VpcAttributes:
+                dbname: vpc_attributes
                 type: Object
-            instance_status:
-                dbname: Status
+            Status:
+                dbname: instance_status
                 type: String(255)
-            create_date:
-                dbname: CreateDate
+            CreateDate:
+                dbname: create_date
                 type: DateTime
-            update_date:
-                dbname: UpdateDate
+            UpdateDate:
+                dbname: update_date
                 type: DateTime
-            last_boot_time:
-                dbname: StartTime
+            StartTime:
+                dbname: last_boot_time
                 type: DateTime
-            hostname:
-                dbname: HostName
+            HostName:
+                dbname: hostname
                 type: String(255)
-            os_family:
-                dbname: OSType
+            OSType:
+                dbname: os_type
                 type: String(255)
-            os_name:
-                dbname: OSNameEn
+            OSNameEn:
+                dbname: os_name
                 type: String(255)
-            instance_sku:
-                dbname: InstanceType
+            InstanceType:
+                dbname: instance_sku
                 type: String(64)
-            cpu:
-                dbname: Cpu
+            Cpu:
+                dbname: cpu
                 type: Integer
-            ram:
-                dbname: Memory
+            Memory:
+                dbname: ram
                 type: Integer
-            ssh_keypair:
-                dbname: KeyPairName
+            KeyPairName:
+                dbname: ssh_keypair
                 type: String(64)
-            description:
-                dbname: Description
+            Description:
+                dbname: description
                 type: String(255)
-            tags:
-                dbname: Tags
+            Tags:
+                dbname: tags
                 type: Object
-            network_interfaces:
-                dbname: NetworkInterfaces
+            NetworkInterfaces:
+                dbname: network_interfaces
                 type: Object
