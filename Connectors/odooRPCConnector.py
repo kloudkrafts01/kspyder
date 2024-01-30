@@ -9,7 +9,6 @@ from common.config import ODOO_PROFILE, PAGE_SIZE, BASE_FILE_HANDLER as fh
 
 
 # Load the Connector's config
-# CONF = load_conf('odoo_models', subfolder='manifests')
 CONF = fh.load_yaml('odooRPCModels', subfolder=__name__)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']

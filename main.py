@@ -9,7 +9,7 @@ from common.spLogging import logger
 from common.clientHandler import clientHandler
 
 from Connectors.mongoDBConnector import MongoDBConnector
-from Connectors.azureSQL import AzureSQLConnector
+from Connectors.azureSQLConnector import azureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
@@ -41,13 +41,13 @@ def fetch():
 
 def build_db():
 
-    azconn = AzureSQLConnector.load_default()
+    azconn = azureSQLConnector.load_default()
     source_list = ([source] if source else None)
     azconn.create_db(source_list)
 
 def destroy_db():
 
-    azconn = AzureSQLConnector.load_default()
+    azconn = azureSQLConnector.load_default()
     azconn.delete_db(schema_name=source)
 
 def extract():
@@ -81,7 +81,7 @@ def get_to_mongo():
 
 def insert_to_azure():
     
-    azconn = AzureSQLConnector.load_default()
+    azconn = azureSQLConnector.load_default()
     azconn.insert_from_jsonfile(input_file)
 
 def insert_to_mongo():
@@ -107,7 +107,7 @@ def expand():
 
 def examine_db():
 
-    azconn = AzureSQLConnector.load_default()
+    azconn = azureSQLConnector.load_default()
     json_plan = azconn.plan_changes(source)
     return json_plan
 
@@ -116,7 +116,7 @@ def apply_db_changes():
     with open(input_file, 'r') as f:
         plan = json.load(f)
     
-    azconn = AzureSQLConnector.load_default()
+    azconn = azureSQLConnector.load_default()
     azconn.apply_changes(plan)
 
 def manage_db():

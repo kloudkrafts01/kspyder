@@ -1,4 +1,4 @@
-kspyder_sql_log_prod:
+default:
 - name: dbname
   type: string
   value: kspyder-prod
