@@ -46,7 +46,7 @@ class azureRGraphConnector(GenericExtractor):
             subscription_id = self.subscription_id
         )
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model, **params):
 
         queryStr = self.build_query(model, count=True)
 
@@ -60,7 +60,7 @@ class azureRGraphConnector(GenericExtractor):
 
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
+    def read_query(self,model, **params):
 
         queryStr = self.build_query(model)
         

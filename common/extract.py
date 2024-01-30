@@ -13,16 +13,16 @@ class GenericExtractor():
         self.update_field = "Empty update_field from the GenericExtractor interface"
         self.models = [{"default": "Empty schema from the GenericExtractor interface"}]
 
-    def get_count(self,model_name,**kwargs):
+    def get_count(self,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def read_query(self,model_name,**kwargs):
+    def read_query(self,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
     def forge_item(self,item,model_name,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self,model_name,last_days=DEFAULT_TIMESPAN,**params):
+    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
 
@@ -36,7 +36,7 @@ class GenericExtractor():
             logger.info("UTC start datetime is {}".format(yesterday))
             sd += [self.update_field,'>=',yesterday],
 
-        count, dataset = self.fetch_dataset(model_name,search_domains=sd,**params)
+        count, dataset = self.fetch_dataset(model_name=model_name,search_domains=sd,**params)
 
         if dataset == []:
             logger.info('no results were found.')
@@ -58,11 +58,11 @@ class GenericExtractor():
 
         return jsonpath,full_dataset
 
-    def fetch_dataset(self,model_name,search_domains=[],**params):
+    def fetch_dataset(self,model_name=None,search_domains=[],**params):
 
         output_rows = []    
         model = self.models[model_name]
-        total_count = self.get_count(model,search_domains,**params)
+        total_count = self.get_count(model,search_domains=search_domains,**params)
 
         if total_count > 0:    
             

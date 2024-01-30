@@ -62,7 +62,7 @@ def extract():
         for model_name in models:
             logger.info("Extracting schema: {} - model: {}".format(source,model_name))
             # scopedict = {'scope': scope}
-            jsonpath,dataset = client.get_data(model_name,**params)
+            jsonpath,dataset = client.get_data(model_name=model_name,**params)
             full_results += {'jsonpath': jsonpath, 'dataset': dataset},
         
     return full_results
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
-        'model': models,
+        'models': models,
         'search_domain': search_domain,
         'query_domains': query_domains,
         'source': source,
