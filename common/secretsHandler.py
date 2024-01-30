@@ -12,17 +12,12 @@ VAULT_CLIENTS = {
     'local': 'LocalSecretsParser'
 }
 
-# Define classes to get secrets information from Azure Key Vault
-class AzureClient:
 
-    def __init__(self):
-        self.credential = DefaultAzureCredential()
-
-
-class AzureKeyVaultClient(AzureClient):
+class AzureKeyVaultClient():
 
     def __init__(self,vault_name:str):
-        AzureClient.__init__(self)
+        
+        self.credential = DefaultAzureCredential()
         self.vault_name = vault_name
         self.vault_url = "https://{}.vault.azure.net/".format(vault_name)
         self.secrets_client = SecretClient(vault_url=self.vault_url, credential=self.credential)
