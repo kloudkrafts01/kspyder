@@ -8,7 +8,7 @@ from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
 from common.clientHandler import clientHandler
 
-from common.mongo_connector import MongoDBConnector
+from Connectors.mongoDBConnector import MongoDBConnector
 from Connectors.azureSQL import AzureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
