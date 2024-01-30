@@ -16,9 +16,7 @@ class MongoDBConnector():
     def insert_dataset(self,dataset,key='name'):
 
         header = dataset['header']
-        schema_name = header['schema']
         model_name = header['model']
-        line_count = header['count']
         data = dataset['data']
 
         logger.info("Inserting dataset to Mongo Collection: {}".format(model_name))
