@@ -25,6 +25,7 @@ fetch_all = None
 action = None
 scopes = None
 search_domain = None
+query_domains = None
 
 params = {}
 
@@ -137,6 +138,7 @@ if __name__ == "__main__":
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)
     parser.add_argument('-x','--action',action='store',type=str,dest=action)
     parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
+    parser.add_argument('-q','--querydomains',action='store',type=str,nargs='+',dest=query_domains)
     
 
     args = parser.parse_args()
@@ -149,12 +151,14 @@ if __name__ == "__main__":
     action = args.action
     scopes = args.scope
     search_domain = args.searchdomain
+    query_domains = args.querydomains
     
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
         'model': models,
         'search_domain': search_domain,
+        'query_domains': query_domains,
         'source': source,
         'action': action,
         'scope': scopes

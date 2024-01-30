@@ -25,15 +25,15 @@ class aliyunCLIClient:
         
         self.update_field = update_field
     
-    def build_command(self,model,scope,search_domains=[]):
+    def build_command(self,model,query_domain=None,search_domains=[]):
 
         command = ['aliyun', model['class']]
-        # build the basics : 'scope' is supposed to be one type of query that fits the model
-        if scope in model['scopes']:
-            command += scope,
+        # build the basics : 'query_domain' is supposed to be one type of query that fits the model
+        if query_domain in model['query_domains']:
+            command += query_domain,
         else:
-            errmsg_tmpl = '{} :: {} is not a valid scope for the {} model.\nAccepted scopes are: {}'
-            errmsg = errmsg_tmpl.format(__name__, scope, model['base_name'], model['scopes'])
+            errmsg_tmpl = '{} :: {} is not a valid query_domain for the {} model.\nAccepted query_domains are: {}'
+            errmsg = errmsg_tmpl.format(__name__, query_domain=query_domain, model['base_name'], model['query_domains'])
             logger.error(errmsg)
             raise ValueError(errmsg)
 
@@ -55,13 +55,13 @@ class aliyunCLIClient:
 
         return command
 
-    def get_records_count(self,model,scope,search_domains=[]):
+    def get_records_count(self,model,query_domain=None,search_domains=[]):
         
-        command = self.build_command(model,scope,search_domains=search_domains)
+        command = self.build_command(model,query_domain=query_domain,search_domains=search_domains)
         result = subprocess.run(command)
         return result['TotalCount']
 
-    def search_read(self,model,scope,search_domains=[],offset=None,limit=PAGE_SIZE):
+    def search_read(self,model,query_domain=None,search_domains=[],offset=None,limit=PAGE_SIZE):
 
         # fields = model['fields']
         # pkeys = [x for x in fields.keys() if 'primary_key' in fields[x].keys()]
@@ -82,7 +82,7 @@ class aliyunCLIClient:
                 search_domains += ['--PageNumber', '=', pageno],
 
         # Build the command and add up the offset and page size params
-        command = self.build_command(model,scope,search_domains=search_domains)
+        command = self.build_command(model,query_domain=query_domain,search_domains=search_domains)
         result = subprocess.run(command)
 
         base_name = model['base_name']
@@ -101,27 +101,28 @@ class aliyunCLIConnector(GenericExtractor):
         self.models = models
         self.update_field = update_field
         self.client = aliyunCLIClient(update_field)
+        self.params = params
 
-    def get_count(self, model, scopes=['default'], search_domains=[]):
+    def get_count(self, model, query_domains=None, search_domains=[]):
 
         total_count = 0
-        
-        if scopes == ['default']:
-            scopes = model['scopes']
+        # if not provided, set default query domains to the list given in the YML model
+        query_domains = query_domains if query_domains else model['query_domains']
 
-        for scope in scopes:
-            result = self.client.get_records_count(model,scope,search_domains)
+        for query_domain in query_domains:
+            result = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains)
             total_count += result['TotalCount']
         
         return total_count
 
-    def read_query(self, model, scopes=['default'], search_domains=[], start_row=0):
+    def read_query(self, model, query_domains=None, search_domains=[], start_row=0):
 
-        if scopes == ['default']:
-            scopes = model['scopes']
+        dataset = []
+        # if not provided, set default query domains to the list given in the YML model
+        query_domains = query_domains if query_domains else model['query_domains']
 
-        for scope in scopes:
-            results = self.client.search_read(model,scope,search_domains=search_domains,offset=start_row)
+        for query_domain in query_domains:
+            results = self.client.search_read(model,query_domain=query_domain,search_domains=search_domains,offset=start_row)
             dataset = dataset + results
 
         return results

@@ -8,7 +8,7 @@ Models:
     RAMUsers:
         base_name: User
         class: ram
-        scopes:
+        query_domains:
             - ListUsers
             - ListUsersForGroup
         fields:
@@ -38,7 +38,7 @@ Models:
     ECSInstances:
         base_name: Instance
         class: ecs
-        scopes:
+        query_domains:
             - DescribeInstances
         fields:
             id:
