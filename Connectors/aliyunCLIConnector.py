@@ -9,7 +9,7 @@ from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 
 
 # Load the Connector's config
-CONF = fh.load_yaml('aliyunCLIModels', subfolder=__name__)
+CONF = fh.load_yaml('aliyunCLIModels', subpath=__name__)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
@@ -33,7 +33,7 @@ class aliyunCLIClient:
             command += scope,
         else:
             errmsg_tmpl = '{} :: {} is not a valid scope for the {} model.\nAccepted scopes are: {}'
-            errmsg = errmsg_tmpl.format(__name__, scope, model, model['scopes'])
+            errmsg = errmsg_tmpl.format(__name__, scope, model['base_name'], model['scopes'])
             logger.error(errmsg)
             raise ValueError(errmsg)
 
@@ -57,17 +57,17 @@ class aliyunCLIClient:
 
     def get_records_count(self,model,scope,search_domains=[]):
         
-        command = self.build_command(model,scope,search_domains)
+        command = self.build_command(model,scope,search_domains=search_domains)
         result = subprocess.run(command)
         return result['TotalCount']
 
     def search_read(self,model,scope,search_domains=[],offset=None,limit=PAGE_SIZE):
 
-        fields = model['fields']
-        pkeys = [x for x in fields.keys() if 'primary_key' in fields[x].keys()]
-        paramsDict = {'fields': fields, 'order': pkeys[0]}
+        # fields = model['fields']
+        # pkeys = [x for x in fields.keys() if 'primary_key' in fields[x].keys()]
+        # paramsDict = {'fields': fields, 'order': pkeys[0]}
 
-        add_params = []
+        # add_params = []
 
         if limit:
             # for AliyunCLI pafge size is strictly limited to 100
@@ -102,19 +102,22 @@ class aliyunCLIConnector(GenericExtractor):
         self.update_field = update_field
         self.client = aliyunCLIClient(update_field)
 
-    def get_count(self, model, scopes=None, search_domains=[]):
+    def get_count(self, model, scopes=['default'], search_domains=[]):
 
         total_count = 0
         
+        if scopes == ['default']:
+            scopes = model['scopes']
+
         for scope in scopes:
             result = self.client.get_records_count(model,scope,search_domains)
             total_count += result['TotalCount']
         
         return total_count
 
-    def read_query(self, model, scopes=None, search_domains=[], start_row=0):
+    def read_query(self, model, scopes=['default'], search_domains=[], start_row=0):
 
-        if scopes is None:
+        if scopes == ['default']:
             scopes = model['scopes']
 
         for scope in scopes:

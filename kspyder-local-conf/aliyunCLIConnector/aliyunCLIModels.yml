@@ -37,7 +37,8 @@ Models:
 
     ECSInstances:
         base_name: Instance
-        related_queries:
+        class: ecs
+        scopes:
             - DescribeInstances
         fields:
             id:
