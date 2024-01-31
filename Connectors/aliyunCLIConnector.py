@@ -3,7 +3,7 @@
 import subprocess
 import json
 
-from common.extract import GenericExtractor
+from common.extract import DirectExtractor
 from common.spLogging import logger
 
 from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
@@ -110,7 +110,7 @@ class aliyunCLIClient:
         return dataset
 
 
-class aliyunCLIConnector(GenericExtractor):
+class aliyunCLIConnector(DirectExtractor):
 
     def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scope=None, **params):
 
@@ -137,24 +137,22 @@ class aliyunCLIConnector(GenericExtractor):
         return dataset
 
 
-    def forge_item(self,dictitem,model=None,**params):
-        '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
-        The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
+    # def forge_item(self,dictitem,model=None,**params):
+        
+    #     new_dict = {}
+    #     fields = model['fields']
 
-        new_dict = {}
-        fields = model['fields']
+    #     for key,value in dictitem.items():
 
-        for key,value in dictitem.items():
+    #         isInFieldMap = (key in fields.keys())
 
-            isInFieldMap = (key in fields.keys())
+    #         if isInFieldMap:
+    #             new_key = fields[key]['dbname']
+    #             new_dict[new_key] = value
 
-            if isInFieldMap:
-                new_key = fields[key]['dbname']
-                new_dict[new_key] = value
+    #         # for now, filter out elements not in the model target fields
+    #         else:
+    #             new_dict[key] = value
 
-            # for now, filter out elements not in the model target fields
-            # else:
-            #     new_dict[key] = value
-
-        return new_dict
+    #     return new_dict
 

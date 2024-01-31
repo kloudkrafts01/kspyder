@@ -6,7 +6,7 @@ import traceback
 
 from common.config import MODULES_LIST
 from common.spLogging import logger
-from Connectors.azureSQL import AzureSQLConnector
+from Connectors.azureSQLConnector import azureSQLConnector
 
 def main(params: dict) -> dict:
 
@@ -14,7 +14,7 @@ def main(params: dict) -> dict:
     
     try:
         
-        azconn = AzureSQLConnector.load_default()
+        azconn = azureSQLConnector.load_default()
         schema = params['source']
         schema_list = ([schema] if schema else MODULES_LIST)
         action = params['action']

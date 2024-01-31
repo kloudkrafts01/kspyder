@@ -6,8 +6,7 @@ from importlib import import_module
 from common.spLogging import logger
 from common.clientHandler import clientHandler
 
-# from Connectors import odooRPC, prestashopSQL, azureResourceGraph
-from Connectors.azureSQL import AzureSQLConnector
+from Connectors.azureSQLConnector import azureSQLConnector
 
 
 def main(params: dict) -> dict:
@@ -20,7 +19,7 @@ def main(params: dict) -> dict:
         trigger = params['trigger']
         results = {}
         
-        azconn = AzureSQLConnector.load_default()
+        azconn = azureSQLConnector.load_default()
 
         initStr = "Fetch operation started. Trigger: {} Source: {} - Models: {} - LAST_DAYS={}".format(trigger,source,models,last_days)
         logger.info(initStr)

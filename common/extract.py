@@ -102,5 +102,5 @@ class GenericExtractor():
 
 class DirectExtractor(GenericExtractor):
     # child Interface bypassing the 'forge item' step
-    def forge_item(self,item,model_name):
+    def forge_item(self,item,model_name,**kwargs):
         return item

@@ -34,6 +34,17 @@ Models:
             tags:
                 dbname: Tags
                 type: Object
+    
+    NSGs:
+        base_name: SecurityGroup
+        class: ecs
+        query_domains:
+            - DescribeSecurityGroups
+        fields:
+            SecurityGroupId:
+                dbname: id
+                type: String(255)
+                primary_key: true
 
     ECSInstances:
         base_name: Instance
