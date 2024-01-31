@@ -1,19 +1,23 @@
 #!python3
 
 
-import json
+import os,json
 
-import common.sql_connector as sc
 from common.sql_connector import GenericSQLConnector
-from common.config import AZURE_PROFILE
-from common.spLogging import logger
+from common.config import CONF_FOLDER
+from common.profileHandler import profileHandler
 
+CONNECTOR_CONF_PATH = os.path.join(CONF_FOLDER,__name__)
+DEFAULT_PROFILE = 'azureSQLProfile'
 
-class AzureSQLConnector(GenericSQLConnector):
+class azureSQLConnector(GenericSQLConnector):
 
     @classmethod
     def load_default(cls):
-        return cls.from_profile(AZURE_PROFILE)
+
+        ph = profileHandler(input_folder=CONNECTOR_CONF_PATH)
+        profile = ph.load_profile(profile_name=DEFAULT_PROFILE)
+        return cls.from_profile(profile)
 
     def insert_from_jsonfile(self,jsonpath):
         

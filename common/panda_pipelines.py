@@ -2,9 +2,7 @@ import pandas as pd
 import numpy as np
 from importlib import import_module
 
-from common.config import load_conf
-
-from .utils import json_dump
+from common.config import BASE_FILE_HANDLER as fh
 
 class PandaPipeline():
 
@@ -15,7 +13,7 @@ class PandaPipeline():
 
     def load_transforms(self,pipeline_def):
 
-        self.transforms = load_conf(pipeline_def,subfolder='transforms')
+        self.transforms = fh.load_yaml(pipeline_def,subfolder='transforms')
 
     def apply_transforms(self):
 
@@ -86,7 +84,7 @@ class PandaPipeline():
             'data': dataset
         }
 
-        json_dump(full_dataset,self.schema,model_name)
+        fh.dump_json(full_dataset,self.schema,model_name)
 
     def reduce_df_axis(self,origin_df):
 

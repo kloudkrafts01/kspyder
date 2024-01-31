@@ -1,14 +1,15 @@
 #!python3
 
+from common.profileHandler import profileHandler
 from common.extract import GenericExtractor
 import xmlrpc.client
 import ssl
 
-from common.config import ODOO_PROFILE, PAGE_SIZE, load_conf
+from common.config import ODOO_PROFILE, PAGE_SIZE, BASE_FILE_HANDLER as fh
 
 
 # Load the Connector's config
-CONF = load_conf('odoo_models', subfolder='manifests')
+CONF = fh.load_yaml('odooRPCModels', subfolder=__name__)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
@@ -31,7 +32,11 @@ class OdooClient:
         self.models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.url),context=ssl._create_unverified_context())
 
     @classmethod
-    def from_profile(cls,profile):
+    def from_profile(cls,profile_name):
+
+        ph = profileHandler(input_folder=CONF)
+        profile = ph.load_profile(profile_name=profile_name)
+
         return cls(
             profile['url'],
             profile['dbname'],
@@ -79,18 +84,18 @@ class OdooRPCConnector(GenericExtractor):
         self.models = models
         self.update_field = update_field
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model=None, search_domains=[]):
 
-        total_count = self.client.get_records_count(model,search_domains=search_domains)
+        total_count = self.client.get_records_count(model=model,search_domains=search_domains)
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
+    def read_query(self,model=None,search_domains=[],start_row=0):
 
-        results = self.client.search_read(model,search_domains=search_domains,offset=start_row)
+        results = self.client.search_read(model=model,search_domains=search_domains,offset=start_row)
         return results
 
 
-    def forge_item(self,odoo_dict,model):
+    def forge_item(self,odoo_dict,model=None):
         '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
         The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
 

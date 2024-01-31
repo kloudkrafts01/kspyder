@@ -1,9 +1,10 @@
 import os
 
+from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 
-from common.config import AZURE_CLIENT, PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
+from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from common.profileHandler import profileHandler
 from common.extract import GenericExtractor
@@ -14,8 +15,8 @@ CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
-SCHEMA_NAME = CONF['schema']
-UPD_FIELD_NAME = CONF['update_field']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
 MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
@@ -24,12 +25,14 @@ UNPACKING = CONF['UnpackingFields']
 
 class azureRGraphConnector(GenericExtractor):
 
-    def __init__(self, scope, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+    def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 
         self.scope = scope
         self.schema = schema
         self.models = models
         self.update_field = update_field
+
+        self.credential = DefaultAzureCredential()
 
         # initialize Azure Resource Graph Client from profile info
         ph = profileHandler(input_folder=CONF_PATH)
@@ -39,17 +42,17 @@ class azureRGraphConnector(GenericExtractor):
         logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
         
         self.client = ResourceGraphClient(
-            credential = AZURE_CLIENT.credential,
+            credential = self.credential,
             subscription_id = self.subscription_id
         )
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model, **params):
 
-        queryStr = self.forge_query(model, count=True)
+        queryStr = self.build_query(model, count=True)
 
         query = QueryRequest(
                 query=queryStr,
-                subscriptions = [self.scope_id]
+                subscriptions = [self.subscription_id]
             )
         query_response = self.client.resources(query)
 
@@ -57,20 +60,20 @@ class azureRGraphConnector(GenericExtractor):
 
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
+    def read_query(self,model, **params):
 
-        queryStr = self.forge_query(model)
+        queryStr = self.build_query(model)
         
         query = QueryRequest(
                 query=queryStr,
-                subscriptions = [self.scope_id]
+                subscriptions = [self.subscription_id]
             )
         query_response = self.client.resources(query)
 
         return query_response.data
 
 
-    def forge_query(self, model, page_size=PAGE_SIZE, count=False):
+    def build_query(self, model, page_size=PAGE_SIZE, count=False):
 
         class_scope = None
         if 'class' in model.keys():

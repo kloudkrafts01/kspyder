@@ -1,15 +1,15 @@
 Connector:
     schema: azureRG
     update_field: write_date
-    default_scope: 'EAEU Europe Hub'
+    default_scope: 'AZ-104 training'
 
 UnpackingFields:
     default: null
 
 Models:
     ResourceGroups:    
-        class: ResourceContainers
-        base_name: Microsoft.Resources/Subscriptions/ResourceGroups
+        class: resourcecontainers
+        base_name: microsoft.resources/subscriptions/resourcerroups
         fields:
             name:
                 dbname: name

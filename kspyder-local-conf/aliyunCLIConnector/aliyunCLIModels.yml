@@ -1,0 +1,101 @@
+Connector:
+    schema: aliyunCLIConnector
+    update_field: CreationStartTime
+
+UnpackingFields: null
+    
+Models:
+    RAMUsers:
+        base_name: User
+        class: ram
+        query_domains:
+            - ListUsers
+            - ListUsersForGroup
+        fields:
+            username:
+                dbname: UserName
+                type: String(255)
+                primary_key: true
+            id:
+                dbname: UserId
+                type: String(255)
+            create_date:
+                dbname: CreateDate
+                type: DateTime
+            update_date:
+                dbname: UpdateDate
+                type: DateTime
+            display_name:
+                dbname: DisplayName
+                type: String(255)
+            comments:
+                dbname: Comments
+                type: String(255)
+            tags:
+                dbname: Tags
+                type: Object
+
+    ECSInstances:
+        base_name: Instance
+        class: ecs
+        query_domains:
+            - DescribeInstances
+        fields:
+            InstanceId:
+                dbname: id
+                type: String(255)
+                primary_key: true
+            InstanceName:
+                dbname: instance_name
+                type: String(255)
+            ResourceGroupId:
+                dbname: resource_group_id
+                type: String(255)
+            RegionId:
+                dbname: region_id
+                type: String(64)
+            VpcAttributes:
+                dbname: vpc_attributes
+                type: Object
+            Status:
+                dbname: instance_status
+                type: String(255)
+            CreateDate:
+                dbname: create_date
+                type: DateTime
+            UpdateDate:
+                dbname: update_date
+                type: DateTime
+            StartTime:
+                dbname: last_boot_time
+                type: DateTime
+            HostName:
+                dbname: hostname
+                type: String(255)
+            OSType:
+                dbname: os_type
+                type: String(255)
+            OSNameEn:
+                dbname: os_name
+                type: String(255)
+            InstanceType:
+                dbname: instance_sku
+                type: String(64)
+            Cpu:
+                dbname: cpu
+                type: Integer
+            Memory:
+                dbname: ram
+                type: Integer
+            KeyPairName:
+                dbname: ssh_keypair
+                type: String(64)
+            Description:
+                dbname: description
+                type: String(255)
+            Tags:
+                dbname: tags
+                type: Object
+            NetworkInterfaces:
+                dbname: network_interfaces
+                type: Object
