@@ -110,3 +110,14 @@ Models:
             NetworkInterfaces:
                 dbname: network_interfaces
                 type: Object
+
+    VPCs:
+        base_name: Vpc
+        class: vpc
+        query_domains:
+            - DescribeVpcs
+        fields:
+            VpcId:
+                dbname: id
+                type: String(255)
+                primary_key: true

@@ -1,0 +1,7 @@
+listVMTags:
+  path:
+    - DescribeInstances:
+      save: false
+      next:
+        - 
+

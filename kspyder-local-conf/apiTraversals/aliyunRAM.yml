@@ -1,0 +1,23 @@
+listUsersbyGroup:
+  path:
+  - ListGroups:
+    save: false
+    next:
+      - ListUsersForGroup:
+        input: ListGroups.GroupId
+        save: true
+        next: false
+
+listPoliciesByGroup_CDC:
+  path:
+  - ListGroups:
+    agg:
+      - key: GroupName
+        op: startswith
+        value: CDC
+    save: false
+    next:
+      - ListPoliciesForGroup:
+        save: false
+        input: ListGroups.GroupId
+

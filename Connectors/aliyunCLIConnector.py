@@ -24,9 +24,10 @@ class aliyunCLIClient:
     """Class to process the raw output of an Aliyun CLI command, because the python sdk sucks.
     This WILL NOT set or authenticate to your Aliyun context, you have to run locally 'aliyun configure'"""
 
-    def __init__(self, update_field=UPD_FIELD_NAME):
+    def __init__(self, update_field=UPD_FIELD_NAME,total_count=0):
         
         self.update_field = update_field
+        self.total_count = total_count
     
     def build_command(self,model=None,query_domain=None,search_domains=[]):
 
@@ -81,6 +82,7 @@ class aliyunCLIClient:
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
         output = self.execute_command(command)
 
+        self.total_count = output['TotalCount']
         return output['TotalCount']
 
     def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=PAGE_SIZE):
@@ -91,7 +93,11 @@ class aliyunCLIClient:
         if limit:
             # AliyunCLI page size is strictly limited to 100
             capped_limit = limit if limit < 100 else 100
+            # for some reason sometimes if PageSize is larger than the total count, aliyun crashes.
+            capped_limit = capped_limit if capped_limit < self.total_count else self.total_count
+
             command = command + ['--PageSize',str(capped_limit)]
+            
             # calculate page number
             pageno = int(offset / capped_limit) + 1 if offset else 1
             command = command + ['--PageNumber', str(pageno)]
