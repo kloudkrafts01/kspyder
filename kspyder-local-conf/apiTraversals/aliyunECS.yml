@@ -1,7 +1,6 @@
 listVMTags:
   path:
     - DescribeInstances:
-      save: false
-      next:
-        - 
+      save: true
+      next: false
 

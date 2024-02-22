@@ -1,4 +1,7 @@
-VM_list:
+AL_VM_list:
+  collection: ECSInstances
+
+AZ_VM_list:
   collection: VirtualMachines
   dump_csv: true
   operations:
@@ -17,7 +20,7 @@ VM_list:
         update_ring: $tags.UpdateRing
         update_wave: $tags.UpdateWave
 
-VM_Sizings:
+AZ_VM_Sizings:
   collection: VM_list
   dump_csv: true
   operations:
@@ -32,7 +35,7 @@ VM_Sizings:
       totalCount:
         $sum: 1
       
-VM_OSDisk_Sizing:
+AZ_VM_OSDisk_Sizing:
   collection: VirtualMachines
   dump_csv: true
   operations:
@@ -62,7 +65,7 @@ VM_OSDisk_Sizing:
     # $unset:
     #   - _id
 
-VM_by_SupportTier:
+AZ_VM_by_SupportTier:
   collection: VirtualMachines
   dump_csv: true
   operations:
@@ -83,7 +86,7 @@ VM_by_SupportTier:
     $unset:
       - _id
 
-VM_DataDisk_Sizing:
+AZ_VM_DataDisk_Sizing:
   collection: VirtualMachines
   dump_csv: true
   operations:
@@ -114,7 +117,7 @@ VM_DataDisk_Sizing:
     $unset:
       - _id
     
-Subnets:
+AZ_Subnets:
   collection: VirtualNetworks
   dump_csv: true
   operations:
@@ -127,7 +130,7 @@ Subnets:
       address_prefix: $properties.subnets.properties.addressPrefix
       NSG: $properties.subnets.properties.networkSecurityGroup.id
 
-NSG_Rules:
+AZ_NSG_Rules:
   collection: NetworkSecurityGroups
   dump_csv: true 
   operations:
@@ -155,7 +158,7 @@ NSG_Rules:
     # $unwind:
     #   path: $dest_ASG
 
-NIC_List:
+AZ_NIC_List:
   collection: NetworkInterfaces
   dump_csv: true 
   operations:
@@ -174,8 +177,7 @@ NIC_List:
     $sort:
       name: 1
 
-
-vHub_list:
+AZ_vHub_list:
   collection: VirtualHubs
   dump_csv: true
   operations:
@@ -186,13 +188,3 @@ vHub_list:
       IP_range: $properties.addressPrefix
       Router_IPs: $properties.virtualRouterIps
 
-# VM_ASG_mapping:
-#   collection: VirtualMachines
-#   dump_csv: false
-#   operations:
-
-
-# ASG:
-#   collection: ApplicationSecurityGroups
-#   dump_csv: false
-#   operations:

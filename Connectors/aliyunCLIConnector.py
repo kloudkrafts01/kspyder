@@ -82,8 +82,15 @@ class aliyunCLIClient:
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
         output = self.execute_command(command)
 
-        self.total_count = output['TotalCount']
-        return output['TotalCount']
+        # self.total_count = output['TotalCount']
+        modelname = model['base_name']
+        modelnames = modelname + 's'
+
+        # only count the list of objects
+        dataset = output[modelnames][modelname]
+        self.total_count = len(dataset)
+
+        return self.total_count
 
     def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=PAGE_SIZE):
 
@@ -96,6 +103,7 @@ class aliyunCLIClient:
             # for some reason sometimes if PageSize is larger than the total count, aliyun crashes.
             capped_limit = capped_limit if capped_limit < self.total_count else self.total_count
 
+            command = command + ['--pager']
             command = command + ['--PageSize',str(capped_limit)]
             
             # calculate page number

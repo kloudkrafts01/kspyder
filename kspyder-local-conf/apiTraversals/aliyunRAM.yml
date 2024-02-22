@@ -1,10 +1,15 @@
-listUsersbyGroup:
+UsersbyGroup:
   path:
   - ListGroups:
     save: false
+    output:
+      - Group
     next:
       - ListUsersForGroup:
-        input: ListGroups.GroupId
+        input: Group[*].GroupId
+        output:
+          - Group.*
+          - '*'
         save: true
         next: false
 
@@ -16,8 +21,13 @@ listPoliciesByGroup_CDC:
         op: startswith
         value: CDC
     save: false
+    output: 
+      - Group
     next:
       - ListPoliciesForGroup:
         save: false
-        input: ListGroups.GroupId
+        input: Group[*].GroupId
+        output:
+          - Group.GroupId
+          - '*'
 
