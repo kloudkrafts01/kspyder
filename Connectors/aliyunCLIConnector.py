@@ -54,20 +54,27 @@ class aliyunCLIClient:
                 command = command + timefilter
             else:
                 command = command + [f'--{domain[0]}', domain[2]]
+        
+        # # add the tabular formatting cmdlets
+        # command = self.add_tabular_cmdlets(command,model)
 
+        logger.debug('{} :: Aliyun command: {}'.format(__name__, command))
+
+        return command
+
+    def add_tabular_cmdlet(self,command,model=None):
         # add the tabular formatting cmdlets
         base_name = model['base_name']
-        rows_cmdlet = ' --output rows="{}s.{}[*]"'.format(base_name,base_name)
+        rows_cmdlet = 'rows="{}s.{}[*]"'.format(base_name,base_name)
         cols_string = ''
         for field_name,field_data in model['fields'].items():
             cols_string = cols_string + field_name + ","
         # remove last trailing comma
         cols_string = cols_string[:-1]
-        cols_cmdlet = ' --cols="{}"'.format(cols_string)
+        cols_cmdlet = 'cols="{}"'.format(cols_string)
 
-        command = command + rows_cmdlet + cols_cmdlet
-        
-        logger.debug('{} :: Aliyun command: {}'.format(__name__, command))
+        output_cmd = ['--output', rows_cmdlet, cols_cmdlet]
+        command = command + output_cmd
 
         return command
 
@@ -79,12 +86,12 @@ class aliyunCLIClient:
             result = subprocess.run(
                 command,
                 capture_output=True,
-                encoding="utf-8"
+                encoding='utf-8'
                 )
             output = json.JSONDecoder().decode(result.stdout)
         except Exception as e:
             logger.error(e)
-        
+
         return output
 
 
