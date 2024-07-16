@@ -54,6 +54,18 @@ class aliyunCLIClient:
                 command = command + timefilter
             else:
                 command = command + [f'--{domain[0]}', domain[2]]
+
+        # add the tabular formatting cmdlets
+        base_name = model['base_name']
+        rows_cmdlet = ' --output rows="{}s.{}[*]"'.format(base_name,base_name)
+        cols_string = ''
+        for field_name,field_data in model['fields'].items():
+            cols_string = cols_string + field_name + ","
+        # remove last trailing comma
+        cols_string = cols_string[:-1]
+        cols_cmdlet = ' --cols="{}"'.format(cols_string)
+
+        command = command + rows_cmdlet + cols_cmdlet
         
         logger.debug('{} :: Aliyun command: {}'.format(__name__, command))
 
