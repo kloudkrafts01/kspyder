@@ -13,7 +13,7 @@ class PandaPipeline():
 
     def load_transforms(self,pipeline_def):
 
-        self.transforms = fh.load_yaml(pipeline_def,subfolder='transforms')
+        self.transforms = fh.load_yaml(pipeline_def,subpath='pandaPipelinesEngine')
 
     def apply_transforms(self):
 
@@ -181,6 +181,12 @@ class PandaPipeline():
 
         if fillna:
             df = df.fillna(0.0)
+
+        return df
+
+    def transpose(self,origin_df,copy=True):
+
+        df = origin_df.transpose(copy=copy)
 
         return df
 

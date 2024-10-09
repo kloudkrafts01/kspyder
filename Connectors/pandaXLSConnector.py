@@ -5,7 +5,7 @@ from common.config import DATA_FOLDER, TEMP_FOLDER
 from common.spLogging import logger
 
 
-class PandaXLSConnector(PandaPipeline):
+class pandaXLSConnector(PandaPipeline):
 
     def __init__(self,target_filename='pandas_output.xlsx',target_folder=TEMP_FOLDER,pipeline_def=''):
 

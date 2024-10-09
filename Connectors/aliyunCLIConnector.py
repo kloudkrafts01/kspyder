@@ -19,6 +19,7 @@ MODELS_LIST = list(MODELS.keys())
 
 # specific formatting expected by Aliyun CLI when filtering over a datetime
 DATETIME_FORMAT = '%Y-%m-%dT%H:%mZ'
+GET_TABULAR_OUTPUT = False
 
 class aliyunCLIClient:
     """Class to process the raw output of an Aliyun CLI command, because the python sdk sucks.
@@ -55,8 +56,9 @@ class aliyunCLIClient:
             else:
                 command = command + [f'--{domain[0]}', domain[2]]
         
-        # # add the tabular formatting cmdlets
-        # command = self.add_tabular_cmdlets(command,model)
+        if GET_TABULAR_OUTPUT:
+            # add the tabular formatting cmdlets
+            command = self.add_tabular_cmdlet(command,model)
 
         logger.debug('{} :: Aliyun command: {}'.format(__name__, command))
 

@@ -65,9 +65,6 @@ Models:
             RegionId:
                 dbname: region_id
                 type: String(64)
-            VpcAttributes:
-                dbname: vpc_attributes
-                type: Object
             Status:
                 dbname: instance_status
                 type: String(255)
@@ -104,9 +101,32 @@ Models:
             Description:
                 dbname: description
                 type: String(255)
-            Tags:
-                dbname: tags
-                type: Object
-            NetworkInterfaces:
-                dbname: network_interfaces
-                type: Object
+            # Tags:
+            #     dbname: tags
+            #     type: Object
+            # NetworkInterfaces:
+            #     dbname: network_interfaces
+            #     type: Object
+            # VpcAttributes:
+            #     dbname: vpc_attributes
+            #     type: Object
+
+
+    VPCs:
+        base_name: VPC
+        class: vpc
+        query_domains:
+            - DescribeVpcs
+        fields:
+            VpcId:
+                dbname: id
+                type: String(255)
+                primary_key: true
+            VpcName:
+                dbname: id
+                type: String(255)
+                primary_key: true
+            RegionId:
+                dbname: id
+                type: String(255)
+                primary_key: true
