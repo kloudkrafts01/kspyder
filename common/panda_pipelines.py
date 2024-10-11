@@ -61,8 +61,6 @@ class PandaPipeline():
             #     errmsg = "{} error: {}".format(step_name, e)
             #     print(errmsg)
             #     continue
-        
-        self.xlswriter.save()
 
         return self.dataframes
 
