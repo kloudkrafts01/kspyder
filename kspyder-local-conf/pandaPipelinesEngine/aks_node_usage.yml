@@ -1,6 +1,6 @@
 Source: inputs
 
-TargetFile: aks_nodes_usage_computed.xlsx
+Target: aks_nodes_usage_computed.xlsx
 
 Tables:
   - aks_raw_cpubynode_nonprd.xlsx

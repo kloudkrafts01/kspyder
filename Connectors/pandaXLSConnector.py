@@ -7,14 +7,14 @@ from common.spLogging import logger
 
 class pandaXLSConnector(PandaPipeline):
 
-    def __init__(self,target_filename='pandas_output.xlsx',target_folder=TEMP_FOLDER,pipeline_def=''):
+    def __init__(self,target='pandas_output.xlsx',target_folder=TEMP_FOLDER,pipeline_def=''):
 
         self.source_type = ['csv','excel']
         self.target_type = ['excel']
         self.dataframes = {}
         self.to_save = {}
-        self.target_file = os.path.join(target_folder,target_filename)
-        self.xlswriter = pd.ExcelWriter(self.target_file)
+        self.target = os.path.join(target_folder,target)
+        self.engine = pd.ExcelWriter(self.target)
 
         self.load_transforms(pipeline_def)
 
@@ -31,6 +31,9 @@ class pandaXLSConnector(PandaPipeline):
         if df.empty:
             logger.info("PandasSQL: Dataframe {} to be saved is Empty. Not saving.".format(tablename))
             return
-        df.to_excel(self.xlswriter,sheet_name=tablename,index=True,index_label=df.index.name)
+        df.to_excel(self.engine,sheet_name=tablename,index=True,index_label=df.index.name)
+
+    def close_engine(self):
+        self.engine.close()
 
     

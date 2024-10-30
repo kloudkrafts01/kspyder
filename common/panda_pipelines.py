@@ -10,6 +10,12 @@ class PandaPipeline():
 
         self.dataframes = {}
         self.transforms = {}
+        # placeholder object for instanciated child classes
+        self.engine = None
+
+    def close_engine(self):
+        """Placeholder method. Each child class will have to instanciate its own engine."""
+        return None
 
     def load_transforms(self,pipeline_def):
 
@@ -57,10 +63,7 @@ class PandaPipeline():
                 print("Saving dataframe {}".format(output_name))
                 self.save(df, output_name)
 
-            # except Exception as e:
-            #     errmsg = "{} error: {}".format(step_name, e)
-            #     print(errmsg)
-            #     continue
+        self.close_engine()
 
         return self.dataframes
 
@@ -110,11 +113,11 @@ class PandaPipeline():
 
         return df
 
-    def apply_func_on_axis(self,origin_df,func_name=None,axis=1,import_from='.'):
+    def apply_func_on_axis(self,origin_df,func_name=None,axis=1,import_from='.',import_pkg=None,**fargs):
 
-        module = import_module(name=import_from)
+        module = import_module(name=import_from,package=import_pkg)
         func = getattr(module,func_name)
-        df = origin_df.apply(func,axis=axis)
+        df = origin_df.apply(func,axis=axis,**fargs)
 
         return df
 

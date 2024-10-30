@@ -1,0 +1,19 @@
+Source: inputs
+
+Target: aks_nodes_usage_computed.xlsx
+
+Tables:
+  - 20241024 - Azure PA FW rules audit.xlsx
+
+Steps:
+
+  - Step: SplitSourcesLines
+    type: apply_func_on_axis
+    input: 20241024 - Azure PA FW rules audit
+    output: aks_lines_split_01
+    save: true
+    params:
+      import_from: common.data_processing_pandas
+      func_name: split_rows_by_stringvalue
+      separator: ";"
+      column: "Zone de destination"
