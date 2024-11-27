@@ -1,3 +1,51 @@
+# Aliyun aggregation queries
+
+ECS_list:
+  collection: ECSInstances
+  dump_csv: true
+  operations:
+    $graphlookup:
+      connectFromField: $tags.Tag.TagKey
+      connectToField: $tags.Tag.TagValue
+      as: environment
+    $project:
+      Name: $instance_name
+      InstanceId: $instance_id
+      ResourceGroupId: $resource_group_id
+      Env: $environment
+      InstanceType: $instance_sku
+      OS: $os_name
+      CPU: $cpu
+      RAM: $ram
+      Region: $region_id
+      VpcId: $vpc_attributes.VpcId
+      VSwitchId: $vpc_attributes.VSwitchId
+      PrivateIPAddress: $vpc_attributes.PrivateIpAddress.IpAddress
+      InstanceStatus: $instance_status
+    $unwind:
+      path: $PrivateIPAddress
+    $unset:
+      - _id
+
+ECS_images_list:
+  collection: ECSImages
+  dump_csv: true
+  operations:
+    $project:
+      Features: 0
+      DetectionOptions: 0
+      DiskDeviceMapping: 0
+      Tags: 0
+      _id: 0
+    # $unset:
+    #   - Features
+    #   - DetectionOptions
+    #   - DiskDeviceMapping
+    #   - Tags
+    #   - _id
+
+# Azure Aggregation queries
+
 VM_list:
   collection: VirtualMachines
   dump_csv: true

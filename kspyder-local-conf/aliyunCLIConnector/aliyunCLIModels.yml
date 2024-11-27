@@ -101,16 +101,26 @@ Models:
             Description:
                 dbname: description
                 type: String(255)
-            # Tags:
-            #     dbname: tags
-            #     type: Object
-            # NetworkInterfaces:
-            #     dbname: network_interfaces
-            #     type: Object
-            # VpcAttributes:
-            #     dbname: vpc_attributes
-            #     type: Object
+            Tags:
+                dbname: tags
+                type: Object
+            NetworkInterfaces:
+                dbname: network_interfaces
+                type: Object
+            VpcAttributes:
+                dbname: vpc_attributes
+                type: Object
 
+    ECSImages:
+        base_name: Image
+        class: ecs
+        query_domains:
+            - DescribeImages
+        fields:
+            ImageId:
+                dbname: id
+                type: String(255)
+                primary_key: true
 
     VPCs:
         base_name: VPC
