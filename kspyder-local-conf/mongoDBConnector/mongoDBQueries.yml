@@ -44,6 +44,27 @@ ECS_images_list:
     #   - Tags
     #   - _id
 
+ECS_RHEL_images_list:
+  collection: ECSImages
+  dump_csv: true
+  operations:
+    $match:
+      ImageOwnerAlias: marketplace
+      Platform:
+        $regex: ^(Red Hat)
+    $project:
+      Features: 0
+      DetectionOptions: 0
+      DiskDeviceMapping: 0
+      Tags: 0
+      _id: 0
+    # $unset:
+    #   - Features
+    #   - DetectionOptions
+    #   - DiskDeviceMapping
+    #   - Tags
+    #   - _id
+
 # Azure Aggregation queries
 
 VM_list:

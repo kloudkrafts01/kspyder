@@ -29,7 +29,7 @@ class aliyunCLIClient:
         
         self.update_field = update_field
     
-    def build_command(self,model=None,query_domain=None,search_domains=[]):
+    def build_command(self,model=None,query_domain=None,search_domains=[],**params):
 
         command = ['aliyun', model['class']]
         # build the basics : 'query_domain' is supposed to be one type of query that fits the model
@@ -55,6 +55,9 @@ class aliyunCLIClient:
                 command = command + timefilter
             else:
                 command = command + [f'--{domain[0]}', domain[2]]
+
+        for key,value in params:
+            command = command + [f'--{key}', value]
         
         if GET_TABULAR_OUTPUT:
             # add the tabular formatting cmdlets
@@ -98,11 +101,21 @@ class aliyunCLIClient:
 
 
     def get_records_count(self,model=None,query_domain=None,search_domains=[]):
-        
+
+        count = 0
+
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
         output = self.execute_command(command)
+        
+        if output:
+            if 'TotalCount' in output.keys():
+                count = output['TotalCount']
+            else:
+                modelname = model['base_name']
+                modelnames = modelname + 's'
+                count = len(output[modelnames][modelname]) 
 
-        return output['TotalCount']
+        return count
 
     def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=PAGE_SIZE):
 

@@ -10,7 +10,6 @@ Models:
         class: ram
         query_domains:
             - ListUsers
-            - ListUsersForGroup
         fields:
             username:
                 dbname: UserName

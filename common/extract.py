@@ -22,11 +22,11 @@ class GenericExtractor():
     def forge_item(self,item,model_name,**kwargs):
         ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,**params):
+    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
 
-        sd = []
+        # sd = []
 
         if last_days:
             now = datetime.datetime.utcnow()
@@ -34,9 +34,9 @@ class GenericExtractor():
             yesterday = now - delta
 
             logger.info("UTC start datetime is {}".format(yesterday))
-            sd += [self.update_field,'>=',yesterday],
+            search_domains += [self.update_field,'>=',yesterday],
 
-        count, dataset = self.fetch_dataset(model_name=model_name,search_domains=sd,**params)
+        count, dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**params)
 
         if dataset == []:
             logger.info('no results were found.')
