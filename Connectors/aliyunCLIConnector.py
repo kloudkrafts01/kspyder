@@ -3,7 +3,7 @@
 import subprocess
 import json
 
-from common.extract import DirectExtractor
+from Engines.rpcExtractorEngine import DirectExtractor
 from common.spLogging import logger
 
 from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
@@ -43,18 +43,19 @@ class aliyunCLIClient:
 
         # add search filters if any
         for domain in search_domains:
-            # if there was a given start_time, the syntax is a bit different
-            if domain[0] == self.update_field:
-                time_str = domain[2].strftime(DATETIME_FORMAT)
-                timefilter = [
-                    '--Filter.1.Key',
-                    self.update_field,
-                    '--Filter.1.Value',
-                    time_str
-                ]
-                command = command + timefilter
-            else:
-                command = command + [f'--{domain[0]}', domain[2]]
+            if domain:
+                # if there was a given start_time, the syntax is a bit different
+                if domain[0] == self.update_field:
+                    time_str = domain[2].strftime(DATETIME_FORMAT)
+                    timefilter = [
+                        '--Filter.1.Key',
+                        self.update_field,
+                        '--Filter.1.Value',
+                        time_str
+                    ]
+                    command = command + timefilter
+                else:
+                    command = command + [f'--{domain[0]}', domain[2]]
 
         for key,value in params:
             command = command + [f'--{key}', value]

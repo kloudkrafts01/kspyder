@@ -1,6 +1,6 @@
 #!python3
 
-from common.extract import GenericExtractor
+from Engines.rpcExtractorEngine import GenericRPCExtractor
 import pandas as pd
 import os,re
 
@@ -17,7 +17,7 @@ MODELS = CONF['Models']
 MODELS_LIST = list(MODELS.keys())
 
 
-class XLSConnector(GenericExtractor):
+class XLSConnector(GenericRPCExtractor):
 
     def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME,**params):
 
@@ -57,7 +57,7 @@ class XLSConnector(GenericExtractor):
 
 
     def forge_item(self,input_dict,model):
-        '''Passthrough function because it has to be here to work with the GenericExtractor flow. No added value in the case of this specific connector.'''
+        '''Passthrough function because it has to be here to work with the GenericRPCExtractor flow. No added value in the case of this specific connector.'''
 
         new_dict = input_dict
 
