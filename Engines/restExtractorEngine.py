@@ -13,20 +13,12 @@ class RESTExtractor():
         self.update_field = "Empty update_field from the RESTExtractor interface"
         self.models = [{"default": "Empty schema from the RESTExtractor interface"}]
 
-    # def get_count(self,**kwargs):
-    #     ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
-
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
-
-    # def forge_item(self,item,model_name,**kwargs):
-    #     ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
 
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
-
-        # sd = []
 
         if last_days:
             now = datetime.datetime.utcnow()
@@ -64,28 +56,16 @@ class RESTExtractor():
         total_count = 0
         model = self.models[model_name]
 
-        ex_iter = self.page_fetch(model,search_domains=search_domains,**params)
+        ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
 
         for results_count, results in ex_iter:
             
             total_count += results_count
-
-            for doc in results:
-                # logger.debug('raw item: {}'.format(doc))
-                output_docs += doc,
-                # try:
-                #     # cleaning and formatting the item for the dataset
-                #     new_row = self.forge_item(row,model,**params)
-                #     # logger.debug("forged item : {}".format(new_row))
-                #     output_docs += new_row,
-
-                # except Exception as ie:
-                #     logger.error(traceback.format_exc())
-                #     continue
-    
+            output_docs.extend(results)
+        
         return total_count,output_docs
 
-    def page_fetch(self,model,search_domains=[],start_token=None,**params):
+    def paginated_fetch(self,model,search_domains=[],start_token=None,**params):
 
         results_count = 0
         is_truncated = True
@@ -94,11 +74,12 @@ class RESTExtractor():
 
             results, is_truncated, next_token = self.read_query(model,search_domains=search_domains,start_token=start_token,**params)
             
-            how_many = len(results)
-            results_count += how_many
-            logger.debug("caught {} items starting from token {}".format(how_many,next_token))
+            results_count = len(results)
+            logger.debug("caught {} items starting from token {}".format(results_count,start_token))
+
             yield results_count, results
 
+            # set for the next query iteration
             start_token = next_token
             
-            print("Fetching from next token: {}".format(next_token))
+            logger.debug("Fetching from next token: {}".format(next_token))
