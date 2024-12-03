@@ -1,12 +1,12 @@
 import pandas as pd
 
-from common.panda_pipelines import PandaPipeline
-from common.sql_connector import GenericSQLConnector
+from Engines.pandasEngine import PandaPipeline
+from Engines.sqlEngine import GenericSQLEngine
 from common.config import AZURE_PROFILE
 from common.spLogging import logger
 
 
-class PandasSQLConnector(GenericSQLConnector,PandaPipeline):
+class PandasSQLConnector(GenericSQLEngine,PandaPipeline):
 
     @classmethod
     def load_default(cls):

@@ -3,14 +3,14 @@
 
 import os,json
 
-from common.sql_connector import GenericSQLConnector
+from Engines.sqlEngine import GenericSQLEngine
 from common.config import CONF_FOLDER
 from common.profileHandler import profileHandler
 
 CONNECTOR_CONF_PATH = os.path.join(CONF_FOLDER,__name__)
 DEFAULT_PROFILE = 'azureSQLProfile'
 
-class azureSQLConnector(GenericSQLConnector):
+class azureSQLConnector(GenericSQLEngine):
 
     @classmethod
     def load_default(cls):

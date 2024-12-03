@@ -1,11 +1,11 @@
 import pandas as pd
 
-from common.sql_connector import GenericSQLConnector
+from Engines.sqlEngine import GenericSQLEngine
 from common.config import AZURE_PROFILE
 from common.spLogging import logger
 
 
-class PandasSQLConnector(GenericSQLConnector):
+class PandasSQLConnector(GenericSQLEngine):
 
     @classmethod
     def load_default(cls):
