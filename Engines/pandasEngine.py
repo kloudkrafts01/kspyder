@@ -19,7 +19,7 @@ class PandaPipeline():
 
     def load_transforms(self,pipeline_def):
 
-        self.transforms = fh.load_yaml(pipeline_def,subpath='pandasEngine')
+        self.transforms = fh.load_yaml(pipeline_def,subpath=__name__)
 
     def apply_transforms(self):
 
