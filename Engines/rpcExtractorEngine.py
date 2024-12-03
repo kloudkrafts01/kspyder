@@ -1,26 +1,26 @@
 import datetime
 import traceback
 
-from .config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
-from .spLogging import logger
+from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
+from common.spLogging import logger
 
-class GenericExtractor():
+class GenericRPCExtractor():
 
     def __init__(self,**kwargs):
-        self.client = "This is an empty client from the GenericExtractor interface. Please instantiate an actual Class over it"
-        self.schema = "Empty schema from the GenericExtractor interface"
-        self.scope = "Empty scope from the GenericExtractor interface"
-        self.update_field = "Empty update_field from the GenericExtractor interface"
-        self.models = [{"default": "Empty schema from the GenericExtractor interface"}]
+        self.client = "This is an empty client from the GenericRPCExtractor interface. Please instantiate an actual Class over it"
+        self.schema = "Empty schema from the GenericRPCExtractor interface"
+        self.scope = "Empty scope from the GenericRPCExtractor interface"
+        self.update_field = "Empty update_field from the GenericRPCExtractor interface"
+        self.models = [{"default": "Empty schema from the GenericRPCExtractor interface"}]
 
     def get_count(self,**kwargs):
-        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
+        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
     def read_query(self,**kwargs):
-        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
+        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
     def forge_item(self,item,model_name,**kwargs):
-        ValueError("This method was called from the GenericExtractor interface. Please instantiate an actual Class over it")
+        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
 
@@ -100,7 +100,7 @@ class GenericExtractor():
             print("{} more to go.".format(batch_size))
 
 
-class DirectExtractor(GenericExtractor):
+class DirectExtractor(GenericRPCExtractor):
     # child Interface bypassing the 'forge item' step
     def forge_item(self,item,model_name,**kwargs):
         return item

@@ -19,7 +19,7 @@ from common.config import DUMP_JSON, BASE_FILE_HANDLER as fh
 
 STR_PATTERN = re.compile('(String)\((\d+)\)')
 
-class GenericSQLConnector():
+class GenericSQLEngine():
 
     def __init__(self,dbtype,url,dbname,username,password):
 

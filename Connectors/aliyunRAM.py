@@ -1,6 +1,6 @@
 #!python3
 
-from common.extract import DirectExtractor
+from Engines.rpcExtractorEngine import DirectExtractor
 import os,sys
 from typing import List
 

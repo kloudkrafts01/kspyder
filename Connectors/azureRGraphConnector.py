@@ -7,7 +7,7 @@ from azure.mgmt.resourcegraph.models import QueryRequest
 from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from common.profileHandler import profileHandler
-from common.extract import GenericExtractor
+from Engines.rpcExtractorEngine import GenericRPCExtractor
 
 # build config folder path from module's name
 CONF_PATH = os.path.join(CONF_FOLDER,__name__)
@@ -23,7 +23,7 @@ MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
 
-class azureRGraphConnector(GenericExtractor):
+class azureRGraphConnector(GenericRPCExtractor):
 
     def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 

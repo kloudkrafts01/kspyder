@@ -1,7 +1,7 @@
 #!python3
 
 from common.profileHandler import profileHandler
-from common.extract import GenericExtractor
+from Engines.rpcExtractorEngine import GenericRPCExtractor
 import xmlrpc.client
 import ssl
 
@@ -73,7 +73,7 @@ class OdooClient:
         return result
 
 
-class OdooRPCConnector(GenericExtractor):
+class OdooRPCConnector(GenericRPCExtractor):
 
     def __init__(self, profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME,**params):
 
