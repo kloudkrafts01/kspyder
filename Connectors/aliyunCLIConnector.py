@@ -112,9 +112,7 @@ class aliyunCLIClient:
             if 'TotalCount' in output.keys():
                 count = output['TotalCount']
             else:
-                modelname = model['base_name']
-                modelnames = modelname + 's'
-                count = len(output[modelnames][modelname]) 
+                logger.error("aliyunCLIConnector: model is not RPC-based. Switch this config to a REST-based connector instead.") 
 
         return count
 
@@ -138,7 +136,10 @@ class aliyunCLIClient:
         modelnames = modelname + 's'
 
         # only return the list of objects
-        dataset = output[modelnames][modelname]
+        if model['nested']:
+            dataset = output[modelnames][modelname]
+        else:
+            dataset = output[modelnames]
 
         # logger.debug('{} :: search_read dataset output:\n{}'.format(__name__, dataset))
 

@@ -7,6 +7,7 @@ UnpackingFields: null
 Models:
     RAMUsers:
         base_name: User
+        nested: true
         class: ram
         query_domains:
             - ListUsers
@@ -36,6 +37,7 @@ Models:
     
     NSGs:
         base_name: SecurityGroup
+        nested: true
         class: ecs
         query_domains:
             - DescribeSecurityGroups
@@ -47,6 +49,7 @@ Models:
 
     ECSInstances:
         base_name: Instance
+        nested: true
         class: ecs
         query_domains:
             - DescribeInstances
@@ -112,6 +115,7 @@ Models:
 
     ECSImages:
         base_name: Image
+        nested: true
         class: ecs
         query_domains:
             - DescribeImages
@@ -123,6 +127,7 @@ Models:
 
     VPCs:
         base_name: VPC
+        nested: true
         class: vpc
         query_domains:
             - DescribeVpcs
@@ -138,4 +143,28 @@ Models:
             RegionId:
                 dbname: id
                 type: String(255)
+                primary_key: true
+
+    LoadBalancers:
+        base_name: LoadBalancer
+        nested: true
+        class: slb
+        query_domains:
+            - DescribeLoadBalancers
+        fields:
+            LoadBalancerId:
+                dbname: LoadBalancerId
+                type: string(255)
+                primary_key: true
+
+    LoadBalancerListeners:
+        base_name: Listener
+        nested: false
+        class: slb
+        query_domains:
+            - DescribeLoadBalancerListeners
+        fields:
+            LoadBalancerId:
+                dbname: LoadBalancerId
+                type: string(255)
                 primary_key: true
