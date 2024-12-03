@@ -1,0 +1,13 @@
+Connector:
+    schema: aliyunRAMConnector
+    update_field: UpdateDate
+    
+Models:
+    RAMUsers:
+        base_name: User
+        datapath: Users.User[]
+        query_name: ListUsers
+        is_truncated_key: IsTruncated
+        next_token_key: Marker
+        last_request_id: RequestId
+        
