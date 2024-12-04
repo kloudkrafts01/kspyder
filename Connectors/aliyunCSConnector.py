@@ -33,3 +33,19 @@ class aliyunCSConnector(AliyunRESTConnector):
             **params
             )
         
+    def read_query(self, model, search_domains=..., start_token=None, **params):
+        
+        # Instanciate a request object with the sdk module needed arguments
+        request = self.build_request(model)
+
+        # Instanciate a query object with the sdk module needed arguments
+        header = {}
+        query_args = [
+            request,
+            header,
+            self.runtime_options
+        ]
+
+        # Execute the query using the interface's method
+        return super().read_query(model, search_domains, start_token, query_args, **params)
+        

@@ -31,7 +31,6 @@ class AliyunClient:
         Client = getattr(self.source_client,'Client')
         self.client = Client(config)
 
-
     @classmethod
     def from_env(cls,connector_name=None):
         env = os.environ
@@ -50,6 +49,8 @@ class AliyunRESTConnector(RESTExtractor):
         self.models = models
         self.scope = scope
         self.params = params
+        self.update_field = update_field
+        self.profile = profile
 
         # Load the Connector's config
         self.is_truncated_key = connector_conf['is_truncated_key']
@@ -60,21 +61,18 @@ class AliyunRESTConnector(RESTExtractor):
         self.source_models = aliyun_client.source_models
         self.runtime_options = RuntimeOptions()
 
-    def read_query(self,model,search_domains=[],start_token=None,**params):
-
+    def build_request(self,model,**request_params):
         # Import request builder and instanciate a request in context
-        request_params = {}
         request_builder = getattr(self.source_models, model['request_builder'])
         request = request_builder(**request_params)
 
+        return request
+
+    def read_query(self,model,search_domains=[],start_token=None,query_args=[],**params):
+
         # Build and send a query with the request context
         query = getattr(self.client, model['query_name'])
-        headers = {}
-        response = query(
-            request,
-            headers,
-            self.runtime_options
-        )
+        response = query(*query_args)
 
         # Parse response and retrieve relevant data
         response_dict = response.body.to_map()

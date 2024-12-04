@@ -5,6 +5,7 @@ Connector:
     is_truncated_key: IsTruncated
     next_token_key: Marker
     last_request_key: RequestId
+    paginate: true
     
 Models:
     RAMUsers:
