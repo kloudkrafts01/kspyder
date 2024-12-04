@@ -11,3 +11,10 @@ Models:
         request_builder: DescribeClustersV1Request
         query_name: describe_clusters_v1with_options
         datapath: clusters[]
+
+    ACKClusterDetails:
+        request_builder: DescribeClusterDetailsRequest
+        query_name: describe_cluster_details_with_options
+        datapath: cluster_details[]
+        inputs:
+            - cluster_id
