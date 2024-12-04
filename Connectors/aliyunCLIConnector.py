@@ -172,23 +172,3 @@ class aliyunCLIConnector(DirectExtractor):
         dataset = self.client.search_read(model=model,query_domain=query_domain,search_domains=search_domains,offset=start_row)
         return dataset
 
-
-    # def forge_item(self,dictitem,model=None,**params):
-        
-    #     new_dict = {}
-    #     fields = model['fields']
-
-    #     for key,value in dictitem.items():
-
-    #         isInFieldMap = (key in fields.keys())
-
-    #         if isInFieldMap:
-    #             new_key = fields[key]['dbname']
-    #             new_dict[new_key] = value
-
-    #         # for now, filter out elements not in the model target fields
-    #         else:
-    #             new_dict[key] = value
-
-    #     return new_dict
-

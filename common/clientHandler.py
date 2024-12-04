@@ -1,18 +1,18 @@
 from importlib import import_module
-from common.config import MODULES_LIST
+from common.config import MODULES_MAP
 
 class clientHandler:
 
-    def __init__(self, modules=MODULES_LIST) -> None:
+    def __init__(self, modules=MODULES_MAP) -> None:
         self.modules = modules
 
-    def get_client(self, source, **kwargs):
+    def get_client(self, source, *args, **kwargs):
         """Simple method to return a client from a given 'source' value.
             This method assumes that the 'source' given is valid, and corresponds to a callable module
             The module must provide a class named exactly like itself
             e.g. from azureRGConnector impor azureRGConnector"""
 
-        if source in self.modules:
+        if source in self.modules.keys():
             # import the right connector
             connector = import_module(source)
 

@@ -1,0 +1,22 @@
+default:
+  - name: name
+    type: string
+    value: Stub Profile
+  - name: dbtype
+    type: string
+    value: stub
+  - name: dbtype
+    type: string
+    value: http://localhost
+  - name: dbtype
+    type: string
+    value: stub-type
+  - name: dbname
+    type: string
+    value: stub-db
+  - name: username
+    type: string
+    value: stub-user
+  - name: dbtype
+    type: secret
+    value: stub-password
