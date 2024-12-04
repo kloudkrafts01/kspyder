@@ -30,13 +30,15 @@ from alibabacloud_tea_util.models import RuntimeOptions
 
 class AliyunClient:
 
-    def __init__(self, access_key_id:str, access_key_secret:str):
+    def __init__(self, access_key_id:str, access_key_secret:str, region_id:str):
 
         config = Config(
             # Required, your AccessKey ID,
             access_key_id=access_key_id,
             # Required, your AccessKey secret,
-            access_key_secret=access_key_secret
+            access_key_secret=access_key_secret,
+            # your Region ID
+            region_id = region_id
         )
         Client = getattr(SourceClient,'Client')
         self.client = Client(config)
@@ -46,7 +48,8 @@ class AliyunClient:
         env = os.environ
         return cls(
             env['ALIBABACLOUD_ACCESS_KEY_ID'],
-            env['ALIBABACLOUD_ACCESS_KEY_SECRET']
+            env['ALIBABACLOUD_ACCESS_KEY_SECRET'],
+            'cn-shanghai'
         )
 
 class aliyunRAMConnector(RESTExtractor):

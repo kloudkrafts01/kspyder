@@ -6,13 +6,14 @@ DUMP_JSON: true
 LOG_CONFIG: logging_verbose
 
 Modules:
-  - odooRPCConnector
-  - prestashopSQLConnector
-  - azureSQLConnector
-  - azureRGraphConnector
-  - pandaPipelinesEngine
-  - pandaXLSConnector
-  - pandaSQLConnector
-  - mongoDBConnector
-  - aliyunCLIConnector
-  - aliyunRAMConnector
+  odooRPCConnector : odooRPCModels
+  prestashopSQLConnector : prestashopSQLModels
+  azureSQLConnector : null
+  azureRGraphConnector : azureRGraphModels
+  pandaPipelinesEngine : null
+  pandaXLSConnector : null
+  pandaSQLConnector : null
+  mongoDBConnector : mongoDBQueries
+  aliyunCLIConnector : aliyunCLImodels
+  aliyunRAMConnector : aliyunRAMmodels
+  aliyunCSConnector : aliyunCSmodels

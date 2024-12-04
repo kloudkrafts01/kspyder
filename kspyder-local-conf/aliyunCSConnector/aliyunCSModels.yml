@@ -1,0 +1,13 @@
+Connector:
+    name: alibabacloud_cs20151215
+    schema: aliyunCSConnector
+    update_field: updated
+    is_truncated_key: is_truncated
+    next_token_key: marker
+    last_request_key: request_id
+    
+Models:
+    ACKClusters:
+        request_builder: DescribeClustersV1Request
+        query_name: describe_clusters_v1with_options
+        datapath: clusters[]
