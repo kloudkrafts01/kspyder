@@ -7,6 +7,7 @@ import jmespath
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
+from common.spLogging import logger
 
 from alibabacloud_tea_openapi.models import Config
 from alibabacloud_tea_util.models import RuntimeOptions
@@ -64,6 +65,9 @@ class AliyunRESTConnector(RESTExtractor):
     def build_request(self,model,**request_params):
         # Import request builder and instanciate a request in context
         request_builder = getattr(self.source_models, model['request_builder'])
+        logger.debug("request builder name: {}".format(model['request_builder']))
+        logger.debug("request builder object: {}".format(request_builder))
+        logger.debug("request builder params: {}".format(request_params))
         request = request_builder(**request_params)
 
         return request

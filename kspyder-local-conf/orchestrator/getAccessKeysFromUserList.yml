@@ -1,0 +1,23 @@
+Inputs:
+    - RAMUserNameList
+
+Steps:
+
+    - Name: GetKeysFromUserNames
+      Worker: aliyunRAMConnector
+      Job: get_data
+      Output: RAMUserAccessKeys
+      Params:
+        model_name: AccessKeys
+        user_name: $each.user_name
+
+    # - Name: StoreKeysToMongo
+    #     Worker: mongoDBConnector
+    #     Job: insert_dataset
+    #     Output: AccessKeysByUserCollectionDetails
+    #     Params:
+    #         model: AccessKeysByUser
+    #         dataset: RAMUserAccessKeys.dataset
+
+
+

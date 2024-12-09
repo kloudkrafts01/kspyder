@@ -1,5 +1,16 @@
 # Aliyun aggregation queries
 
+RAMUsersList:
+  collection: RAMUsers
+  dump_json: true
+  dump_csv: true
+  operations:
+    $project:
+      user_name: $UserName
+      user_id: $UserId
+    $unset:
+      - _id
+
 ECS_list:
   collection: ECSInstances
   dump_csv: true

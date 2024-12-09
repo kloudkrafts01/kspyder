@@ -2,7 +2,7 @@
 
 import os, re
 import json, yaml, csv, datetime
-# from bson import ObjectId
+from bson import ObjectId
 from importlib import import_module
 
 
@@ -38,7 +38,7 @@ class FileHandler():
         conf_path = os.path.join(folder,name)
 
         with open(conf_path,'r') as conf:
-            dict_data = json.loads(conf)
+            dict_data = json.load(conf)
         
         return dict_data
 

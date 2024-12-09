@@ -1,6 +1,7 @@
 from importlib import import_module
 from common.config import MODULES_MAP
 
+
 class clientHandler:
 
     def __init__(self, modules=MODULES_MAP) -> None:
@@ -10,7 +11,7 @@ class clientHandler:
         """Simple method to return a client from a given 'source' value.
             This method assumes that the 'source' given is valid, and corresponds to a callable module
             The module must provide a class named exactly like itself
-            e.g. from azureRGConnector impor azureRGConnector"""
+            e.g. from azureRGConnector import azureRGConnector"""
 
         if source in self.modules.keys():
             # import the right connector
