@@ -30,7 +30,7 @@ query_domain = None
 params = {}
 
 ch = clientHandler()
-
+    
 
 def fetch():
 

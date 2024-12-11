@@ -17,3 +17,4 @@ Modules:
   aliyunCLIConnector : aliyunCLImodels
   aliyunRAMConnector : aliyunRAMmodels
   aliyunCSConnector : aliyunCSmodels
+  gcloudComputeConnector : gcloudComputeModels

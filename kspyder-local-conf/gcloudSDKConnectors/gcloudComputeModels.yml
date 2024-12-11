@@ -1,0 +1,12 @@
+Connector:
+    name: compute_v1
+    schema: googleCloud
+    update_field: UpdateDate
+    
+Models:
+    ComputeInstances:
+        client_name: InstancesClient
+        request_builder: ListInstancesRequest
+        query_name: list
+        datapath: Instances[]
+     
