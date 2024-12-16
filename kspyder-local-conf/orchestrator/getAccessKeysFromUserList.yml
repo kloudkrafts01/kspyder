@@ -1,16 +1,19 @@
 Steps:
 
-  GetRAMUsers:
+  - Name: GetRAMUsers
     Worker: aliyunRAMConnector
     Job: get_data
     Output: RAMUsersList
+    Params:
+      model_name: RAMUsers
 
-  StoreRAMUsersToMongo:
+  - Name: StoreRAMUsersToMongo
     Worker: mongoDBConnector
     Job: insert_dataset
+    Input: RAMUsersList
     Output: RAMUsersInsertionResult
 
-  FlattenUserList:
+  - Name: FlattenUserList
     Worker: mongoDBConnector
     Job: execute_query
     Output: GetAccessKeysInputParams
@@ -24,12 +27,12 @@ Steps:
         $unset:
           - _id
 
-  GetKeysFromUserNames:
-    Worker: aliyunRAMConnector
-    Job: get_many_data
-    Input: 
-      - GetAccessKeysInputParams
-    Output: RAMUserAccessKeys
-    Params:
-      model_name: AccessKeys
-      user_name: $each.user_name
+  # GetKeysFromUserNames:
+  #   Worker: aliyunRAMConnector
+  #   Job: get_many_data
+  #   Input: 
+  #     - GetAccessKeysInputParams
+  #   Output: RAMUserAccessKeys
+  #   Params:
+  #     model_name: AccessKeys
+  #     user_name: $each.user_name

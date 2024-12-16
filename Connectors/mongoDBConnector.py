@@ -7,7 +7,7 @@ from common.spLogging import logger
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
 SCHEMA_NAME = APP_NAME
 
-class MongoDBConnector():
+class mongoDBConnector():
 
     def __init__(self):
         self.client = MongoClient('localhost',27017)
