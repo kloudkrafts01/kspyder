@@ -5,7 +5,7 @@ from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
-SCHEMA_NAME = __name__
+SCHEMA_NAME = APP_NAME
 
 class mongoDBConnector():
 
@@ -71,10 +71,11 @@ class mongoDBConnector():
                 old_conf = query_conf['operations']
                 query_conf['operations'] = { **match_conf, **old_conf }
 
-            if DUMP_JSON:
-                result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
-
             result_dataset = self.execute_query(query_name,query_conf)
+
+        # If DUMP_JSON is true, save last obtained dataset
+        if DUMP_JSON:
+            result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
     def execute_query(self,query_name,query_conf):
 

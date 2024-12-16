@@ -8,7 +8,7 @@ from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
 from common.clientHandler import clientHandler
 
-from Connectors.mongoDBConnector import MongoDBConnector
+from Connectors.mongoDBConnector import mongoDBConnector
 from Connectors.azureSQLConnector import azureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
@@ -70,7 +70,7 @@ def extract():
 def get_to_mongo():
 
     results = extract()
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     for result in results:
         try:
             mgconn.insert_dataset(result['dataset'])
@@ -86,11 +86,11 @@ def insert_to_azure():
 
 def insert_to_mongo():
 
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     mgconn.insert_from_jsonfile(input_file)
 
 def pass_mongo_queries():
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     mgconn.execute_queries(query_names=models,search_domain=search_domain)
 
 def transform_xls():

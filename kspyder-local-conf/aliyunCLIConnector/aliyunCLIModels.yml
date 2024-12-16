@@ -11,6 +11,7 @@ Models:
         class: ram
         query_domains:
             - ListUsers
+        datapath: Users.User[]
         fields:
             username:
                 dbname: UserName
@@ -53,6 +54,7 @@ Models:
         class: ecs
         query_domains:
             - DescribeInstances
+        datapath: Instances.Instance[]
         fields:
             InstanceId:
                 dbname: id
@@ -119,6 +121,7 @@ Models:
         class: ecs
         query_domains:
             - DescribeImages
+        datapath: Images.Image[]
         fields:
             ImageId:
                 dbname: id
@@ -131,6 +134,7 @@ Models:
         class: vpc
         query_domains:
             - DescribeVpcs
+        datapath: Vpcs.Vpc[]
         fields:
             VpcId:
                 dbname: id
