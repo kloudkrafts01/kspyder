@@ -4,6 +4,8 @@ from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from importlib import import_module
 
+from google.cloud import resourcemanager
+
 from Engines.gcloudSDKEngine import gcloudSDKEngine
 
 CONF = fh.load_yaml(MODULES_MAP[__name__], subpath='gcloudSDKConnectors')
@@ -19,13 +21,12 @@ MODELS = CONF['Models']
 CONNECTOR_CLASSNAME = CONNECTOR_CONF['name']
 CONNECTOR_CLASS = import_module('google.cloud.{}'.format(CONNECTOR_CLASSNAME))
 
-class gcloudComputeConnector(gcloudSDKEngine):
+class gcloudResourceManagerConnector(gcloudSDKEngine):
 
-    def __init__(self, client=None, schema=SCHEMA_NAME, scope=DEFAULT_SCOPE, models=MODELS, update_field=UPD_FIELD_NAME, connector_class=CONNECTOR_CLASS, **params):
+    def __init__(self, client=None, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, connector_class=CONNECTOR_CLASS, **params):
         gcloudSDKEngine.__init__(self,
                     client=client,
                     schema=schema,
-                    scope=scope,
                     models=models,
                     update_field=update_field,
                     connector_class=connector_class,

@@ -8,6 +8,8 @@ RAMUsersList:
     $project:
       user_name: $UserName
       user_id: $UserId
+    $set:
+      model: RAMUsers
     $unset:
       - _id
 

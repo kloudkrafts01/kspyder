@@ -1,16 +1,18 @@
 #!python3
 
 from importlib import import_module
-import jmespath
+# Essential to serialize Google API types to dict
+import proto
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.spLogging import logger
 
 class gcloudSDKEngine(RESTExtractor):
 
-    def __init__(self, client=None, schema=None, models=None, update_field=None,connector_class=None,**params):
+    def __init__(self, client=None, schema=None, scope=None, models=None, update_field=None,connector_class=None,**params):
 
         self.schema = schema
+        self.scope = scope
         self.models = models
         self.params = params
         self.update_field = update_field
@@ -25,12 +27,15 @@ class gcloudSDKEngine(RESTExtractor):
         logger.debug("Imported client class: {}".format(client_class))
         self.client = client_class()
 
-    def build_request(self,model,**request_params):
+    def build_request(self,model):
         # Import request builder and instanciate a request in context
-        request_builder = getattr(self.source_models, model['request_builder'])
+        request_builder = getattr(self.connector_class, model['request_builder'])
+        request_params = model['request_params']
+
         logger.debug("request builder name: {}".format(model['request_builder']))
         logger.debug("request builder object: {}".format(request_builder))
         logger.debug("request builder params: {}".format(request_params))
+
         request = request_builder(**request_params)
 
         return request
@@ -47,19 +52,16 @@ class gcloudSDKEngine(RESTExtractor):
         self.set_client_from_model(model)
 
         # Prepare Request object and load the method for calling the request
-        request_object = self.build_request(model,**params)
+        request_object = self.build_request(model)
         query_gen = getattr(self.client,model['query_name'])
 
         # Generate request iterator
-        page_iter = query_gen(request_object)
+        response_iter = query_gen(request_object)
 
-        for page in page_iter.pages:
+        for item in response_iter:
             
-            page_number = page.page_number
-            results_count = page.num_items
-            logger.debug("caught {} items from page {}".format(results_count,page_number))
-
-            total_count += results_count
-            output_docs.extend(page.items)
+            data = proto.Message.to_dict(item)
+            total_count += 1
+            output_docs += data,
         
         return total_count,output_docs

@@ -1,7 +1,7 @@
 #!python3
 
 import os, re
-import json, yaml, csv, datetime
+import json, bson, yaml, csv, datetime
 from bson import ObjectId
 from importlib import import_module
 
@@ -11,7 +11,6 @@ class bJSONEncoder(json.JSONEncoder):
     def default(self,o):
         # if isinstance(o,ObjectId):
         #     return str(o)
-        # return 
         json.JSONEncoder.default(self,o)
 
 
@@ -68,7 +67,8 @@ class FileHandler():
         filename = "{}_{}-{}.json".format(now,schema,name)
         filepath = os.path.join(self.output_folder,filename)
 
-        encoded_json = bJSONEncoder().encode(dictData)
+        encoder = json.JSONEncoder()
+        encoded_json = encoder.encode(dictData)
         loaded_json = json.loads(encoded_json)
         with open(filepath,"w") as f:
             json.dump(loaded_json,f)

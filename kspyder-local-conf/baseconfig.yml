@@ -18,3 +18,4 @@ Modules:
   aliyunRAMConnector : aliyunRAMmodels
   aliyunCSConnector : aliyunCSmodels
   gcloudComputeConnector : gcloudComputeModels
+  gcloudResourceManagerConnector : gcloudRMmodels
