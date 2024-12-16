@@ -18,7 +18,7 @@ class RESTExtractor():
 
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
 
-        logger.debug("Extractor object: {}".format(self.__dict__))
+        # logger.debug("Extractor object: {}".format(self.__dict__))
 
         if last_days:
             now = datetime.datetime.utcnow()
@@ -47,6 +47,63 @@ class RESTExtractor():
         }
 
         jsonpath = None
+        if DUMP_JSON:
+            full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
+
+        return full_dataset
+    
+    def get_many_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
+        """Variation of the get_data method when given an array of input key-values.
+        Each key-value needs to be fed as input to a query, and aggregated.
+        
+        This method assumes the input in the form of a list of 
+        one-level key-value dicts, with consistent keys ie :
+        inputs = [ 
+                    {"key01": "value01", "key02": "value02"},
+                    {"key01": "value03", "key02": "value04"}
+                ]
+        """
+
+        # logger.debug("Extractor object: {}".format(self.__dict__))
+
+        if last_days:
+            now = datetime.datetime.utcnow()
+            delta = datetime.timedelta(days=last_days)
+            yesterday = now - delta
+
+            logger.info("UTC start datetime is {}".format(yesterday))
+            search_domains += [self.update_field,'>=',yesterday],
+
+        count = 0
+        dataset = []
+
+        for input_item in input_data:
+            
+            item_params = {**params, **input_item}
+            logger.debug("Using this as input params for this round: {}".format(item_params))
+
+            result_count, result_dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**item_params)
+            
+            count += result_count
+            dataset += result_dataset,
+
+        if dataset == []:
+            logger.info('no results were found.')
+
+        full_dataset = {
+            'header': {
+                'schema': self.schema,
+                'scope': self.scope,
+                'model': model_name,
+                'count': count,
+                'params': params,
+                'inputs': inputs,
+                'json_dump': None,
+                'csv_dump': None
+            },
+            'data': dataset
+        }
+
         if DUMP_JSON:
             full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
 

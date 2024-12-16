@@ -73,7 +73,7 @@ def get_to_mongo():
     mgconn = mongoDBConnector()
     for result in results:
         try:
-            mgconn.insert_dataset(result['dataset'])
+            mgconn.insert_dataset(input_data=result['dataset'])
         except Exception as e:
             logger.error("get_to_mongo :: Caught Exception: {}".format(e))
             continue

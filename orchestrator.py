@@ -2,6 +2,7 @@
 
 import sys,re
 from importlib import import_module
+import jmespath
 
 from common.config import TEMP_FOLDER,DUMP_JSON,BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
@@ -32,12 +33,12 @@ def execute_pipeline(pipeline,input=[]):
         
         # prepare job input
         step_input_name = step['Input'] if 'Input' in step.keys() else None
-        step_input = datasets[step_input_name] if step_input_name else None
+        step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
         # logger.debug("Step Input: {}".format(step_input))
         step_params = step['Params'] if 'Params' in step.keys() else {}
         
         if step_input:
-            result = job_instance(step_input,**step_params)
+            result = job_instance(input_data=step_input,**step_params)
         else:
             result = job_instance(**step_params)
 

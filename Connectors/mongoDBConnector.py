@@ -13,16 +13,16 @@ class mongoDBConnector():
         self.client = MongoClient('localhost',27017)
         self.db = self.client[SCHEMA_NAME]
 
-    def insert_dataset(self,dataset,key='name'):
+    def insert_dataset(self,input_data={},collection=None,key='name'):
 
-        header = dataset['header']
-        model_name = header['model']
-        data = dataset['data']
+        # header = input_data['header']
+        # model_name = header['model']
+        # data = input_data['data']
 
-        logger.info("Inserting dataset to Mongo Collection: {}".format(model_name))
+        logger.info("Inserting dataset to Mongo Collection: {}".format(collection))
 
-        collection = self.db[model_name]
-        result = collection.insert_many(data)
+        collection = self.db[collection]
+        result = collection.insert_many(input_data)
 
         return result
 
@@ -31,7 +31,9 @@ class mongoDBConnector():
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
-                self.insert_dataset(json_data)
+                model_name = json_data['header']['model']
+                input_data = json_data['data']
+                self.insert_dataset(input_data=input_data, collection=model_name)
 
     def execute_queries(self, query_names=None, search_domain=None):
         
@@ -86,8 +88,6 @@ class mongoDBConnector():
 
         results = collection.aggregate(queryPipeline)
         results_list = list(results)
-
-        logger.debug(results_list)
 
         result_dataset = {
             "header": {
