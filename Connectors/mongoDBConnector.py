@@ -5,7 +5,7 @@ from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
-SCHEMA_NAME = APP_NAME
+SCHEMA_NAME = __name__
 
 class mongoDBConnector():
 
@@ -71,13 +71,10 @@ class mongoDBConnector():
                 old_conf = query_conf['operations']
                 query_conf['operations'] = { **match_conf, **old_conf }
 
-            result_dataset = self.execute_query(query_name,query_conf)
-
             if DUMP_JSON:
-                fh.dump_json(result_dataset,APP_NAME,query_name)
+                result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
-            if query_conf['dump_csv']:
-                fh.dump_csv(result_dataset['data'],APP_NAME,query_name)
+            result_dataset = self.execute_query(query_name,query_conf)
 
     def execute_query(self,query_name,query_conf):
 
@@ -101,6 +98,17 @@ class mongoDBConnector():
             },
             "data": results_list
         }
+
+        # If the query conf specifies the atomic query result needs to be dumped into csv or json,
+        # proceed. Order is important : csv first, then json
+        query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
+        query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
+
+        if query_dump_csv:
+            result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
+
+        if query_dump_json:
+            result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
         return result_dataset
 

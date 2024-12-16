@@ -62,8 +62,8 @@ def extract():
         for model_name in models:
             logger.info("Extracting schema: {} - model: {}".format(source,model_name))
             # scopedict = {'scope': scope}
-            jsonpath,dataset = client.get_data(model_name=model_name,search_domains=[search_domain],**params)
-            full_results += {'jsonpath': jsonpath, 'dataset': dataset},
+            dataset = client.get_data(model_name=model_name,search_domains=[search_domain],**params)
+            full_results += dataset,
         
     return full_results
 

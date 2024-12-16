@@ -18,14 +18,18 @@ Steps:
     Job: execute_query
     Output: GetAccessKeysInputParams
     Params:
-      collection: RAMUsers
-      operations:
-        $project:
-          user_name: $UserName
-        $set:
-          model: AccessKeys
-        $unset:
-          - _id
+      query_name: FlattenRAMUserList
+      query_conf:
+        collection: RAMUsers
+        dump_json: true
+        dump_csv: true
+        operations:
+          $project:
+            user_name: $UserName
+          $set:
+            model: AccessKeys
+          $unset:
+            - _id
 
   # GetKeysFromUserNames:
   #   Worker: aliyunRAMConnector

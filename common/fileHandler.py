@@ -61,21 +61,27 @@ class FileHandler():
         
         return dict_data
     
-    def dump_json(self,dictData,schema,name):
+    def dump_json(self,dataset,schema,name):
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = "{}_{}-{}.json".format(now,schema,name)
         filepath = os.path.join(self.output_folder,filename)
 
+        # Specify the path of json dump into the dataset's header. 
+        # Creates the header if not existing.
+        dataset['header']['json_dump'] = filepath
+
         encoder = json.JSONEncoder()
-        encoded_json = encoder.encode(dictData)
+        encoded_json = encoder.encode(dataset)
         loaded_json = json.loads(encoded_json)
         with open(filepath,"w") as f:
             json.dump(loaded_json,f)
 
-        return filepath
+        return dataset
 
-    def dump_csv(self,dictData,schema,name):
+    def dump_csv(self,dataset,schema,name):
+
+        dict_data = dataset['data']
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = "{}_{}-{}.csv".format(now,schema,name)
@@ -83,8 +89,8 @@ class FileHandler():
 
         fieldnameset = set()
 
-        for i in range(0,min(1000,len(dictData))):
-            fieldset = set(dictData[i].keys())
+        for i in range(0,min(1000,len(dict_data))):
+            fieldset = set(dict_data[i].keys())
             fieldnameset |= fieldset
         
         fieldnames = sorted(list(fieldnameset), key=str.lower)
@@ -93,6 +99,10 @@ class FileHandler():
         with open(filepath,"w") as f:
             writer = csv.DictWriter(f,fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(dictData)
+            writer.writerows(dict_data)
+        
+        # Specify the path of csv dump into the dataset's header. 
+        # Creates the header if not existing.
+        dataset['header']['csv_dump'] = filepath
 
-        return filepath
+        return dataset

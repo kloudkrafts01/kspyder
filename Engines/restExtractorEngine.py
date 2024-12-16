@@ -39,16 +39,18 @@ class RESTExtractor():
                 'scope': self.scope,
                 'model': model_name,
                 'count': count,
-                'params': params
+                'params': params,
+                'json_dump': None,
+                'csv_dump': None
             },
             'data': dataset
         }
 
         jsonpath = None
         if DUMP_JSON:
-            jsonpath = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
+            full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
 
-        return jsonpath,full_dataset
+        return full_dataset
 
     def fetch_dataset(self,model_name=None,search_domains=[],**params):
 
