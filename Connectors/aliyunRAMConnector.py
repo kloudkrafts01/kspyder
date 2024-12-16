@@ -39,7 +39,7 @@ class aliyunRAMConnector(AliyunRESTConnector):
         # Instanciate a request object with the sdk module needed arguments
         request_params = {
             str.lower(self.next_token_key): start_token
-        }
+        } if start_token else {}
 
         if 'accepted_inputs' in model.keys():
             accepted_inputs = (x['key'] for x in model['accepted_inputs'])
