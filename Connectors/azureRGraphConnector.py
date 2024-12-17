@@ -7,7 +7,7 @@ from azure.mgmt.resourcegraph.models import QueryRequest
 from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from common.profileHandler import profileHandler
-from Engines.rpcExtractorEngine import GenericRPCExtractor
+from Engines.rpcExtractorEngine import DirectExtractor
 
 # build config folder path from module's name
 CONF_PATH = os.path.join(CONF_FOLDER,__name__)
@@ -23,7 +23,7 @@ MODELS_LIST = list(MODELS.keys())
 UNPACKING = CONF['UnpackingFields']
 
 
-class azureRGraphConnector(GenericRPCExtractor):
+class azureRGraphConnector(DirectExtractor):
 
     def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 
@@ -35,11 +35,11 @@ class azureRGraphConnector(GenericRPCExtractor):
         self.credential = DefaultAzureCredential()
 
         # initialize Azure Resource Graph Client from profile info
-        ph = profileHandler(input_folder=CONF_PATH)
-        self.profile = ph.load_profile('azureRGraphProfile', scope=self.scope)
-        self.subscription_id = self.profile['id']
+        # ph = profileHandler(input_folder=CONF_PATH)
+        # self.profile = ph.load_profile('azureRGraphProfile', scope=self.scope)
+        self.subscription_id = scope
         
-        logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
+        # logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
         
         self.client = ResourceGraphClient(
             credential = self.credential,
@@ -98,8 +98,4 @@ class azureRGraphConnector(GenericRPCExtractor):
 
         return queryStr
 
-    def forge_item(self,input_dict,model):
-        '''TODO function to forge outputs from Azure Resource Graph API'''
-
-        return input_dict
 
