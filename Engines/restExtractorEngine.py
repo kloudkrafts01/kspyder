@@ -66,14 +66,13 @@ class RESTExtractor():
                 dataset.extend(result_dataset)
             
             # except Exception as e:
-            #     logger.error(e.__str__)
+            #     logger.error(e.)
             #     failed_items += {
             #         'item': input_item,
             #         'reason': e.__str__
             #     },
             #     continue
             
-
         if dataset == []:
             logger.info('no results were found.')
             return {}

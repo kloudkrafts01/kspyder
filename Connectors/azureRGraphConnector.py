@@ -1,29 +1,23 @@
-import os
-
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
-from azure.mgmt.resourcegraph.models import QueryRequest
+from azure.mgmt.resourcegraph.models import QueryRequest,QueryRequestOptions
 
-from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
+from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
-from common.profileHandler import profileHandler
-from Engines.rpcExtractorEngine import DirectExtractor
+from Engines.restExtractorEngine import RESTExtractor
 
-# build config folder path from module's name
-CONF_PATH = os.path.join(CONF_FOLDER,__name__)
 CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+DEFAULT_FIELDS = CONNECTOR_CONF['default_fields']
+DEFAULT_CLASS = CONNECTOR_CONF['default_class']
 
 MODELS = CONF['Models']
-MODELS_LIST = list(MODELS.keys())
-UNPACKING = CONF['UnpackingFields']
 
-
-class azureRGraphConnector(DirectExtractor):
+class azureRGraphConnector(RESTExtractor):
 
     def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
 
@@ -33,69 +27,51 @@ class azureRGraphConnector(DirectExtractor):
         self.update_field = update_field
 
         self.credential = DefaultAzureCredential()
-
-        # initialize Azure Resource Graph Client from profile info
-        # ph = profileHandler(input_folder=CONF_PATH)
-        # self.profile = ph.load_profile('azureRGraphProfile', scope=self.scope)
         self.subscription_id = scope
         
-        # logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
-        
         self.client = ResourceGraphClient(
-            credential = self.credential,
-            subscription_id = self.subscription_id
+            credential = self.credential
+            # subscription_id = self.subscription_id
         )
 
-    def get_count(self, model, **params):
 
-        queryStr = self.build_query(model, count=True)
+    def read_query(self,model,start_token=None,**params):
 
-        query = QueryRequest(
-                query=queryStr,
-                subscriptions = [self.subscription_id]
-            )
-        query_response = self.client.resources(query)
+        request = self.build_request(model,start_token=start_token)
+        query_response = self.client.resources(request)
 
-        total_count = query_response.data[0]['Count']
+        # the base Azure object spits out 'true' or 'false' in string format.
+        # which is the dumbest thing ever. Have to convert it to boolean like that
+        is_truncated = (query_response.result_truncated == True)
 
-        return total_count
+        next_token = query_response.skip_token
+        result = query_response.data
 
-    def read_query(self,model, **params):
-
-        queryStr = self.build_query(model)
-        
-        query = QueryRequest(
-                query=queryStr,
-                subscriptions = [self.subscription_id]
-            )
-        query_response = self.client.resources(query)
-
-        return query_response.data
+        return result, is_truncated, next_token
 
 
-    def build_query(self, model, page_size=PAGE_SIZE, count=False):
+    def build_request(self, model, start_token=None, page_size=PAGE_SIZE, **params):
 
-        class_scope = None
-        if 'class' in model.keys():
-            class_scope = model['class']
-        else:
-            class_scope = 'Resources'
-
+        class_scope = model['class'] if 'class' in model.keys() else DEFAULT_CLASS
         base_name = model['base_name']
-        fieldnames = ''
-        for key in model['fields'].keys():
-            fieldnames += key + ","
-        #remove trailing comma
-        fieldnames = fieldnames[0:-1]
+        fieldnames = model['fields'] if 'fields' in model.keys() else DEFAULT_FIELDS
 
-        queryStr = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
-        if count:
-            queryStr += " | count"
-        else:
-            queryStr += " | limit {}".format(page_size)
+        query_string = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
+        logger.debug("QUERY STRING : {}".format(query_string))
 
-        logger.debug("QUERY STR : {}".format(queryStr))
+        request_params = { 'skip_token': start_token } if start_token else {}
 
-        return queryStr
+        request_options = QueryRequestOptions(
+            top = page_size,
+            **request_params
+        )
+
+        request = QueryRequest(
+                query=query_string,
+                subscriptions = [self.subscription_id],
+                options = request_options
+            )
+
+        return request
 
 
