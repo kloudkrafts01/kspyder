@@ -9,13 +9,9 @@ Models:
         client_name: FoldersClient
         request_builder: ListFoldersRequest
         query_name: list_folders
-        request_params:
-            parent: organizations/68618737410
 
     Projects:
         client_name: ProjectsClient
         request_builder: ListInstancesRequest
         query_name: list_projects
-        request_params:
-            parent: folders/127023100088
      

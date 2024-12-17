@@ -1,0 +1,62 @@
+Steps:
+
+  - Name: GetLevelOneFolders
+    Worker: gcloudResourceManagerConnector
+    Job: get_data
+    Output: L1Folders
+    Params:
+      model_name: Folders        
+      parent: organizations/68618737410
+
+  - Name: $GetUniqueKeyList
+    Input: L1Folders
+    Output: L1FolderIds
+    Params:
+      key: parent
+      datapath: data[].name
+
+  # - Name: GetFoldersList
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: L1FolderIds
+  #   Params:
+  #     query_name: GetL1FolderIds
+  #     query_conf:
+  #       collection: GCPFolders
+  #       dump_json: true
+  #       operations:
+  #         $project:
+  #           parent: $name
+  #         $unset:
+  #           - _id
+
+  - Name: GetLevelTwoFolders
+    Worker: gcloudResourceManagerConnector
+    Job: get_data
+    Output: L2Folders
+    Input: L1FolderIds
+    Params:
+      model_name: Folders
+
+  - Name: $GetUniqueKeyList
+    Input: L2Folders
+    Output: L2FolderIds
+    Params:
+      key: parent
+      datapath: data[].name
+
+  - Name: GetLevelThreeFolders
+    Worker: gcloudResourceManagerConnector
+    Job: get_data
+    Output: L3Folders
+    Input: L2FolderIds
+    Params:
+      model_name: Folders
+
+  - Name: StoreL3FoldersToMongo
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: L3Folders.data
+    Output: L3FoldersInsertionResult
+    Params:
+      collection: GCPFolders

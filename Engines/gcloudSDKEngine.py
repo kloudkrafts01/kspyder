@@ -27,10 +27,10 @@ class gcloudSDKEngine(RESTExtractor):
         logger.debug("Imported client class: {}".format(client_class))
         self.client = client_class()
 
-    def build_request(self,model):
+    def build_request(self,model,request_params:dict):
         # Import request builder and instanciate a request in context
         request_builder = getattr(self.connector_class, model['request_builder'])
-        request_params = model['request_params']
+        # request_params = model['request_params']
 
         logger.debug("request builder name: {}".format(model['request_builder']))
         logger.debug("request builder object: {}".format(request_builder))
@@ -50,9 +50,8 @@ class gcloudSDKEngine(RESTExtractor):
 
         # Instantiate the relevant API client class from google.cloud
         self.set_client_from_model(model)
-
         # Prepare Request object and load the method for calling the request
-        request_object = self.build_request(model)
+        request_object = self.build_request(model,params)
         query_gen = getattr(self.client,model['query_name'])
 
         # Generate request iterator

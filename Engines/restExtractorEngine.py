@@ -16,41 +16,7 @@ class RESTExtractor():
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
 
-    # def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
 
-    #     # logger.debug("Extractor object: {}".format(self.__dict__))
-
-    #     if last_days:
-    #         now = datetime.datetime.utcnow()
-    #         delta = datetime.timedelta(days=last_days)
-    #         yesterday = now - delta
-
-    #         logger.info("UTC start datetime is {}".format(yesterday))
-    #         search_domains += [self.update_field,'>=',yesterday],
-
-    #     count, dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**params)
-
-    #     if dataset == []:
-    #         logger.info('no results were found.')
-
-    #     full_dataset = {
-    #         'header': {
-    #             'schema': self.schema,
-    #             'scope': self.scope,
-    #             'model': model_name,
-    #             'count': count,
-    #             'params': params,
-    #             'json_dump': None,
-    #             'csv_dump': None
-    #         },
-    #         'data': dataset
-    #     }
-        
-    #     if DUMP_JSON:
-    #         full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
-
-    #     return full_dataset
-    
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
         """Variation of the get_data method when given an array of input key-values.
         Each key-value needs to be fed as input to a query, and aggregated.
@@ -58,8 +24,14 @@ class RESTExtractor():
         This method assumes the input in the form of a list of 
         one-level key-value dicts, with consistent keys ie :
         inputs = [ 
-                    {"key01": "value01", "key02": "value02"},
-                    {"key01": "value03", "key02": "value04"}
+                    {
+                        "key01": "value01", 
+                        "key02": "value02"
+                    },
+                    {
+                        "key01": "value03",
+                        "key02": "value04"
+                    }
                 ]
         """
 
@@ -79,47 +51,52 @@ class RESTExtractor():
 
         for input_item in input_data:
             
+            logger.debug("Input item: {}".format(input_item))
+
             item_params = {**params, **input_item}
             logger.debug("Using this as input params for this round: {}".format(item_params))
-            try:
-                result_count, plain_dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**item_params)
-                
-                count += result_count
-                # Only add the result dataset if not empty
-                if result_count > 0:
-                    result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
-                    dataset.extend(result_dataset)
+
+            # try:
+            result_count, plain_dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**item_params)
             
-            except Exception as e:
-                logger.error(e)
-                failed_items += {
-                    'item': input_item,
-                    'reason': e
-                },
-                continue
+            count += result_count
+            # Only add the result dataset if not empty
+            if result_count > 0:
+                result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
+                dataset.extend(result_dataset)
+            
+            # except Exception as e:
+            #     logger.error(e.__str__)
+            #     failed_items += {
+            #         'item': input_item,
+            #         'reason': e.__str__
+            #     },
+            #     continue
             
 
         if dataset == []:
             logger.info('no results were found.')
+            return {}
+        
+        else: 
+            full_dataset = {
+                'header': {
+                    'schema': self.schema,
+                    'scope': self.scope,
+                    'model': model_name,
+                    'count': count,
+                    'params': params,
+                    'json_dump': None,
+                    'csv_dump': None,
+                    'failed_items': failed_items
+                },
+                'data': dataset
+            }
 
-        full_dataset = {
-            'header': {
-                'schema': self.schema,
-                'scope': self.scope,
-                'model': model_name,
-                'count': count,
-                'params': params,
-                'json_dump': None,
-                'csv_dump': None,
-                'failed_items': failed_items
-            },
-            'data': dataset
-        }
+            if DUMP_JSON:
+                full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
 
-        if DUMP_JSON:
-            full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
-
-        return full_dataset
+            return full_dataset
 
     def fetch_dataset(self,model_name=None,search_domains=[],**params):
 

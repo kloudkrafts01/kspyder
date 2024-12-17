@@ -1,15 +1,21 @@
 #!python
 
-import sys,re
+import sys
 from importlib import import_module
 import jmespath
 
-from common.config import TEMP_FOLDER,DUMP_JSON,BASE_FILE_HANDLER as fh
+from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.spLogging import logger
 
+def extract_key_list(dataset,key=None,datapath=None):
 
-EACH_PATTERN = re.compile("(\$each)\.(.+)")
+    values_list = jmespath.search(datapath,dataset)
+    output_data = [{key: value} for value in values_list]
+
+    logger.debug("Extracted key-value list: {}".format(output_data))
+
+    return output_data
 
 def execute_pipeline_from_file(filename,input=[]):
 
@@ -21,59 +27,40 @@ def execute_pipeline(pipeline,input=[]):
     ch = clientHandler()
     datasets = {}
 
+
     for step in pipeline['Steps']:
 
         step_name = step['Name']
-        worker_name = step['Worker']
-        job_name = step['Job']
-        logger.debug("Preparing step {} : Worker = {}, Job = {}".format(step_name, worker_name, job_name))
 
-        worker_module = ch.get_client(worker_name)
-        job_instance = getattr(worker_module,job_name)
-        
         # prepare job input
         step_input_name = step['Input'] if 'Input' in step.keys() else None
         step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
         # logger.debug("Step Input: {}".format(step_input))
         step_params = step['Params'] if 'Params' in step.keys() else {}
-        
-        if step_input:
-            result = job_instance(input_data=step_input,**step_params)
-        else:
-            result = job_instance(**step_params)
 
+        if step_name == '$GetUniqueKeyList':
+            
+            logger.debug("Executing special job : get Key list")
+            result = extract_key_list(step_input,**step_params)
+        
+        else:
+            worker_name = step['Worker']
+            job_name = step['Job']
+            logger.debug("Preparing step {} : Worker = {}, Job = {}".format(step_name, worker_name, job_name))
+
+            worker_module = ch.get_client(worker_name)
+            job_instance = getattr(worker_module,job_name)
+            
+            if step_input:
+                result = job_instance(input_data=step_input,**step_params)
+            else:
+                result = job_instance(**step_params)
+
+        # Store Output
         step_output_name = step['Output'] if 'Output' in step.keys() else step_name
         logger.debug("Inserting result set {} in the pile.".format(step_output_name))
-        logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
         datasets[step_output_name] = result
-
-
-        # for input_item in input :
-        
-        #     logger.debug("INPUT ITEM: {}".format(input_item))
-        #     # Unfold input parameters for the job execution
-        #     params = {}
-        #     for key, value in step_params.items():
-        #         match = re.match(EACH_PATTERN,value)
-        #         if match:
-        #             new_key = match.group(2)
-        #             logger.debug("matched the $each pattern: {}\nReplacing with: {}".format(value, new_key))
-        #             # If a Step param has the '$each' key prefix, replace it for every input item
-        #             params[key] = input_item[new_key]
-        #         else:
-        #             logger.debug("Did not match the $each pattern: {}".format(value))
-        #             # Else just pass the param as specified in the Step definition
-        #             params[key] = value
-
-        #     # Execute the job instance
-        #     logger.debug("orchestrator :: launching job {} from Worker module {}".format(job_name,worker_name))
-        #     logger.debug("orchestrator :: job params : {}".format(params))
-        #     jsonpath, dataset = job_instance(**params)
-
-            # if DUMP_JSON:
-            #     fh.dump_json(dataset,worker_name,jsonpath)
-
-
+        logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
 
 
 if __name__ == "__main__":
