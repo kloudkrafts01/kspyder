@@ -1,4 +1,3 @@
-# import os
 import jmespath
 
 from azure.identity import DefaultAzureCredential
@@ -6,13 +5,11 @@ from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest,QueryRequestOptions
 from azure.mgmt.subscription import SubscriptionClient
 
-from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
-from common.profileHandler import profileHandler
+from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 from Engines.restExtractorEngine import RESTExtractor
 
 CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
-# CONNECTOR_CONF_FOLDER = os.path.join(CONF_FOLDER,__name__)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
