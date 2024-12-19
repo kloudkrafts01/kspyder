@@ -5,13 +5,14 @@ from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
-SCHEMA_NAME = APP_NAME
+# SCHEMA_NAME = APP_NAME
 
 class mongoDBConnector():
 
     def __init__(self):
         self.client = MongoClient('localhost',27017)
-        self.db = self.client[SCHEMA_NAME]
+        self.db = self.client[APP_NAME]
+        self.schema = __name__
 
     def insert_dataset(self,input_data={},collection=None,key='name'):
 

@@ -8,59 +8,59 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.spLogging import logger
 
-def extract_key_list(dataset,key=None,datapath=None):
+class documentPipelineEngine:
 
-    values_list = jmespath.search(datapath,dataset)
-    output_data = [{key: value} for value in values_list]
+    def __init__(self,**params):
 
-    logger.debug("Extracted key-value list: {}".format(output_data))
+        self.schema = "documentPipelineEngine"
 
-    return output_data
+    def get_unique_key_list(self,input_data=None,key=None,datapath=None):
 
-def execute_pipeline_from_file(filename,input=[]):
+        values_list = jmespath.search(datapath,input_data)
+        output_data = [{key: value} for value in values_list]
 
-    pipeline_data = fh.load_yaml(filename, subpath='orchestrator')
-    execute_pipeline(pipeline_data,input=input)
+        logger.debug("Extracted key-value list: {}".format(output_data))
 
-def execute_pipeline(pipeline,input=[]):
+        return output_data
 
-    ch = clientHandler()
-    datasets = {}
+    def execute_pipeline_from_file(self,filename,input=[]):
 
+        pipeline_data = fh.load_yaml(filename, subpath='orchestrator')
+        self.execute_pipeline(pipeline_data,input=input)
 
-    for step in pipeline['Steps']:
+    def execute_pipeline(self,pipeline,input=[]):
 
-        step_name = step['Name']
+        ch = clientHandler()
+        datasets = {}
 
-        # prepare job input
-        step_input_name = step['Input'] if 'Input' in step.keys() else None
-        step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
-        # logger.debug("Step Input: {}".format(step_input))
-        step_params = step['Params'] if 'Params' in step.keys() else {}
+        for step in pipeline['Steps']:
 
-        if step_name == '$GetUniqueKeyList':
-            
-            logger.debug("Executing special job : get Key list")
-            result = extract_key_list(step_input,**step_params)
-        
-        else:
-            worker_name = step['Worker']
+            # Mandatory Step definition fields
+            step_name = step['Name']
             job_name = step['Job']
-            logger.debug("Preparing step {} : Worker = {}, Job = {}".format(step_name, worker_name, job_name))
 
-            worker_module = ch.get_client(worker_name)
-            job_instance = getattr(worker_module,job_name)
+            # prepare job input
+            step_input_name = step['Input'] if 'Input' in step.keys() else None
+            step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
+            # logger.debug("Step Input: {}".format(step_input))
+            step_params = step['Params'] if 'Params' in step.keys() else {}
             
+            # If no Worker name is given in the Step definition,
+            # It is assumed that the job is one of documentPipelineEngine's own methods
+            worker_module = ch.get_client(step['Worker']) if 'Worker' in step.keys() else self
+            job_instance = getattr(worker_module,job_name)
+            logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
+
             if step_input:
                 result = job_instance(input_data=step_input,**step_params)
             else:
                 result = job_instance(**step_params)
 
-        # Store Output
-        step_output_name = step['Output'] if 'Output' in step.keys() else step_name
-        logger.debug("Inserting result set {} in the pile.".format(step_output_name))
-        datasets[step_output_name] = result
-        logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
+            # Store Output
+            step_output_name = step['Output'] if 'Output' in step.keys() else step_name
+            logger.debug("Inserting result set {} in the pile.".format(step_output_name))
+            datasets[step_output_name] = result
+            logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
 
 
 if __name__ == "__main__":
@@ -70,4 +70,5 @@ if __name__ == "__main__":
 
     # input_data = fh.load_json(input_filename,input=TEMP_FOLDER)['data']
 
-    execute_pipeline_from_file(pipeline_name)
+    engine = documentPipelineEngine()
+    engine.execute_pipeline_from_file(pipeline_name)

@@ -9,10 +9,10 @@ from common.spLogging import logger
 
 class gcloudSDKEngine(RESTExtractor):
 
-    def __init__(self, client=None, schema=None, scope=None, models=None, update_field=None,connector_class=None,**params):
+    def __init__(self, client=None, schema=None, scopes=None, models=None, update_field=None,connector_class=None,**params):
 
         self.schema = schema
-        self.scope = scope
+        self.scopes = scopes
         self.models = models
         self.params = params
         self.update_field = update_field

@@ -21,7 +21,7 @@ CONNECTOR_CLASS = import_module('google.cloud.{}'.format(CONNECTOR_CLASSNAME))
 
 class gcloudComputeConnector(gcloudSDKEngine):
 
-    def __init__(self, client=None, schema=SCHEMA_NAME, scope=DEFAULT_SCOPE, models=MODELS, update_field=UPD_FIELD_NAME, connector_class=CONNECTOR_CLASS, **params):
+    def __init__(self, client=None, schema=SCHEMA_NAME, scopes=DEFAULT_SCOPE, models=MODELS, update_field=UPD_FIELD_NAME, connector_class=CONNECTOR_CLASS, **params):
         gcloudSDKEngine.__init__(self,
                     client=client,
                     schema=schema,
