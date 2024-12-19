@@ -92,11 +92,9 @@ class azureRGraphConnector(RESTExtractor):
         request = self.build_request(model,start_token=start_token)
         query_response = self.client.resources(request)
 
-        # the base Azure object spits out 'true' or 'false' in string format.
-        # which is the dumbest thing ever. Have to convert it to boolean like that
-        is_truncated = (query_response.result_truncated == True)
-
         next_token = query_response.skip_token
+        # infer if is truncated from this, cause the natural field result_truncated ain't worth shit
+        is_truncated = (next_token is not None)
         result = query_response.data
 
         return result, is_truncated, next_token

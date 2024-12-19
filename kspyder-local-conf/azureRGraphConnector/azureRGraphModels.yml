@@ -1,49 +1,46 @@
 Connector:
     schema: azureRG
     update_field: write_date
-    default_scope: 'AZ-104 training'
     default_class: resources
-    default_fields: name,location,tags,properties
+    default_fields: name,type,location,zones,subscriptionId,resourceGroup,tags,properties
 
 Models:
 
     ResourceGroups:    
         class: resourcecontainers
-        base_name: microsoft.resources/subscriptions/resourcerroups
+        base_name: microsoft.resources/subscriptions/resourcegroups
 
-    VirtualWAN:
-        base_name: Microsoft.Network/virtualWans
-        
+    VirtualMachines:
+        base_name: Microsoft.Compute/VirtualMachines
+
+    ContainerServices:
+        base_name: Microsoft.ContainerService/containerServices
+
+    AKSClusters:
+        base_name: Microsoft.ContainerService/managedClusters
+
+    ContainerRegistries:
+        base_name: Microsoft.ContainerRegistry/registries
+
     PublicIPs:
         base_name: Microsoft.Network/publicIPAddresses
 
     KeyVaults:
-        base_name: Microsoft.KeyVaults/vaults
+        base_name: Microsoft.KeyVault/vaults
 
     PolicyInsights:
         base_name: Microsoft.PolicyInsights/attestations
         fields: name,properties
-            
+    
+    VirtualWAN:
+        base_name: Microsoft.Network/virtualWans
+
     VirtualHubs:
         base_name: Microsoft.Network/virtualHubs
 
     VirtualHubRouteTables:
         base_name: Microsoft.Network/virtualHubs/hubRouteTables
-        fields:
-            name:
-                dbname: name
-                type: String(255)
-                primary_key: true
-            location:
-                dbname: location
-                type: String(255)
-            tags:
-                dbname: tags
-                type: Object
-            properties:
-                dbname: properties
-                type: Object
-
+        
     VirtualHubConnections:
         base_name: Microsoft.Network/virtualHubs/hubVirtualNetworkConnections
 
@@ -63,13 +60,6 @@ Models:
     AppGateways:
         base_name: Microsoft.Network/applicationGateways
         
-    VirtualMachines:
-        base_name: Microsoft.Compute/VirtualMachines
-        
     AutomationJobs:
         base_name: Microsoft.Automation/automationAccounts/jobs
-        fields: name,properties
-          
-    PolicyInsights:
-        base_name: Microsoft.PolicyInsights/attestations
         fields: name,properties

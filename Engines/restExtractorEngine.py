@@ -18,9 +18,17 @@ class RESTExtractor():
 
 
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
-        """Variation of the get_data method when given an array of input key-values.
-        Each key-value needs to be fed as input to a query, and aggregated.
+        """Get Data from the connector.
         
+        INPUTS :
+        
+         - model_name : Name of the model of data wanted
+         - last_days : number of days of data to get
+         - search_domains : triplets for search query parameters
+        search_domain are given in the form of a 3-element list: [ 'field', 'operation', 'value' ]
+        
+         - input_data : a given array of input key-values
+        Each key-value needs to be fed as input to a query, and aggregated.
         This method assumes the input in the form of a list of 
         one-level key-value dicts, with consistent keys ie :
         inputs = [ 
@@ -33,6 +41,8 @@ class RESTExtractor():
                         "key02": "value04"
                     }
                 ]
+
+         - **params : additional keyword arguments
         """
 
         # logger.debug("Extractor object: {}".format(self.__dict__))
@@ -81,12 +91,12 @@ class RESTExtractor():
             full_dataset = {
                 'header': {
                     'schema': self.schema,
-                    'scopes': self.scopes,
                     'model': model_name,
                     'count': count,
-                    'params': params,
                     'json_dump': None,
-                    'csv_dump': None
+                    'csv_dump': None,
+                    'scopes': self.scopes,
+                    'params': params
                 },
                 'data': dataset
             }
@@ -128,4 +138,3 @@ class RESTExtractor():
             # set for the next query iteration
             start_token = next_token
             
-            logger.debug("Fetching from next token: {}".format(next_token))
