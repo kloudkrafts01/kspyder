@@ -1,5 +1,5 @@
-import os, yaml
-from importlib import import_module
+import os
+from .fileHandler import FileHandler
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -32,21 +32,22 @@ class LocalSecret:
             'secure': False
         }
 
-class LocalSecretsParser:
+class LocalSecretsParser(FileHandler):
     """WARNING : This is a dummy class to emulate secret fetching methods.
     It is only here for use in local development and not secure at all. Use at your own risk"""
 
-    storepath:str
 
     def __init__(self,store:str) -> None:
     
-        self.storepath = os.path.abspath(store)
+        self.input_folder = os.path.abspath(store)
+        self.output_folder = os.path.abspath(store)
 
-    def get_secret(self,secret_key:str) -> str:
+    def get_secret(self,secret_key:str,secrets_filename=None) -> any:
         """WARNING : This is a dummy class method to emulate secret fetching locally.
         It is only here for use in local development and not secure at all. Use at your own risk"""
-        with open(self.storepath,'r') as sp:
-            secrets_dict = yaml.full_load(sp)
+        
+        # secrets_filepath = os.path.join(self.storepath,secrets_filename) if secrets_filename else self.storepath
+        secrets_dict = self.load_json(secrets_filename)
 
         if secret_key in secrets_dict.keys():
             return LocalSecret(secret_key, secrets_dict[secret_key])
@@ -63,6 +64,7 @@ class secretsHandler():
         # this_module = import_module('.')
         # self.secrets_client = getattr(this_module, client_classname).__init__(vault_name)
         self.secrets_client = None
+
         if self.vault_type == 'local':
             self.secrets_client = LocalSecretsParser(self.vault_name)
         elif self.vault_type == 'azure_keyvault':

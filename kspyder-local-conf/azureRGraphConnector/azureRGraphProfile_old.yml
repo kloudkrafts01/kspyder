@@ -1,0 +1,47 @@
+common:
+  - name: CloudName
+    type: string
+    value: AzureCloud
+  - name: tenantId
+    type: secret
+    value: contoso-tenant-id
+  - name: homeTenantId
+    type: secret
+    value: contoso-tenant-id
+  - name: user.name
+    type: secret
+    value: training-user
+  - name: user.type
+    type: string
+    value: user
+  - name: managedByTenants
+    type: list
+    value: []
+
+default:
+  - name: name
+    type: string
+    value: AZ-104 training
+  - name: id
+    type: secret
+    value: az104-training-sub-id
+  - name: state
+    type: string
+    value: Enabled
+  - name: isDefault
+    type: boolean
+    value: true
+
+AZ-104 Training:
+  - name: name
+    type: string
+    value: AZ-104 Training
+  - name: id
+    type: secret
+    value: az104-training-sub-id
+  - name: state
+    type: string
+    value: Enabled
+  - name: isDefault
+    type: boolean
+    value: true

@@ -9,7 +9,7 @@ class RESTExtractor():
     def __init__(self,**kwargs):
         self.client = "This is an empty client from the RESTExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the RESTExtractor interface"
-        self.scope = "Empty scope from the RESTExtractor interface"
+        self.scopes = "Empty scope from the RESTExtractor interface"
         self.update_field = "Empty update_field from the RESTExtractor interface"
         self.models = [{"default": "Empty schema from the RESTExtractor interface"}]
 
@@ -81,7 +81,7 @@ class RESTExtractor():
             full_dataset = {
                 'header': {
                     'schema': self.schema,
-                    'scope': self.scope,
+                    'scopes': self.scopes,
                     'model': model_name,
                     'count': count,
                     'params': params,
@@ -93,7 +93,7 @@ class RESTExtractor():
             }
 
             if DUMP_JSON:
-                full_dataset = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
+                full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
             return full_dataset
 
