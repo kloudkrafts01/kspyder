@@ -47,7 +47,7 @@ class RESTExtractor():
 
         count = 0
         dataset = []
-        failed_items = []
+        # failed_items = []
 
         for input_item in input_data:
             
@@ -86,8 +86,7 @@ class RESTExtractor():
                     'count': count,
                     'params': params,
                     'json_dump': None,
-                    'csv_dump': None,
-                    'failed_items': failed_items
+                    'csv_dump': None
                 },
                 'data': dataset
             }

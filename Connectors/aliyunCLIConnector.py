@@ -100,7 +100,6 @@ class aliyunCLIClient:
 
         return output
 
-
     def get_records_count(self,model=None,query_domain=None,search_domains=[]):
 
         count = 0
@@ -143,14 +142,14 @@ class aliyunCLIClient:
 
 class aliyunCLIConnector(DirectExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scope=None, **params):
+    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scopes=None, **params):
 
         self.schema = schema
         self.models = models
         self.update_field = update_field
         self.client = aliyunCLIClient(update_field)
         self.params = params
-        self.scope = scope
+        self.scopes = scopes
 
     def get_count(self, model=None, query_domain=None, search_domains=[],**params):
 
