@@ -1,11 +1,10 @@
-#!python3
-
 from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.spLogging import logger
+
 
 class gcloudSDKEngine(RESTExtractor):
 

@@ -25,7 +25,7 @@ class gcloudComputeConnector(gcloudSDKEngine):
         gcloudSDKEngine.__init__(self,
                     client=client,
                     schema=schema,
-                    scope=scope,
+                    scopes=scopes,
                     models=models,
                     update_field=update_field,
                     connector_class=connector_class,

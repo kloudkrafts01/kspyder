@@ -8,6 +8,8 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.spLogging import logger
 
+from Engines.gcloudSDKEngine import gcloudResourceClient
+
 class documentPipelineEngine:
 
     def __init__(self,**params):
@@ -65,10 +67,13 @@ class documentPipelineEngine:
 
 if __name__ == "__main__":
 
-    pipeline_name = sys.argv[1]
+    # pipeline_name = sys.argv[1]
     # input_filename = sys.argv[2]
 
     # input_data = fh.load_json(input_filename,input=TEMP_FOLDER)['data']
 
-    engine = documentPipelineEngine()
-    engine.execute_pipeline_from_file(pipeline_name)
+    # engine = documentPipelineEngine()
+    # engine.execute_pipeline_from_file(pipeline_name)
+
+    client = gcloudResourceClient(org_id = "organizations/68618737410")
+    client.get_all_folders()
