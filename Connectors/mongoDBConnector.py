@@ -92,7 +92,7 @@ class mongoDBConnector():
 
         result_dataset = {
             "header": {
-                "schema": SCHEMA_NAME,
+                "schema": APP_NAME,
                 "model": model_name,
                 "query_name": query_name,
                 "query_conf": query_conf,

@@ -8,7 +8,8 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.spLogging import logger
 
-from Engines.gcloudSDKEngine import gcloudResourceClient
+from Connectors import gcloudResourceManagerConnector as gRM
+# from gcloudResourceManagerConnector import gcloudResourceClient
 
 class documentPipelineEngine:
 
@@ -16,10 +17,14 @@ class documentPipelineEngine:
 
         self.schema = "documentPipelineEngine"
 
-    def get_unique_key_list(self,input_data=None,key=None,datapath=None):
+    def get_unique_key_list(self,input_data=None,key=None,datapath=None,filters=None):
 
         values_list = jmespath.search(datapath,input_data)
         output_data = [{key: value} for value in values_list]
+
+        if filters:
+            for filter_key, filter_value in filters.items():
+                output_data = [x for x in output_data if x[filter_key] == filter_value]
 
         logger.debug("Extracted key-value list: {}".format(output_data))
 
@@ -67,13 +72,23 @@ class documentPipelineEngine:
 
 if __name__ == "__main__":
 
-    # pipeline_name = sys.argv[1]
+    pipeline_name = sys.argv[1]
     # input_filename = sys.argv[2]
 
     # input_data = fh.load_json(input_filename,input=TEMP_FOLDER)['data']
 
-    # engine = documentPipelineEngine()
-    # engine.execute_pipeline_from_file(pipeline_name)
+    engine = documentPipelineEngine()
+    engine.execute_pipeline_from_file(pipeline_name)
 
-    client = gcloudResourceClient(org_id = "organizations/68618737410")
-    client.get_all_folders()
+    # client = gRM.FoldersGraphClient(scope='christiandior.com',org_id = "organizations/68618737410")
+    # folders_graph = client.get_all_folders()
+
+    # full_dataset = {
+    #     'header':{
+    #         folders_graph['graph_metadata']
+    #     },
+    #     'data': folders_graph['data']
+    # }
+
+    # # if DUMP_JSON:
+    # fh.dump_json(dataset = folders_graph, schema="gcloudRMConnector", name='GCloudFolders')

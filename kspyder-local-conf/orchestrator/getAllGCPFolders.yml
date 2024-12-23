@@ -1,49 +1,83 @@
 Steps:
 
-  - Name: GetLevelOneFolders
-    Worker: gcloudResourceManagerConnector
-    Job: get_data
-    Output: L1Folders
-    Params:
-      model_name: Folders        
-      parent: organizations/68618737410
+  # - Name: DiscoverAllFolders
+  #   Worker: gcloudResourceManagerConnector
+  #   Job: discover_data
+  #   Output: GCPFolders
+  #   Params:
+  #     model_name: Folders       
+  #     root_element:
+  #       level: 0
+  #       display_name: christiandior.com
+  #       name: organizations/68618737410
 
-  - Name: GetParentsList
-    Job: get_unique_key_list
-    Input: L1Folders
-    Output: L1FolderIds
-    Params:
-      key: parent
-      datapath: data[].name
+  # - Name: StoreFoldersToMongo
+  #   Worker: mongoDBConnector
+  #   Job: insert_dataset
+  #   Input: GCPFolders.data
+  #   Output: GCPFoldersInsertionResult
+  #   Params:
+  #     collection: GCPFolders
 
-  - Name: GetLevelTwoFolders
-    Worker: gcloudResourceManagerConnector
-    Job: get_data
-    Output: L2Folders
-    Input: L1FolderIds
-    Params:
-      model_name: Folders
-
-  # - Name: GetL2ParentsList
+  # - Name: GetParentsList
   #   Job: get_unique_key_list
-  #   Input: L2Folders
-  #   Output: L2FolderIds
+  #   Input: GCPFolders
+  #   Output: GCPFolderIds
   #   Params:
   #     key: parent
   #     datapath: data[].name
+  #     # filters:
+  #     #   children: 0
 
-  # - Name: GetLevelThreeFolders
-  #   Worker: gcloudResourceManagerConnector
-  #   Job: get_data
-  #   Output: L3Folders
-  #   Input: L2FolderIds
-  #   Params:
-  #     model_name: Folders
+  - Name: GetFoldersFromMongo
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPFolders
+    Params:
+      query_name: GetFolderIds
+      query_conf:
+        collection: GCPFolders
+        operations:
+          $project:
+            name: $name
+            display_name: $display_name
+            parent: $parent
+            children: $children
+            level: $level
+          $unset:
+            - _id
 
-  - Name: StoreL2FoldersToMongo
+  - Name: GetProjectLeaves
+    Job: get_unique_key_list
+    Input: GCPFolders
+    Output: GCPFolderLeaves
+    Params:
+      key: name
+      datapath: data[].name
+      filters:
+        children: 0
+
+  - Name: StoreGCPFolderLeavesToMongo
     Worker: mongoDBConnector
     Job: insert_dataset
-    Input: L2Folders.data
-    Output: L2FoldersInsertionResult
+    Input: GCPFolderLeaves
+    Output: GCPFolderLeavesInsertionResult
     Params:
-      collection: GCPFolders
+      collection: GCPFolders_LeafIds
+    
+
+  # - Name: GetProjects
+  #   Worker: gcloudResourceManagerConnector
+  #   Job: get_data
+  #   Output: GCPProjects
+  #   Input: GCPFolderIds
+  #   Params:
+  #     model_name: Projects
+
+  # - Name: StoreProjectsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: insert_dataset
+  #   Input: GCPProjects.data
+  #   Output: GCPProjectsInsertionResult
+  #   Params:
+  #     collection: GCPProjects
