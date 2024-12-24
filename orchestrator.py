@@ -17,14 +17,24 @@ class documentPipelineEngine:
 
         self.schema = "documentPipelineEngine"
 
-    def get_unique_key_list(self,input_data=None,key=None,datapath=None,filters=None):
+    def apply_filters(self,input_data=None,filters=None):
+
+        filtered_data = input_data
+
+        for filter_key, filter_value in filters.items():
+            logger.debug("Applying filter : {} = {}".format(filter_key, filter_value))
+            filtered_data = [x for x in filtered_data if x[filter_key] == filter_value]
+        
+        return filtered_data
+
+
+    def get_unique_key_list(self,input_data=None,key=None,datapath=None):
 
         values_list = jmespath.search(datapath,input_data)
-        output_data = [{key: value} for value in values_list]
-
-        if filters:
-            for filter_key, filter_value in filters.items():
-                output_data = [x for x in output_data if x[filter_key] == filter_value]
+        if values_list:
+            output_data = [{key: value} for value in values_list]
+        else:
+            output_data = []
 
         logger.debug("Extracted key-value list: {}".format(output_data))
 

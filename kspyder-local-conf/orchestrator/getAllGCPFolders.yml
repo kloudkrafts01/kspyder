@@ -48,14 +48,20 @@ Steps:
             - _id
 
   - Name: GetProjectLeaves
-    Job: get_unique_key_list
-    Input: GCPFolders
+    Job: apply_filters
+    Input: GCPFolders.data
     Output: GCPFolderLeaves
     Params:
-      key: name
-      datapath: data[].name
       filters:
         children: 0
+  
+  - Name: GetProjectLeaves
+    Job: get_unique_key_list
+    Input: GCPFoldersLeaves
+    Output: GCPFolderIds
+    Params:
+      key: parent
+      datapath: "[].name"
 
   - Name: StoreGCPFolderLeavesToMongo
     Worker: mongoDBConnector
@@ -63,7 +69,7 @@ Steps:
     Input: GCPFolderLeaves
     Output: GCPFolderLeavesInsertionResult
     Params:
-      collection: GCPFolders_LeafIds
+      collection: GCPFolderLeaves
     
 
   # - Name: GetProjects
