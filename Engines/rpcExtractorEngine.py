@@ -9,7 +9,7 @@ class GenericRPCExtractor():
     def __init__(self,**kwargs):
         self.client = "This is an empty client from the GenericRPCExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the GenericRPCExtractor interface"
-        self.scope = "Empty scope from the GenericRPCExtractor interface"
+        self.scopes = "Empty scope from the GenericRPCExtractor interface"
         self.update_field = "Empty update_field from the GenericRPCExtractor interface"
         self.models = [{"default": "Empty schema from the GenericRPCExtractor interface"}]
 
@@ -40,23 +40,26 @@ class GenericRPCExtractor():
 
         if dataset == []:
             logger.info('no results were found.')
+            return {}
+        
+        else: 
+            full_dataset = {
+                'header': {
+                    'schema': self.schema,
+                    'scopes': self.scopes,
+                    'model': model_name,
+                    'count': count,
+                    'params': params,
+                    'json_dump': None,
+                    'csv_dump': None
+                },
+                'data': dataset
+            }
 
-        full_dataset = {
-            'header': {
-                'schema': self.schema,
-                'scope': self.scope,
-                'model': model_name,
-                'count': count,
-                'params': params
-            },
-            'data': dataset
-        }
+            if DUMP_JSON:
+                full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
-        jsonpath = None
-        if DUMP_JSON:
-            jsonpath = fh.dump_json(full_dataset,self.schema,"{}_{}".format(self.scope,model_name))
-
-        return jsonpath,full_dataset
+            return full_dataset
 
     def fetch_dataset(self,model_name=None,search_domains=[],**params):
 

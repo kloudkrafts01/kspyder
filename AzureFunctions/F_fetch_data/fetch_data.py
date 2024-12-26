@@ -28,7 +28,7 @@ def main(params: dict) -> dict:
 
         for model_name in models:
             logger.info('Extracting data from Model: {}'.format(model_name))
-            jsonpath,dataset = client.get_data(model_name,last_days=last_days)
+            dataset = client.get_data(model_name,last_days=last_days)
             # push to Azure SQL
             result = azconn.insert_dataset(dataset)
             results[model_name] = result

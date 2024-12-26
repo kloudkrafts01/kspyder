@@ -1,0 +1,16 @@
+Steps:
+
+  - Name: GetRAMUsers
+    Worker: aliyunRAMConnector
+    Job: get_data
+    Output: RAMUsersList
+    Params:
+      model_name: RAMUsers
+
+  - Name: StoreRAMUsersToMongo
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: RAMUsersList.data
+    Output: RAMUsersInsertionResult
+    Params:
+      collection: RAMUsers

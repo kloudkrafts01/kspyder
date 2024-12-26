@@ -1,7 +1,7 @@
 #!python3
 
 import subprocess
-import json
+import json, jmespath
 
 from Engines.rpcExtractorEngine import DirectExtractor
 from common.spLogging import logger
@@ -36,8 +36,8 @@ class aliyunCLIClient:
         if query_domain in model['query_domains']:
             command += query_domain,
         else:
-            errmsg_tmpl = '{} :: {} is not a valid query_domain for the {} model.\nAccepted query_domain are: {}'
-            errmsg = errmsg_tmpl.format(__name__, query_domain, model['base_name'], model['query_domains'])
+            errmsg_tmpl = '{} is not a valid query_domain for the {} model.\nAccepted query_domain are: {}'
+            errmsg = errmsg_tmpl.format(query_domain, model['base_name'], model['query_domains'])
             logger.error(errmsg)
             raise ValueError(errmsg)
 
@@ -64,14 +64,14 @@ class aliyunCLIClient:
             # add the tabular formatting cmdlets
             command = self.add_tabular_cmdlet(command,model)
 
-        logger.debug('{} :: Aliyun command: {}'.format(__name__, command))
+        logger.debug('Aliyun command: {}'.format(command))
 
         return command
 
     def add_tabular_cmdlet(self,command,model=None):
         # add the tabular formatting cmdlets
         base_name = model['base_name']
-        rows_cmdlet = 'rows="{}s.{}[*]"'.format(base_name,base_name)
+        rows_cmdlet = 'rows="{}"'.format(model['datapath'])
         cols_string = ''
         for field_name,field_data in model['fields'].items():
             cols_string = cols_string + field_name + ","
@@ -100,7 +100,6 @@ class aliyunCLIClient:
 
         return output
 
-
     def get_records_count(self,model=None,query_domain=None,search_domains=[]):
 
         count = 0
@@ -112,7 +111,8 @@ class aliyunCLIClient:
             if 'TotalCount' in output.keys():
                 count = output['TotalCount']
             else:
-                logger.error("aliyunCLIConnector: model is not RPC-based. Switch this config to a REST-based connector instead.") 
+                count = len(output)
+                # logger.error("Model is not RPC-based. Switch this config to a REST-based connector instead.") 
 
         return count
 
@@ -129,33 +129,27 @@ class aliyunCLIClient:
             pageno = int(offset / capped_limit) + 1 if offset else 1
             command = command + ['--PageNumber', str(pageno)]
             
-        logger.debug('{} :: Final Aliyun command: {}'.format(__name__, command))
+        logger.debug('Final Aliyun command: {}'.format(command))
         output = self.execute_command(command)
         
-        modelname = model['base_name']
-        modelnames = modelname + 's'
+        datapath = model['datapath']
+        dataset = jmespath.search(datapath,output)
 
-        # only return the list of objects
-        if model['nested']:
-            dataset = output[modelnames][modelname]
-        else:
-            dataset = output[modelnames]
-
-        # logger.debug('{} :: search_read dataset output:\n{}'.format(__name__, dataset))
+        logger.debug('search_read dataset output:\n{}'.format(dataset))
 
         return dataset
 
 
 class aliyunCLIConnector(DirectExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scope=None, **params):
+    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scopes=None, **params):
 
         self.schema = schema
         self.models = models
         self.update_field = update_field
         self.client = aliyunCLIClient(update_field)
         self.params = params
-        self.scope = scope
+        self.scopes = scopes
 
     def get_count(self, model=None, query_domain=None, search_domains=[],**params):
 

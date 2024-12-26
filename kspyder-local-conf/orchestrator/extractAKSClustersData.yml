@@ -1,0 +1,40 @@
+Steps:
+
+  - Name: GetAKSClusters
+    Worker: azureRGraphConnector
+    Job: get_data
+    Output: AKSClusters
+    Params:
+      model_name: AKSClusters
+
+  - Name: StoreAKSClustersToMongo
+    Worker : mongoDBConnector
+    Job: insert_dataset
+    Input: AKSClusters.data
+    Output: AKSClustersInsertionResult
+    Params:
+      collection: AKSClusters
+
+  - Name: ExtractAKSTabularData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AKSDataExtract
+    Params:
+      query_name: ExtractAKSInfo
+      query_conf:
+        collection: AKSClusters
+        dump_csv: true
+        dump_json: true
+        operations:
+          $project:
+            environment: $tags.environment
+            name: $name
+            region: $location
+            subscriptionId: $subscriptionId
+            resourceGroup: $resourceGroup
+            dnsPrefix: $properties.dnsPrefix
+            endpoint: $properties.fqdn
+            kubeVersion: $properties.currentKubernetesVersion
+          $unset:
+            - _id
+

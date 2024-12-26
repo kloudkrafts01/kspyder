@@ -8,7 +8,7 @@ from common.config import DEFAULT_TIMESPAN
 from common.spLogging import logger
 from common.clientHandler import clientHandler
 
-from Connectors.mongoDBConnector import MongoDBConnector
+from Connectors.mongoDBConnector import mongoDBConnector
 from Connectors.azureSQLConnector import azureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
@@ -30,7 +30,7 @@ query_domain = None
 params = {}
 
 ch = clientHandler()
-
+    
 
 def fetch():
 
@@ -54,26 +54,23 @@ def extract():
 
     full_results = []
 
-    for current_scope in scopes:
-        
-        logger.info("Instantiating Extractor {} with context : {}".format(source,current_scope))
-        client = ch.get_client(source, scope = current_scope)  
-        
-        for model_name in models:
-            logger.info("Extracting schema: {} - model: {}".format(source,model_name))
-            # scopedict = {'scope': scope}
-            jsonpath,dataset = client.get_data(model_name=model_name,search_domains=[search_domain],**params)
-            full_results += {'jsonpath': jsonpath, 'dataset': dataset},
+    logger.info("Instantiating Extractor {} with scopes : {}".format(source,scopes))
+    client = ch.get_client(source=source, scopes=scopes)  
+    
+    for model_name in models:
+        logger.info("Extracting schema: {} - model: {}".format(source,model_name))
+        dataset = client.get_data(model_name=model_name,search_domains=[search_domain],**params)
+        full_results += dataset,
         
     return full_results
 
 def get_to_mongo():
 
     results = extract()
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     for result in results:
         try:
-            mgconn.insert_dataset(result['dataset'])
+            mgconn.insert_dataset(input_data=result['dataset'])
         except Exception as e:
             logger.error("get_to_mongo :: Caught Exception: {}".format(e))
             continue
@@ -86,11 +83,11 @@ def insert_to_azure():
 
 def insert_to_mongo():
 
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     mgconn.insert_from_jsonfile(input_file)
 
 def pass_mongo_queries():
-    mgconn = MongoDBConnector()
+    mgconn = mongoDBConnector()
     mgconn.execute_queries(query_names=models,search_domain=search_domain)
 
 def transform_xls():
@@ -131,7 +128,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
-    parser.add_argument('-k','--scope',action='store',type=str,nargs='+',dest=scopes,default=['default'])
+    parser.add_argument('-k','--scopes',action='store',type=str,nargs='+',dest=scopes)
     parser.add_argument('-m','--model',action='store',type=str,nargs='+',dest=model_name)
     parser.add_argument('-f','--file',action='store',type=str,dest=input_file)
     parser.add_argument('-t','--timespan',action='store',type=int,dest=last_days,default=DEFAULT_TIMESPAN)
@@ -149,7 +146,7 @@ if __name__ == "__main__":
     models = args.model
     input_file = args.file
     action = args.action
-    scopes = args.scope
+    scopes = args.scopes
     search_domain = args.searchdomain
     query_domain = args.querydomain
     
@@ -161,7 +158,7 @@ if __name__ == "__main__":
         'query_domain': query_domain,
         'source': source,
         'action': action,
-        'scope': scopes
+        'scopes': scopes
     }
 
     print(params)

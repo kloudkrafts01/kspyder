@@ -5,24 +5,25 @@ from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
-SCHEMA_NAME = APP_NAME
+# SCHEMA_NAME = APP_NAME
 
-class MongoDBConnector():
+class mongoDBConnector():
 
     def __init__(self):
         self.client = MongoClient('localhost',27017)
-        self.db = self.client[SCHEMA_NAME]
+        self.db = self.client[APP_NAME]
+        self.schema = __name__
 
-    def insert_dataset(self,dataset,key='name'):
+    def insert_dataset(self,input_data={},collection=None,key='name'):
 
-        header = dataset['header']
-        model_name = header['model']
-        data = dataset['data']
+        # header = input_data['header']
+        # model_name = header['model']
+        # data = input_data['data']
 
-        logger.info("Inserting dataset to Mongo Collection: {}".format(model_name))
+        logger.info("Inserting dataset to Mongo Collection: {}".format(collection))
 
-        collection = self.db[model_name]
-        result = collection.insert_many(data)
+        collection = self.db[collection]
+        result = collection.insert_many(input_data)
 
         return result
 
@@ -31,7 +32,9 @@ class MongoDBConnector():
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
-                self.insert_dataset(json_data)
+                model_name = json_data['header']['model']
+                input_data = json_data['data']
+                self.insert_dataset(input_data=input_data, collection=model_name)
 
     def execute_queries(self, query_names=None, search_domain=None):
         
@@ -73,11 +76,9 @@ class MongoDBConnector():
 
             result_dataset = self.execute_query(query_name,query_conf)
 
-            if DUMP_JSON:
-                fh.dump_json(result_dataset,APP_NAME,query_name)
-
-            if query_conf['dump_csv']:
-                fh.dump_csv(result_dataset['data'],APP_NAME,query_name)
+        # If DUMP_JSON is true, save last obtained dataset
+        if DUMP_JSON:
+            result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
     def execute_query(self,query_name,query_conf):
 
@@ -89,11 +90,9 @@ class MongoDBConnector():
         results = collection.aggregate(queryPipeline)
         results_list = list(results)
 
-        logger.debug(results_list)
-
         result_dataset = {
             "header": {
-                "schema": SCHEMA_NAME,
+                "schema": APP_NAME,
                 "model": model_name,
                 "query_name": query_name,
                 "query_conf": query_conf,
@@ -101,6 +100,17 @@ class MongoDBConnector():
             },
             "data": results_list
         }
+
+        # If the query conf specifies the atomic query result needs to be dumped into csv or json,
+        # proceed. Order is important : csv first, then json
+        query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
+        query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
+
+        if query_dump_csv:
+            result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
+
+        if query_dump_json:
+            result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
         return result_dataset
 

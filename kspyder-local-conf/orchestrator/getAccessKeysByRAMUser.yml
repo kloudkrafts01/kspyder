@@ -1,0 +1,7 @@
+Inputs: null
+
+Steps:
+
+    - $include: getRamUserNameList.GetRAMUserNameList
+    - $include: getAccessKeysFromUserList.GetAccessKeysFromUserList
+

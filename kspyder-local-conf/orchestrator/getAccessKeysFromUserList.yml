@@ -1,0 +1,25 @@
+Steps:
+
+  - Name: FlattenUserList
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GetAccessKeysInputParams
+    Params:
+      query_name: FlattenRAMUserList
+      query_conf:
+        collection: RAMUsers
+        dump_json: true
+        dump_csv: true
+        operations:
+          $project:
+            user_name: $UserName
+          $unset:
+            - _id
+
+  - Name: GetKeysFromUserNames
+    Worker: aliyunRAMConnector
+    Job: get_data
+    Input: GetAccessKeysInputParams.data
+    Output: RAMUserAccessKeys
+    Params:
+      model_name: AccessKeys

@@ -1,105 +1,125 @@
-import os
+import jmespath
 
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
-from azure.mgmt.resourcegraph.models import QueryRequest
+from azure.mgmt.resourcegraph.models import QueryRequest,QueryRequestOptions
+from azure.mgmt.subscription import SubscriptionClient
 
-from common.config import PAGE_SIZE, CONF_FOLDER, BASE_FILE_HANDLER as fh
+from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
-from common.profileHandler import profileHandler
-from Engines.rpcExtractorEngine import GenericRPCExtractor
+from Engines.restExtractorEngine import RESTExtractor
 
-# build config folder path from module's name
-CONF_PATH = os.path.join(CONF_FOLDER,__name__)
 CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+DEFAULT_FIELDS = CONNECTOR_CONF['default_fields']
+DEFAULT_CLASS = CONNECTOR_CONF['default_class']
 
 MODELS = CONF['Models']
-MODELS_LIST = list(MODELS.keys())
-UNPACKING = CONF['UnpackingFields']
+
+class azureRGraphClient(ResourceGraphClient):
+
+    def __init__(self):
+
+        self.credential = DefaultAzureCredential()
+        # Instantiate Azure Resource Graph Client with Credential
+        ResourceGraphClient.__init__(
+            self,
+            credential = self.credential
+        )
+
+    def get_subscriptions(self):
+
+        # Instantiate azure Subscriptions Client
+        sub_client = SubscriptionClient( 
+            credential = self.credential
+        )
+        sub_iter = sub_client.subscriptions.list()
+        subscriptions = []
+
+        for sub in sub_iter:
+            subscriptions += sub.__dict__,
+
+        return subscriptions
 
 
-class azureRGraphConnector(GenericRPCExtractor):
+class azureRGraphConnector(RESTExtractor):
 
-    def __init__(self, scope='default', schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME):
+    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME, **params):
 
-        self.scope = scope
         self.schema = schema
         self.models = models
         self.update_field = update_field
 
-        self.credential = DefaultAzureCredential()
+        self.client = azureRGraphClient()
 
-        # initialize Azure Resource Graph Client from profile info
-        ph = profileHandler(input_folder=CONF_PATH)
-        self.profile = ph.load_profile('azureRGraphProfile', scope=self.scope)
-        self.subscription_id = self.profile['id']
+        self.subscriptions = self.client.get_subscriptions()
+        # set the subscription IDs and scope names from the scopes specified in the request,
+        # or all subscription IDs if no scope was specified
+        self.scopes = None
+        self.subscription_ids = None
+        self.set_scopes_and_subscription_ids(scopes)
+    
+    def set_scopes_and_subscription_ids(self,scopes=None):
         
-        logger.debug("{} PROFILE OBJ: {}".format(__name__,self.profile))
-        
-        self.client = ResourceGraphClient(
-            credential = self.credential,
-            subscription_id = self.subscription_id
+        subscription_ids = []
+        print(scopes)
+
+        if scopes:
+            logger.debug("setting subscription Ids from names: {}".format(scopes))
+            self.scopes = scopes
+            subscription_ids = [x['subscription_id'] for x in self.subscriptions if x['display_name'] in scopes]
+        else:
+            logger.debug("setting all subscription Ids")
+            # Explicitly set all scopes names for clarity and logging
+            all_scopes = jmespath.search('[].display_name', self.subscriptions)
+            self.scopes = all_scopes
+            subscription_ids = jmespath.search('[].subscription_id', self.subscriptions)
+
+        # logger.debug("Final Scope names: {}".format(self.scopes))
+        # logger.debug("Final Subscription Ids: {}".format(subscription_ids))
+
+        self.subscription_ids = subscription_ids
+
+    def read_query(self,model,start_token=None,**params):
+
+        request = self.build_request(model,start_token=start_token)
+        query_response = self.client.resources(request)
+
+        next_token = query_response.skip_token
+        # infer if is truncated from this, cause the natural field result_truncated ain't worth shit
+        is_truncated = (next_token is not None)
+        result = query_response.data
+
+        return result, is_truncated, next_token
+
+
+    def build_request(self, model, start_token=None, page_size=PAGE_SIZE, **params):
+
+        class_scope = model['class'] if 'class' in model.keys() else DEFAULT_CLASS
+        base_name = model['base_name']
+        fieldnames = model['fields'] if 'fields' in model.keys() else DEFAULT_FIELDS
+
+        query_string = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
+        logger.debug("QUERY STRING : {}".format(query_string))
+
+        request_params = { 'skip_token': start_token } if start_token else {}
+
+        request_options = QueryRequestOptions(
+            top = page_size,
+            **request_params
         )
 
-    def get_count(self, model, **params):
-
-        queryStr = self.build_query(model, count=True)
-
-        query = QueryRequest(
-                query=queryStr,
-                subscriptions = [self.subscription_id]
+        # Instantiate request object
+        request = QueryRequest(
+                query=query_string,
+                subscriptions = self.subscription_ids,
+                options = request_options
             )
-        query_response = self.client.resources(query)
 
-        total_count = query_response.data[0]['Count']
+        return request
 
-        return total_count
-
-    def read_query(self,model, **params):
-
-        queryStr = self.build_query(model)
-        
-        query = QueryRequest(
-                query=queryStr,
-                subscriptions = [self.subscription_id]
-            )
-        query_response = self.client.resources(query)
-
-        return query_response.data
-
-
-    def build_query(self, model, page_size=PAGE_SIZE, count=False):
-
-        class_scope = None
-        if 'class' in model.keys():
-            class_scope = model['class']
-        else:
-            class_scope = 'Resources'
-
-        base_name = model['base_name']
-        fieldnames = ''
-        for key in model['fields'].keys():
-            fieldnames += key + ","
-        #remove trailing comma
-        fieldnames = fieldnames[0:-1]
-
-        queryStr = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
-        if count:
-            queryStr += " | count"
-        else:
-            queryStr += " | limit {}".format(page_size)
-
-        logger.debug("QUERY STR : {}".format(queryStr))
-
-        return queryStr
-
-    def forge_item(self,input_dict,model):
-        '''TODO function to forge outputs from Azure Resource Graph API'''
-
-        return input_dict
 

@@ -1,0 +1,19 @@
+Connector:
+    name: resourcemanager
+    schema: googleCloud
+    default_scope: christiandior.com
+    update_field: UpdateDate
+    
+Models:
+    Folders:
+        client_name: FoldersClient
+        request_builder: ListFoldersRequest
+        query_name: list_folders
+        node_key: name
+        parent_key: parent
+
+    Projects:
+        client_name: ProjectsClient
+        request_builder: ListProjectsRequest
+        query_name: list_projects
+     

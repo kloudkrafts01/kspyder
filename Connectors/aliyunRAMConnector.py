@@ -13,6 +13,7 @@ UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 MODELS = CONF['Models']
 
 
+
 class aliyunRAMConnector(AliyunRESTConnector):
 
     def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scope=None, **params):
@@ -38,13 +39,22 @@ class aliyunRAMConnector(AliyunRESTConnector):
         # Instanciate a request object with the sdk module needed arguments
         request_params = {
             str.lower(self.next_token_key): start_token
-        }
+        } if start_token else {}
+
+        if 'accepted_inputs' in model.keys():
+            accepted_inputs = (x['key'] for x in model['accepted_inputs'])
+            # mandatory_inputs = (x['key'] for x in model['accepted_inputs'] if x['mandatory'])
+            valid_params = (x for x in params.keys() if x in accepted_inputs)
+            
+            for key in valid_params:
+                request_params[key] = params[key]
+
         request = self.build_request(
             model,
             **request_params
             )
         
-        # Instanciate a query object with the sdk module needed arguments
+        # Prepare the arguments for the query builder
         query_args = [
             request,
             self.runtime_options
