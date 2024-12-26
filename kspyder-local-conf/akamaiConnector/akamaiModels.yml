@@ -1,0 +1,22 @@
+Connector:
+    schema: akamai
+    update_field: modifiedSince
+
+Models:
+
+    PropertyGroups:
+        path: /papi/v1/groups
+        datapath: groups.items
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    Properties:
+        path: /papi/v1/properties
+        datapath: properties.items
+        valid_keys: 
+            - contractId
+            - groupId
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
