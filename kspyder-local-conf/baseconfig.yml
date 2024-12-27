@@ -19,3 +19,4 @@ Modules:
   aliyunCSConnector : aliyunCSmodels
   gcloudComputeConnector : gcloudComputeModels
   gcloudResourceManagerConnector : gcloudRMmodels
+  akamaiConnector : akamaiModels

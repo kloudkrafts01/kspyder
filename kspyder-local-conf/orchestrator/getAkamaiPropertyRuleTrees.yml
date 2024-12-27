@@ -1,0 +1,33 @@
+Steps:
+
+  - Name: ExtractLatestAkamaiProperties
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiPropertyVersionIds
+    Params:
+      query_name: ExtractAkamaiProperties
+      query_conf:
+        collection: AkamaiProperties
+        dump_json: true
+        operations:
+          $project:
+            propertyId: $propertyId
+            version: $latestVersion
+          $unset:
+            - _id
+
+  - Name: GetRuleTrees
+    Worker: akamaiConnector
+    Job: get_data
+    Input: AkamaiPropertyVersionIds.data
+    Output: PropertyRules
+    Params:
+      model_name: PropertyRules
+
+  - Name: StorePropertyRulesToMongo
+    Worker : mongoDBConnector
+    Job: insert_dataset
+    Input: PropertyRules.data
+    Output: PapiRulesInsertionResult
+    Params:
+      collection: AkamaiPropertyRules

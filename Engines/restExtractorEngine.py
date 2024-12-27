@@ -1,5 +1,7 @@
 import datetime
 import traceback
+import re
+from urllib.parse import urljoin
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.spLogging import logger
@@ -16,6 +18,52 @@ class RESTExtractor():
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
 
+    def build_request(self,model,baseurl=None,**params):
+        """Method to build valid URL, parameters and headers for a python request call from a model definition."""
+
+        # Only keep parameters with accepted keys
+        valid_params = {}
+        if 'accepted_inputs' in model.keys():
+            valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
+            for key in valid_keys:
+                valid_params[key] = params[key]
+        else:
+            # If nothing specified, just keep any parameters passed
+            valid_params = params
+
+        logger.debug("Initial Valid Params: {}".format(valid_params))
+
+        # build URL
+        logger.debug("Now building Query URL...")
+        path_expression = model['path']
+        url_path = path_expression
+        params_to_pop = []
+
+        for key,value in valid_params.items():
+            
+            # Compile and search for the parameter key in the URL path expression
+            pattern_string = '\{\$(%s)\}' % key
+            var_pattern = re.compile(pattern_string,re.I)
+            matches = re.search(var_pattern, path_expression).groups()
+
+            for matched_item in matches:
+                # if parameter was matched, sub the expression
+                logger.debug("Matched following item in path: {}".format(matched_item))
+                url_path = re.sub(var_pattern, str(value), url_path)
+                params_to_pop.append(key)
+
+        # pop out any parameter used to build the URL so there's no duplicate in request parameters
+        for key in params_to_pop:
+            valid_params.pop(key)
+        
+        url = urljoin(baseurl, url_path)
+        logger.debug("Query URL: {}".format(url))
+        logger.debug("Final Valid Params: {}".format(valid_params))
+
+        headers = model['headers'] if 'headers' in model.keys() else {}
+        logger.debug("Request headers: {}".format(headers))
+
+        return url, headers, valid_params
 
     def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
         """Get Data from the connector.

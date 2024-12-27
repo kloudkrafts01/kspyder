@@ -1,0 +1,49 @@
+Steps:
+
+  # - Name: GetPropertyGroups
+  #   Worker: akamaiConnector
+  #   Job: get_data
+  #   Output: PropertyGroups
+  #   Params:
+  #     model_name: PropertyGroups
+
+  # - Name: StorePropertyGroupsToMongo
+  #   Worker : mongoDBConnector
+  #   Job: insert_dataset
+  #   Input: PropertyGroups.data
+  #   Output: PapiGroupsInsertionResult
+  #   Params:
+  #     collection: AkamaiPropertyGroups
+
+  - Name: ExtractContractGroupList
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ContractAndGroupIds
+    Params:
+      query_name: ExtractAkamaiGroups
+      query_conf:
+        collection: AkamaiPropertyGroups
+        dump_json: true
+        operations:
+          $unwind: $contractIds
+          $project:
+            contractId: $contractIds
+            groupId: $groupId
+          $unset:
+            - _id
+
+  - Name: ListProperties
+    Worker: akamaiConnector
+    Job: get_data
+    Input: ContractAndGroupIds.data
+    Output: PropertyLists
+    Params:
+      model_name: Properties
+
+  - Name: StorePropertiesToMongo
+    Worker : mongoDBConnector
+    Job: insert_dataset
+    Input: PropertyLists.data
+    Output: PapiListsInsertionResult
+    Params:
+      collection: AkamaiProperties
