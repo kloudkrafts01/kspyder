@@ -42,11 +42,9 @@ class aliyunRAMConnector(AliyunRESTConnector):
         } if start_token else {}
 
         if 'accepted_inputs' in model.keys():
-            accepted_inputs = (x['key'] for x in model['accepted_inputs'])
-            # mandatory_inputs = (x['key'] for x in model['accepted_inputs'] if x['mandatory'])
-            valid_params = (x for x in params.keys() if x in accepted_inputs)
-            
-            for key in valid_params:
+            # accepted_inputs = (x['key'] for x in model['accepted_inputs'])
+            valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
+            for key in valid_keys:
                 request_params[key] = params[key]
 
         request = self.build_request(

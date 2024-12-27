@@ -43,7 +43,7 @@ class akamaiConnector(RESTExtractor):
 
     def read_query(self,model,start_token=None,**params):
 
-        url, headers, valid_params = self.build_query(model, baseurl = self.client.baseurl, **params)
+        url, headers, valid_params = self.build_request(model, baseurl = self.client.baseurl, **params)
         response = self.client.session.get(url, headers = headers, params = valid_params)
 
         next_token = 'toto'

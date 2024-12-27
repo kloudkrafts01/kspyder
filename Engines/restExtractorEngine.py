@@ -18,17 +18,17 @@ class RESTExtractor():
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
 
-    def build_query(self,model,baseurl=None,**params):
+    def build_request(self,model,baseurl=None,**params):
         """Method to build valid URL, parameters and headers for a python request call from a model definition."""
 
         # Only keep parameters with accepted keys
         valid_params = {}
         if 'accepted_inputs' in model.keys():
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
-            valid_params_list = [ {k:params[k]} for k in valid_keys ]
-            for param in valid_params_list:
-                valid_params = { **valid_params, **param }
+            for key in valid_keys:
+                valid_params[key] = params[key]
         else:
+            # If nothing specified, just keep any parameters passed
             valid_params = params
 
         logger.debug("Initial Valid Params: {}".format(valid_params))
