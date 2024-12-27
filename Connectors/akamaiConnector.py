@@ -1,8 +1,9 @@
-import os, jmespath, json
+import re
+import jmespath
 import requests
+from urllib.parse import urljoin
 
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
-from urllib.parse import urljoin
 
 
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
@@ -44,21 +45,39 @@ class akamaiConnector(RESTExtractor):
     
     def build_query(self,model,**params):
 
-        url = urljoin(self.client.baseurl, model['path'])
-        headers = model['headers']
+        # Get parameters with accepted keys
         valid_params = {}
-
-        if 'valid_keys' in model.keys():
-            valid_keys = (x for x in params.keys() if x in model['valid_keys'])
+        if 'accepted_inputs' in model.keys():
+            valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
             valid_params_list = [ {k:params[k]} for k in valid_keys ]
-            
             for param in valid_params_list:
                 valid_params = { **valid_params, **param }
-
         else:
             valid_params = params
 
-        logger.debug("Valid Params: {}".format(valid_params))
+        logger.debug("Initial Valid Params: {}".format(valid_params))
+
+        # build URL
+        logger.debug("Now building Query URL...")
+        path_expression = model['path']
+        url_path = path_expression
+        for key,value in valid_params.items():
+            # Compile and search for the parameter key in the URL path expression
+            pattern_string = '\{\$(%s)\}' % key
+            var_pattern = re.compile(pattern_string,re.I)
+            matches = re.search(var_pattern, path_expression).groups()
+            for matched_item in matches:
+                # if parameter was matched, pop it out of query params and sub the expression
+                logger.debug("Matched following item in path: {}".format(matched_item))
+                url_path = re.sub(var_pattern, str(value), url_path)
+                # valid_params.pop(key)
+        
+
+        url = urljoin(self.client.baseurl, url_path)
+        logger.debug("Query URL: {}".format(url))
+        logger.debug("Final Valid Params: {}".format(valid_params))
+
+        headers = model['headers']
 
         return url, headers, valid_params
 
@@ -79,6 +98,7 @@ class akamaiConnector(RESTExtractor):
 
         if result == 200:
             response_data = jmespath.search(model['datapath'], raw_response_data)
+            # response_data = raw_response_data
             logger.debug("Successful response data: {}".format(response_data))
 
         else:

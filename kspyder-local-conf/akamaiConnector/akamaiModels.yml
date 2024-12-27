@@ -14,9 +14,19 @@ Models:
     Properties:
         path: /papi/v1/properties
         datapath: properties.items
-        valid_keys: 
+        accepted_inputs: 
             - contractId
             - groupId
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    PropertyRules:
+        path: /papi/v1/properties/{$propertyId}/versions/{$version}/rules
+        datapath: rules.children
+        accepted_inputs:
+            - propertyId
+            - version
         headers:
             accept: application/json
             PAPI-Use-Prefixes: "true"
