@@ -1,0 +1,62 @@
+Connector:
+    schema: aliyunRESTConnector
+
+APIs:
+
+    RAM:
+        name: alibabacloud_ram20150501
+        update_field: UpdateDate
+        is_truncated_key: IsTruncated
+        next_token_key: Marker
+        last_request_key: RequestId
+    
+    CS:
+        name: alibabacloud_cs20151215
+        update_field: updated
+        is_truncated_key: is_truncated
+        next_token_key: marker
+        last_request_key: request_id
+        header:
+            accept: application/json
+    
+Models:
+
+    RAMUsers:
+        API: RAM
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        datapath: Users.User[]
+        
+    RAMRoles:
+        API: RAM
+        request_builder: ListRolesRequest
+        query_name: list_roles_with_options
+        datapath: Roles.Role[]
+
+    RAMPolicies:
+        API: RAM
+        request_builder: ListPoliciesRequest
+        query_name: list_policies_with_options
+        datapath: Policies.Policy[]
+
+    AccessKeys:
+        API: RAM
+        request_builder: ListAccessKeysRequest
+        query_name: list_access_keys_with_options
+        datapath: AccessKeys.AccessKey[]
+        accepted_inputs:
+            - user_name
+
+    ACKClusters:
+        API: CS
+        request_builder: DescribeClustersV1Request
+        query_name: describe_clusters_v1with_options
+        datapath: clusters[]
+
+    ACKClusterDetails:
+        API: CS
+        request_builder: DescribeClusterDetailsRequest
+        query_name: describe_cluster_details_with_options
+        datapath: cluster_details[]
+        accepted_inputs:
+            - cluster_id
