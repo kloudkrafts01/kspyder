@@ -26,18 +26,26 @@ Models:
         request_builder: ListUsersRequest
         query_name: list_users_with_options
         datapath: Users.User[]
+        index_keys:
+            - UserId
+            - UserName
         
     RAMRoles:
         API: RAM
         request_builder: ListRolesRequest
         query_name: list_roles_with_options
         datapath: Roles.Role[]
+        index_keys:
+            - RoleId
+            - RoleName
 
     RAMPolicies:
         API: RAM
         request_builder: ListPoliciesRequest
         query_name: list_policies_with_options
         datapath: Policies.Policy[]
+        index_keys:
+            - PolicyId
 
     AccessKeys:
         API: RAM
@@ -46,6 +54,8 @@ Models:
         datapath: AccessKeys.AccessKey[]
         accepted_inputs:
             - user_name
+        index_keys:
+            - AccessKeyId
 
     ACKClusters:
         API: CS

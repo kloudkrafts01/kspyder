@@ -27,12 +27,48 @@ class mongoDBConnector():
 
         return result
 
+    def upsert_dataset(self,input_data={},collection=None):
+
+        logger.info("Upserting dataset to Mongo Collection: {}".format(collection))
+
+        result = []
+        
+        model_name = input_data['header']['model_name']
+        model = input_data['header']['model']
+        dataset = input_data['data']
+
+        collection_name = collection if collection else model_name
+        dbcollection = self.db[collection_name]
+
+        # key = model['index_keys'][0]
+        for document in dataset:
+            
+            logger.debug("Upserting document: {}".format(document))
+
+            filter = {
+                '$and': [ { key: document[key] } for key in model['index_keys'] ]
+            }
+            # filter = { key: document[key] }
+            logger.debug("Using the following filter: {}".format(filter))
+
+            update = [{
+                '$replaceWith': document
+            }]
+
+            one_result = dbcollection.update_one(filter, update, upsert=True)
+
+            result.append(one_result)
+
+        # result = collection.update_many()
+
+        return result
+
     def insert_from_jsonfile(self,jsonpath):
         
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
-                model_name = json_data['header']['model']
+                model_name = json_data['header']['model_name']
                 input_data = json_data['data']
                 self.insert_dataset(input_data=input_data, collection=model_name)
 

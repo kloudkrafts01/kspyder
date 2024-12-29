@@ -105,6 +105,7 @@ class RESTExtractor():
 
         count = 0
         dataset = []
+        model = self.models[model_name]
         # failed_items = []
 
         for input_item in input_data:
@@ -115,7 +116,7 @@ class RESTExtractor():
             logger.debug("Using this as input params for this round: {}".format(item_params))
 
             # try:
-            result_count, plain_dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**item_params)
+            result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
             
             count += result_count
             # Only add the result dataset if not empty
@@ -139,7 +140,8 @@ class RESTExtractor():
             full_dataset = {
                 'header': {
                     'schema': self.schema,
-                    'model': model_name,
+                    'model_name': model_name,
+                    'model': model,
                     'count': count,
                     'json_dump': None,
                     'csv_dump': None,
@@ -154,11 +156,10 @@ class RESTExtractor():
 
             return full_dataset
 
-    def fetch_dataset(self,model_name=None,search_domains=[],**params):
+    def fetch_dataset(self,model,search_domains=[],**params):
 
         output_docs = []
         total_count = 0
-        model = self.models[model_name]
 
         ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
 
