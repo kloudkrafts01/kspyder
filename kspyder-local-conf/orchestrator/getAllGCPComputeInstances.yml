@@ -1,0 +1,31 @@
+Steps:
+
+  - Name: GetProjectsFromMongo
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectIds
+    Params:
+      query_name: GetProjectIds
+      query_conf:
+        collection: GCPProjects
+        operations:
+          $project:
+            project: $project_id
+          $unset:
+            - _id
+
+  - Name: GetComputeInstances
+    Worker: gcloudComputeConnector
+    Job: get_data
+    Output: ComputeInstances
+    Input: GCPProjectIds.data
+    Params:
+      model_name: ComputeInstances
+
+  - Name: StoreInstancesToMongo
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: ComputeInstances
+    Output: ComputeInstancesInsertionResult
+    Params:
+      collection: GCPComputeInstances

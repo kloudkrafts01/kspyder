@@ -8,8 +8,10 @@ Connector:
 Models:
     ComputeInstances:
         client_name: InstancesClient
-        request_builder: ListInstancesRequest
-        query_name: list
-        request_params:
-            project: cdc-ai-factory-uat
-            zone: europe-west4-a
+        request_builder: AggregatedListInstancesRequest
+        query_name: aggregated_list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - instance_id

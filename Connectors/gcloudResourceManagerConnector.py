@@ -49,7 +49,7 @@ class ElementGraph():
 
         dict_graph = {
             'header': {
-                'name': self.name,
+                'model_name': self.name,
                 'node_key': self.node_key,
                 'parent_key': self.parent_key,
                 'described': self.described,
@@ -257,6 +257,8 @@ class gcloudResourceManagerConnector(gcloudSDKEngine):
             )
 
         full_dataset = graph.to_dict()
+        # Adding model specification for interop compliance with mongo insert and json dump methods
+        full_dataset['header']['model'] = model
 
         if DUMP_JSON:
             full_dataset = fh.dump_json(full_dataset,self.schema,model_name)

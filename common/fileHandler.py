@@ -9,8 +9,8 @@ from importlib import import_module
 class bJSONEncoder(json.JSONEncoder):
 
     def default(self,o):
-        # if isinstance(o,ObjectId):
-        #     return str(o)
+        if isinstance(o,ObjectId):
+            return str(o)
         json.JSONEncoder.default(self,o)
 
 

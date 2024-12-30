@@ -1,23 +1,23 @@
 Steps:
 
-  # - Name: DiscoverAllFolders
-  #   Worker: gcloudResourceManagerConnector
-  #   Job: discover_data
-  #   Output: GCPFolders
-  #   Params:
-  #     model_name: Folders       
-  #     root_element:
-  #       level: 0
-  #       display_name: christiandior.com
-  #       name: organizations/68618737410
+  - Name: DiscoverAllFolders
+    Worker: gcloudResourceManagerConnector
+    Job: discover_data
+    Output: GCPFolders
+    Params:
+      model_name: Folders       
+      root_element:
+        level: 0
+        display_name: christiandior.com
+        name: organizations/68618737410
 
-  # - Name: StoreFoldersToMongo
-  #   Worker: mongoDBConnector
-  #   Job: insert_dataset
-  #   Input: GCPFolders.data
-  #   Output: GCPFoldersInsertionResult
-  #   Params:
-  #     collection: GCPFolders
+  - Name: StoreFoldersToMongo
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: GCPFolders.data
+    Output: GCPFoldersInsertionResult
+    Params:
+      collection: GCPFolders
 
   # - Name: GetParentsList
   #   Job: get_unique_key_list
@@ -26,28 +26,27 @@ Steps:
   #   Params:
   #     key: parent
   #     datapath: data[].name
-  #     # filters:
-  #     #   children: 0
 
-  - Name: GetFoldersFromMongo
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: GCPFolders
-    Params:
-      query_name: GetFolderIds
-      query_conf:
-        collection: GCPFolders
-        operations:
-          $project:
-            name: $name
-            display_name: $display_name
-            parent: $parent
-            children: $children
-            level: $level
-          $unset:
-            - _id
+  # - Name: GetFoldersFromMongo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCPFolders
+  #   Params:
+  #     query_name: GetFolderIds
+  #     query_conf:
+  #       dump_json: true
+  #       collection: GCPFolders
+  #       operations:
+  #         $project:
+  #           name: $name
+  #           display_name: $display_name
+  #           parent: $parent
+  #           children: $children
+  #           level: $level
+  #         $unset:
+  #           - _id
 
-  - Name: GetProjectLeaves
+  - Name: GetFolderLeaves
     Job: apply_filters
     Input: GCPFolders.data
     Output: GCPFolderLeaves
@@ -55,28 +54,27 @@ Steps:
       filters:
         children: 0
   
-  - Name: GetProjectLeaves
-    Job: get_unique_key_list
-    Input: GCPFoldersLeaves
-    Output: GCPFolderIds
-    Params:
-      key: parent
-      datapath: "[].name"
+  # - Name: GetFolderLeafIds
+  #   Job: get_unique_key_list
+  #   Input: GCPFoldersLeaves
+  #   Output: GCPFolderLeafIds
+  #   Params:
+  #     key: parent
+  #     datapath: "data[].name"
 
   - Name: StoreGCPFolderLeavesToMongo
     Worker: mongoDBConnector
     Job: insert_dataset
-    Input: GCPFolderLeaves
+    Input: GCPFolderLeaves.data
     Output: GCPFolderLeavesInsertionResult
     Params:
       collection: GCPFolderLeaves
-    
 
   # - Name: GetProjects
   #   Worker: gcloudResourceManagerConnector
   #   Job: get_data
   #   Output: GCPProjects
-  #   Input: GCPFolderIds
+  #   Input: GCPFolderLeafIds
   #   Params:
   #     model_name: Projects
 
