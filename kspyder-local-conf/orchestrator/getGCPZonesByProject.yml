@@ -1,0 +1,65 @@
+Steps:
+
+  - Name: GetProjectsXZones
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectXZoneIds
+    Params:
+      query_name: GetProjectIds
+      query_conf:
+        collection: GCPProjects
+        operations:
+          $set:
+            region: europe-west4
+          $lookup:
+            from: GCPComputeZones
+            localField: region
+            foreignField: region
+            as: computeZones
+          $unwind: $computeZones
+          $project:
+            project: $project_id
+            zone: $computeZones.zone
+          $unset:
+            - _id
+
+  - Name: StoreProjectXZones
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: GCPProjectXZoneIds.data
+    Output: ProjectXZonesInsertionResult
+    Params:
+      collection: GCPProjectZones
+
+  # - Name: GetComputeZones
+  #   Worker: gcloudComputeConnector
+  #   Job: get_data
+  #   Output: ComputeZones
+  #   Input: GCPProjectIds.data
+  #   Params:
+  #     model_name: ComputeZones
+
+  # - Name: StoreZonesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ComputeZones
+  #   Output: ComputeZonesInsertionResult
+  #   Params:
+  #     collection: GCPComputeZones
+  
+
+  # - Name: GetComputeInstances
+  #   Worker: gcloudComputeConnector
+  #   Job: get_data
+  #   Output: ComputeInstances
+  #   Input: GCPProjectIds.data
+  #   Params:
+  #     model_name: ComputeInstances
+
+  # - Name: StoreInstancesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ComputeInstances
+  #   Output: ComputeInstancesInsertionResult
+  #   Params:
+  #     collection: GCPComputeInstances

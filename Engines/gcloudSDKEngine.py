@@ -1,6 +1,7 @@
 from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
+from google.auth.exceptions import TransportError
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.spLogging import logger
@@ -77,7 +78,7 @@ class gcloudSDKEngine(RESTExtractor):
                 else:
                     logger.debug("item: {}".format(item))
 
-        except Exception as e:
-            logger.error(e.message)
+        except TransportError as e:
+            logger.error(e)
         
         return total_count,output_docs

@@ -102,7 +102,7 @@ def list_properties(akamai_client:akamaiClient,contract_id=None):
     filepath = dump_json(full_results,base_name='Properties',output_folder=DUMP_FOLDER)
     print("Dumped JSON file: {}".format(filepath))
 
-    return results
+    return full_results
 
 if __name__ == "__main__":
 

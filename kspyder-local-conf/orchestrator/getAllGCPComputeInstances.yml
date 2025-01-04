@@ -1,16 +1,14 @@
 Steps:
 
-  - Name: GetProjectsFromMongo
+  - Name: GetProjectZones
     Worker: mongoDBConnector
     Job: execute_query
-    Output: GCPProjectIds
+    Output: GCPProjectZones
     Params:
-      query_name: GetProjectIds
+      query_name: GetProjectZones
       query_conf:
-        collection: GCPProjects
+        collection: GCPProjectZones
         operations:
-          $project:
-            project: $project_id
           $unset:
             - _id
 
@@ -18,7 +16,7 @@ Steps:
     Worker: gcloudComputeConnector
     Job: get_data
     Output: ComputeInstances
-    Input: GCPProjectIds.data
+    Input: GCPProjectZones.data
     Params:
       model_name: ComputeInstances
 

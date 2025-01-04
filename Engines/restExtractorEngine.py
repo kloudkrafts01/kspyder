@@ -105,8 +105,8 @@ class RESTExtractor():
 
         count = 0
         dataset = []
+        failed_items = []
         model = self.models[model_name]
-        # failed_items = []
 
         for input_item in input_data:
             
@@ -115,22 +115,22 @@ class RESTExtractor():
             item_params = {**params, **input_item}
             logger.debug("Using this as input params for this round: {}".format(item_params))
 
-            # try:
-            result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
+            try:
+                result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
+                
+                count += result_count
+                # Only add the result dataset if not empty
+                if result_count > 0:
+                    result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
+                    dataset.extend(result_dataset)
             
-            count += result_count
-            # Only add the result dataset if not empty
-            if result_count > 0:
-                result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
-                dataset.extend(result_dataset)
-            
-            # except Exception as e:
-            #     logger.error(e.)
-            #     failed_items += {
-            #         'item': input_item,
-            #         'reason': e.__str__
-            #     },
-            #     continue
+            except Exception as e:
+                logger.error(e)
+                failed_items += {
+                    'item': input_item,
+                    'reason': e
+                },
+                continue
             
         if dataset == []:
             logger.info('no results were found.')
@@ -148,6 +148,7 @@ class RESTExtractor():
                     'scopes': self.scopes,
                     'params': params
                 },
+                'failed_items': failed_items,
                 'data': dataset
             }
 
