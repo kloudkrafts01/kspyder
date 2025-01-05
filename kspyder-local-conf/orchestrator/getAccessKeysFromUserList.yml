@@ -17,9 +17,17 @@ Steps:
             - _id
 
   - Name: GetKeysFromUserNames
-    Worker: aliyunRAMConnector
+    Worker: aliyunRESTConnector
     Job: get_data
     Input: GetAccessKeysInputParams.data
     Output: RAMUserAccessKeys
     Params:
       model_name: AccessKeys
+
+  - Name: InsertAccessKeyInfoToMongo
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: RAMUserAccessKeys.data
+    Output: AccessKeysInsertionResult
+    Params:
+      collection: AliyunAccessKeys

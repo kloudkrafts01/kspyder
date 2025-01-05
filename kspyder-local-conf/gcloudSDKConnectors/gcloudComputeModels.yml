@@ -6,10 +6,24 @@ Connector:
     update_field: UpdateDate
     
 Models:
+
+    ComputeZones:
+        client_name: ZonesClient
+        request_builder: ListZonesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+            - name
+
     ComputeInstances:
         client_name: InstancesClient
         request_builder: ListInstancesRequest
         query_name: list
-        request_params:
-            project: cdc-ai-factory-uat
-            zone: europe-west4-a
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
+            - name

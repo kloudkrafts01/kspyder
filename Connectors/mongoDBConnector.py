@@ -16,10 +16,6 @@ class mongoDBConnector():
 
     def insert_dataset(self,input_data={},collection=None,key='name'):
 
-        # header = input_data['header']
-        # model_name = header['model']
-        # data = input_data['data']
-
         logger.info("Inserting dataset to Mongo Collection: {}".format(collection))
 
         collection = self.db[collection]
@@ -27,12 +23,68 @@ class mongoDBConnector():
 
         return result
 
+    def upsert_dataset(self,input_data={},collection=None):
+
+        result_dataset = []
+        insert_count = 0
+        update_count = 0
+        
+        model_name = input_data['header']['model_name']
+        model = input_data['header']['model']
+        dataset = input_data['data']
+
+        collection_name = collection if collection else model_name
+        dbcollection = self.db[collection_name]
+        logger.info("Upserting dataset to Mongo Collection: {}\nModel:\n{}".format(collection_name,model))
+
+        for document in dataset:            
+
+            filter = {}
+            for key in model['index_keys']:
+                filter[key] = document[key]
+            # logger.debug("Using the following filter: {}".format(filter))
+            # logger.debug("Upserting document: {}".format(document))
+            upsert_result = dbcollection.replace_one(filter, document, upsert=True)
+
+            if upsert_result.did_upsert:
+                insert_count += 1
+            else:
+                update_count += upsert_result.modified_count
+
+            context_result = {
+                'upsert_filter': filter,
+                'result': upsert_result.raw_result
+            }
+
+            result_dataset.append(context_result)
+
+        full_dataset = {
+                'header': {
+                    'schema': self.schema,
+                    'operation': 'upsert_dataset',
+                    'collection_name': collection_name,
+                    'model_name': model_name,
+                    'model': model,
+                    'count': len(result_dataset),
+                    'insert_count': insert_count,
+                    'update_count': update_count,
+                    'json_dump': None,
+                    'csv_dump': None
+                },
+                'data': result_dataset
+            }
+        
+        if DUMP_JSON:
+            full_dataset = fh.dump_json(full_dataset, schema=self.schema, name=model_name)
+
+        return full_dataset
+
     def insert_from_jsonfile(self,jsonpath):
         
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
-                model_name = json_data['header']['model']
+                model_name = json_data['header']['model_name']
                 input_data = json_data['data']
                 self.insert_dataset(input_data=input_data, collection=model_name)
 
@@ -93,7 +145,7 @@ class mongoDBConnector():
         result_dataset = {
             "header": {
                 "schema": APP_NAME,
-                "model": model_name,
+                "model_name": model_name,
                 "query_name": query_name,
                 "query_conf": query_conf,
                 "count": len(results_list),

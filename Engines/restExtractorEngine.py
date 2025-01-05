@@ -105,7 +105,8 @@ class RESTExtractor():
 
         count = 0
         dataset = []
-        # failed_items = []
+        failed_items = []
+        model = self.models[model_name]
 
         for input_item in input_data:
             
@@ -114,22 +115,22 @@ class RESTExtractor():
             item_params = {**params, **input_item}
             logger.debug("Using this as input params for this round: {}".format(item_params))
 
-            # try:
-            result_count, plain_dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**item_params)
+            try:
+                result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
+                
+                count += result_count
+                # Only add the result dataset if not empty
+                if result_count > 0:
+                    result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
+                    dataset.extend(result_dataset)
             
-            count += result_count
-            # Only add the result dataset if not empty
-            if result_count > 0:
-                result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
-                dataset.extend(result_dataset)
-            
-            # except Exception as e:
-            #     logger.error(e.)
-            #     failed_items += {
-            #         'item': input_item,
-            #         'reason': e.__str__
-            #     },
-            #     continue
+            except Exception as e:
+                logger.error(e)
+                failed_items += {
+                    'item': input_item,
+                    'reason': e
+                },
+                continue
             
         if dataset == []:
             logger.info('no results were found.')
@@ -139,13 +140,15 @@ class RESTExtractor():
             full_dataset = {
                 'header': {
                     'schema': self.schema,
-                    'model': model_name,
+                    'model_name': model_name,
+                    'model': model,
                     'count': count,
                     'json_dump': None,
                     'csv_dump': None,
                     'scopes': self.scopes,
                     'params': params
                 },
+                'failed_items': failed_items,
                 'data': dataset
             }
 
@@ -154,11 +157,10 @@ class RESTExtractor():
 
             return full_dataset
 
-    def fetch_dataset(self,model_name=None,search_domains=[],**params):
+    def fetch_dataset(self,model,search_domains=[],**params):
 
         output_docs = []
         total_count = 0
-        model = self.models[model_name]
 
         ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
 

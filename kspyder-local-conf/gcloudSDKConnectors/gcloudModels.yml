@@ -1,0 +1,21 @@
+Connector:
+    schema: googleCloud
+
+APIs:
+    compute_v1:
+        name: compute_v1
+        update_field: UpdateDate
+    
+Models:
+
+    ComputeInstances:
+        API: compute_v1
+        client_name: InstancesClient
+        request_builder: ListInstancesRequest
+        query_name: list
+        required_inputs:
+            - project
+            - zone
+
+
+    
