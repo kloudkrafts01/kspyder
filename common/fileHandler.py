@@ -1,7 +1,7 @@
 #!python3
 
 import os, re
-import json, bson, yaml, csv, datetime
+import json, yaml, csv, datetime
 from bson import ObjectId
 from importlib import import_module
 
@@ -71,7 +71,7 @@ class FileHandler():
         # Creates the header if not existing.
         dataset['header']['json_dump'] = filepath
 
-        encoder = json.JSONEncoder()
+        encoder = bJSONEncoder()
         encoded_json = encoder.encode(dataset)
         loaded_json = json.loads(encoded_json)
         with open(filepath,"w") as f:
