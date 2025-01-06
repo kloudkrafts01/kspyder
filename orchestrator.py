@@ -6,7 +6,7 @@ import jmespath
 
 from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 from Connectors import gcloudResourceManagerConnector as gRM
 # from gcloudResourceManagerConnector import gcloudResourceClient

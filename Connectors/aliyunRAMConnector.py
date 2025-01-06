@@ -1,7 +1,7 @@
 #!python3
 
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 from Engines.aliyunSDKEngine import AliyunClient,AliyunRESTConnector
 

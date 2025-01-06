@@ -3,7 +3,7 @@ import pandas as pd
 from Engines.pandasEngine import PandaPipeline
 from Engines.sqlEngine import GenericSQLEngine
 from common.config import AZURE_PROFILE
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 
 class PandasSQLConnector(GenericSQLEngine,PandaPipeline):

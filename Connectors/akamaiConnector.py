@@ -5,7 +5,7 @@ from akamai.edgegrid import EdgeGridAuth, EdgeRc
 
 
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 from Engines.restExtractorEngine import RESTExtractor
 
 CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)

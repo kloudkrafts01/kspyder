@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from Engines.pandasEngine import PandaPipeline
 from common.config import DATA_FOLDER, TEMP_FOLDER
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 
 class pandaXLSConnector(PandaPipeline):

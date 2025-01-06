@@ -6,7 +6,7 @@ from azure.mgmt.resourcegraph.models import QueryRequest,QueryRequestOptions
 from azure.mgmt.subscription import SubscriptionClient
 
 from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 from Engines.restExtractorEngine import RESTExtractor
 
 CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)

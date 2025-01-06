@@ -2,7 +2,7 @@ import datetime
 import traceback
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 class GenericRPCExtractor():
 

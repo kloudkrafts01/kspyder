@@ -4,7 +4,7 @@ import proto
 from google.auth.exceptions import TransportError
 
 from Engines.restExtractorEngine import RESTExtractor
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 
 class gcloudSDKEngine(RESTExtractor):

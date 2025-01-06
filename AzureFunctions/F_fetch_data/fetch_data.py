@@ -3,7 +3,7 @@
 import traceback
 from importlib import import_module
 
-from common.spLogging import logger
+from common.loggingHandler import logger
 from common.clientHandler import clientHandler
 
 from Connectors.azureSQLConnector import azureSQLConnector

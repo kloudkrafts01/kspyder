@@ -4,7 +4,7 @@ from Engines.rpcExtractorEngine import GenericRPCExtractor
 import os, requests
 
 from common.config import load_conf, AZ_PRICING_PROFILE
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 MODELS = load_conf('azureRG_models', subfolder='manifests')
 MODELS_LIST = list(MODELS.keys())

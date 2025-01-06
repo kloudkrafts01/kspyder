@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
 AutoBase = automap_base()
 
-from common.spLogging import logger
+from common.loggingHandler import logger
 from common.config import DUMP_JSON, BASE_FILE_HANDLER as fh
 
 STR_PATTERN = re.compile('(String)\((\d+)\)')

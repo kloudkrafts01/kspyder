@@ -2,7 +2,7 @@ import json
 from pymongo import MongoClient
 
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
 # SCHEMA_NAME = APP_NAME

@@ -5,7 +5,7 @@ from importlib import import_module
 import traceback
 
 from common.config import MODULES_MAP
-from common.spLogging import logger
+from common.loggingHandler import logger
 from Connectors.azureSQLConnector import azureSQLConnector
 
 def main(params: dict) -> dict:

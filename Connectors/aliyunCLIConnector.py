@@ -4,7 +4,7 @@ import subprocess
 import json, jmespath
 
 from Engines.rpcExtractorEngine import DirectExtractor
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 

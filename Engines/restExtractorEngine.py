@@ -4,7 +4,91 @@ import re
 from urllib.parse import urljoin
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
+
+class ElementGraph():
+
+    def __init__(self,name=None,node_key=None,parent_key=None):
+        
+        self.name = name
+        self.node_key = node_key
+        self.parent_key = parent_key
+        self.described = False
+        self.depth = 0
+        self.node_count = 0
+        self.leaf_count = 0
+        self.nodes = []
+
+    def add_node(self,element):
+        
+        self.nodes.append(element)
+        self.node_count += 1
+
+        if element['level'] > self.depth:
+            self.depth = element['level']
+        
+        if element['children'] == 0:
+            self.leaf_count += 1
+
+    def to_dict(self):
+
+        dict_graph = {
+            'header': {
+                'model_name': self.name,
+                'node_key': self.node_key,
+                'parent_key': self.parent_key,
+                'described': self.described,
+                'depth': self.depth,
+                'node_count': self.node_count,
+                'leaf_count': self.leaf_count,
+            },
+            'data': self.nodes
+        }
+
+        return dict_graph
+
+    def describe_graph(self, start_node=None, fetch_method=None, postprocess_method=None):
+
+        # Create a processing pile with starting node
+        process_pile = [ start_node ]
+
+        # Depth-first graph building
+        while not self.described:
+
+            # pop lowest element in the pile and visit it
+            element = process_pile.pop()
+            logger.debug("popped element: {}".format(element))
+            child_count = 0
+            fetch_args = {
+                self.parent_key: element[self.node_key]
+            }
+
+            children = fetch_method( **fetch_args )
+            for child in children:
+                # append each found child to the queue
+                child_count += 1
+                child_element = postprocess_method(child)
+                # child_element = child
+                child_element['level'] = element['level'] + 1
+                logger.debug("--- child found: {}".format(child_element))
+                process_pile.append(child_element)
+
+            # When all children are added to queue, complete element and store it to graph
+            element['children'] = child_count
+            element['described'] = True
+            if child_count == 0:
+                logger.debug("Element {} is a Leaf.".format(element[self.node_key]))
+
+            self.add_node(element)
+            # Re-revaluate if queue is empty - therefore if graph completely described
+            self.described = (len(process_pile) == 0)
+    
+        logger.debug("FINAL GRAPH DESCRIBED: {}".format(self.described))
+        logger.debug("--- DEPTH = {}".format(self.depth))
+        logger.debug("--- NODES = {}".format(self.node_count))
+        logger.debug("--- LEAVES = {}".format(self.leaf_count))
+        # for item in sample_graph.nodes:
+        #     print(item)
 
 class RESTExtractor():
 
@@ -188,3 +272,39 @@ class RESTExtractor():
             # set for the next query iteration
             start_token = next_token
             
+    def postprocess_item(self,item,model=None,**params):
+        """Placeholder method ; if the API returns elements that need postprocessing
+        (e.g. if return payload is not directly serializable), run the item through this.
+        
+        Child classes inheriting from the REST Extractor interface can supercharge this method if necessary.
+        By default, just returns the item unchanged."""
+
+        return item
+        
+
+    def discover_data(self,model_name=None,root_element=None,**params):
+        """Recursiverly discovers REST data, depth-first, starting from a given root element"""
+
+        model = self.models[model_name]
+
+        # initiate graph with root-level node
+        graph = ElementGraph(
+            name = model_name,
+            node_key = model['node_key'],
+            parent_key = model['parent_key']
+            )
+
+        graph.describe_graph(
+            start_node = root_element,
+            fetch_method = getattr( self.client, model['query_name'] ),
+            postprocess_method = self.postprocess_item
+            )
+
+        full_dataset = graph.to_dict()
+        # Adding model specification for interop compliance with mongo insert and json dump methods
+        full_dataset['header']['model'] = model
+
+        if DUMP_JSON:
+            full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
+
+        return full_dataset

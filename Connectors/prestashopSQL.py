@@ -5,7 +5,7 @@ import datetime,decimal
 from Engines.sqlEngine import GenericSQLEngine
 from Engines.rpcExtractorEngine import GenericRPCExtractor
 from common.config import PS_PROFILE, PAGE_SIZE, load_conf
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 MODELS = load_conf('ps_models', subfolder='manifests')
 

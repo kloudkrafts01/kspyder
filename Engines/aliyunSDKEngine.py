@@ -7,7 +7,7 @@ import jmespath
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 from alibabacloud_tea_openapi.models import Config
 from alibabacloud_tea_util.models import RuntimeOptions

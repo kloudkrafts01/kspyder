@@ -5,7 +5,7 @@ import argparse
 # from re import search
 
 from common.config import DEFAULT_TIMESPAN
-from common.spLogging import logger
+from common.loggingHandler import logger
 from common.clientHandler import clientHandler
 
 from Connectors.mongoDBConnector import mongoDBConnector
