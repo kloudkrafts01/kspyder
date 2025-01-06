@@ -1,0 +1,71 @@
+Connector:
+    schema: googleCloud
+
+APIs:
+    compute_v1:
+        name: compute_v1
+        update_field: UpdateDate
+
+    resourcemanager:
+        name: resourcemanager_v3
+        update_field: update_time
+    
+Models:
+
+    ComputeInstances:
+        API: compute_v1
+        client_name: InstancesClient
+        request_builder: ListInstancesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+
+    Organization:
+        API: resourcemanager
+        client_name: OrganizationsClient
+        request_builder: GetOrganizationRequest
+        query_name: get_organization
+        accepted_inputs:
+            - name
+        index_keys:
+            - name
+            - display_name
+
+    
+    Organizations:
+        API: resourcemanager
+        client_name: OrganizationsClient
+        request_builder: SearchOrganizationsRequest
+        query_name: search_organizations
+        accepted_inputs:
+            - domain
+        index_keys:
+            - name
+            - display_name
+
+    Folders:
+        API: resourcemanager
+        client_name: FoldersClient
+        request_builder: ListFoldersRequest
+        query_name: list_folders
+        node_key: name
+        parent_key: parent
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+    Projects:
+        API: resourcemanager
+        client_name: ProjectsClient
+        request_builder: ListProjectsRequest
+        query_name: list_projects
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+            - project_id
+
+
+    

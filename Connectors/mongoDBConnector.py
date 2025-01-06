@@ -33,6 +33,9 @@ class mongoDBConnector():
         model = input_data['header']['model']
         dataset = input_data['data']
 
+        if len(dataset) == 0:
+            logger.info("Provided dataset is empty.")
+
         collection_name = collection if collection else model_name
         dbcollection = self.db[collection_name]
         logger.info("Upserting dataset to Mongo Collection: {}\nModel:\n{}".format(collection_name,model))
@@ -74,8 +77,11 @@ class mongoDBConnector():
                 'data': result_dataset
             }
         
-        if DUMP_JSON:
-            full_dataset = fh.dump_json(full_dataset, schema=self.schema, name=model_name)
+        if len(result_dataset) == 0:
+            logger.info("Provided dataset is empty.")
+        else:
+            if DUMP_JSON:
+                full_dataset = fh.dump_json(full_dataset, schema=self.schema, name=model_name)
 
         return full_dataset
 

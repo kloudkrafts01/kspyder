@@ -209,19 +209,14 @@ class RESTExtractor():
                     dataset.extend(result_dataset)
             
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 failed_items += {
                     'item': input_item,
                     'reason': e
                 },
                 continue
-            
-        if dataset == []:
-            logger.info('no results were found.')
-            return {}
         
-        else: 
-            full_dataset = {
+        full_dataset = {
                 'header': {
                     'schema': self.schema,
                     'model_name': model_name,
@@ -235,11 +230,14 @@ class RESTExtractor():
                 'failed_items': failed_items,
                 'data': dataset
             }
-
+            
+        if dataset == []:
+            logger.info('no results were found.')
+        else: 
             if DUMP_JSON:
                 full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
-            return full_dataset
+        return full_dataset
 
     def fetch_dataset(self,model,search_domains=[],**params):
 
@@ -282,7 +280,7 @@ class RESTExtractor():
         return item
         
 
-    def discover_data(self,model_name=None,root_element=None,**params):
+    def discover_data(self,model_name=None,input_data=[{}],**params):
         """Recursiverly discovers REST data, depth-first, starting from a given root element"""
 
         model = self.models[model_name]
@@ -293,6 +291,13 @@ class RESTExtractor():
             node_key = model['node_key'],
             parent_key = model['parent_key']
             )
+        
+        root_element = input_data.pop(0)
+        if len(input_data) > 0:
+            logger.warning("Graph discovery only takes the first input into account. All subsequent elements will be ignored: {}".format(input_data))
+        
+        if 'level' not in root_element.keys():
+            root_element['level'] = 0
 
         graph.describe_graph(
             start_node = root_element,

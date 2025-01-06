@@ -47,7 +47,7 @@ class AliyunClient:
             api_name = api_name
         )
 
-class aliyunRESTConnector(RESTExtractor):
+class aliyunConnector(RESTExtractor):
 
     def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, scopes=None, **params):
 

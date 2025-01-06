@@ -15,9 +15,6 @@ Modules:
   pandaSQLConnector : null
   mongoDBConnector : mongoDBQueries
   aliyunCLIConnector : aliyunCLImodels
-  aliyunRESTConnector: aliyunRESTModels
-  aliyunRAMConnector : aliyunRAMmodels
-  aliyunCSConnector : aliyunCSmodels
-  gcloudComputeConnector : gcloudComputeModels
-  gcloudResourceManagerConnector : gcloudRMmodels
+  aliyunConnector: aliyunModels
   akamaiConnector : akamaiModels
+  gcloudConnector: gcloudModels

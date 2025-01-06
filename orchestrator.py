@@ -8,9 +8,6 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
 
-from Connectors import gcloudResourceManagerConnector as gRM
-# from gcloudResourceManagerConnector import gcloudResourceClient
-
 class documentPipelineEngine:
 
     def __init__(self,**params):
@@ -34,6 +31,15 @@ class documentPipelineEngine:
         }
 
         return filtered_dataset
+
+    def set_static_data(self, data=None):
+
+        static_dataset = {
+            'header': { 'operation': 'set_static_data' },
+            'data': data
+        }
+
+        return static_dataset
 
 
     def get_unique_key_list(self,input_data=None,key=None,datapath=None):

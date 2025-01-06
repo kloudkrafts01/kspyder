@@ -1,15 +1,19 @@
 Steps:
 
+  - Name: GetOrganization
+    Worker: gcloudConnector
+    Job: get_data
+    Output: GCPOrganizationData
+    Params:
+      model_name: Organizations
+
   - Name: DiscoverAllFolders
-    Worker: gcloudResourceManagerConnector
+    Worker: gcloudConnector
     Job: discover_data
     Output: GCPFolders
+    Input: GCPOrganizationData.data
     Params:
-      model_name: Folders       
-      root_element:
-        level: 0
-        display_name: christiandior.com
-        name: organizations/68618737410
+      model_name: Folders
 
   - Name: StoreFoldersToMongo
     Worker: mongoDBConnector
@@ -18,70 +22,3 @@ Steps:
     Output: GCPFoldersInsertionResult
     Params:
       collection: GCPFolders
-
-  # - Name: GetParentsList
-  #   Job: get_unique_key_list
-  #   Input: GCPFolders
-  #   Output: GCPFolderIds
-  #   Params:
-  #     key: parent
-  #     datapath: data[].name
-
-  # - Name: GetFoldersFromMongo
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: GCPFolders
-  #   Params:
-  #     query_name: GetFolderIds
-  #     query_conf:
-  #       dump_json: true
-  #       collection: GCPFolders
-  #       operations:
-  #         $project:
-  #           name: $name
-  #           display_name: $display_name
-  #           parent: $parent
-  #           children: $children
-  #           level: $level
-  #         $unset:
-  #           - _id
-
-  # - Name: GetFolderLeaves
-  #   Job: apply_filters
-  #   Input: GCPFolders.data
-  #   Output: GCPFolderLeaves
-  #   Params:
-  #     filters:
-  #       children: 0
-  
-  # - Name: GetFolderLeafIds
-  #   Job: get_unique_key_list
-  #   Input: GCPFoldersLeaves
-  #   Output: GCPFolderLeafIds
-  #   Params:
-  #     key: parent
-  #     datapath: "data[].name"
-
-  # - Name: StoreGCPFolderLeavesToMongo
-  #   Worker: mongoDBConnector
-  #   Job: insert_dataset
-  #   Input: GCPFolderLeaves.data
-  #   Output: GCPFolderLeavesInsertionResult
-  #   Params:
-  #     collection: GCPFolderLeaves
-
-  # - Name: GetProjects
-  #   Worker: gcloudResourceManagerConnector
-  #   Job: get_data
-  #   Output: GCPProjects
-  #   Input: GCPFolderLeafIds
-  #   Params:
-  #     model_name: Projects
-
-  # - Name: StoreProjectsToMongo
-  #   Worker: mongoDBConnector
-  #   Job: insert_dataset
-  #   Input: GCPProjects.data
-  #   Output: GCPProjectsInsertionResult
-  #   Params:
-  #     collection: GCPProjects

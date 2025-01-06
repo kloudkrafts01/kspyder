@@ -28,7 +28,7 @@ Steps:
       datapath: "data[].name"
 
   - Name: GetProjects
-    Worker: gcloudResourceManagerConnector
+    Worker: gcloudConnector
     Job: get_data
     Output: GCPProjects
     Input: GCPFolderLeafIds
@@ -37,8 +37,8 @@ Steps:
 
   - Name: StoreProjectsToMongo
     Worker: mongoDBConnector
-    Job: insert_dataset
-    Input: GCPProjects.data
+    Job: upsert_dataset
+    Input: GCPProjects
     Output: GCPProjectsInsertionResult
     Params:
       collection: GCPProjects

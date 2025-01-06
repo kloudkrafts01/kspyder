@@ -18,6 +18,14 @@ APIs:
         last_request_key: request_id
         header:
             accept: application/json
+
+    ECS:
+        name: alibabacloud_ecs20140526
+        update_field: UpdateDate
+        is_truncated_key: IsTruncated
+        next_token_key: Marker
+        last_request_key: RequestId
+
     
 Models:
 
@@ -70,3 +78,17 @@ Models:
         datapath: cluster_details[]
         accepted_inputs:
             - cluster_id
+
+    ECSInstances:
+        API: ECS
+        request_builder: DescribeInstancesRequest
+        query_name: describe_instances_with_options
+        datapath: Instances.Instance[]
+        accepted_inputs:
+            - region_id
+
+    ECSImages:
+        API: ECS
+        request_builder: DescribeImagesRequest
+        query_name: describe_images_with_options
+        datapath: Images.Image[]

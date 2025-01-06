@@ -1,0 +1,23 @@
+Steps:
+
+  - Name: SetAliyunRegionId
+    Job: set_static_data
+    Output: RegionData
+    Params:
+      data:
+        - region_id: cn-shanghai
+        - region_id: cn-hangzhou
+
+  - Name: GetVMs
+    Worker: aliyunConnector
+    Job: get_data
+    Input: RegionData.data
+    Output: ECSInstances
+    Params:
+      model_name: ECSInstances
+
+  - Name: StoreInstancesToMongo
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: ECSInstances
+    Output: ECSInstancesInsertionResult

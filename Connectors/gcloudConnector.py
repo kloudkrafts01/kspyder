@@ -3,13 +3,21 @@ from importlib import import_module
 import proto
 from google.auth.exceptions import TransportError
 
+from common.config import BASE_FILE_HANDLER as fh
+
 from Engines.restExtractorEngine import RESTExtractor
 from common.loggingHandler import logger
 
+CONF = fh.load_yaml('gcloudModels', subpath=__name__)
+logger.debug("CONF: {}".format(CONF))
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+APIS_CONF = CONF['APIs']
+MODELS = CONF['Models']
 
-class gcloudSDKEngine(RESTExtractor):
+class gcloudConnector(RESTExtractor):
 
-    def __init__(self, client=None, schema=None, scopes=None, models=None, update_field=None,connector_class=None,**params):
+    def __init__(self, client=None, schema=SCHEMA_NAME, scopes=None, models=MODELS, update_field=None,connector_class=None,**params):
 
         self.schema = schema
         self.scopes = scopes
@@ -19,14 +27,48 @@ class gcloudSDKEngine(RESTExtractor):
         self.connector_class = connector_class
         self.client = client
 
-    def set_client_from_model(self, model):
-        
+    def set_current_client_from_model(self, model):
+
+        # Get the API config from the chosen Model
+        api_ref = model['API']
+        self.api_conf = APIS_CONF[api_ref]
+        self.api_name = self.api_conf['name'] if 'name' in self.api_conf.keys() else api_ref
+        logger.debug("Setting client from API conf: {}".format(self.api_conf))
+
+        # set API-level fields and import the GCP SDK module
+        self.update_field = self.api_conf['update_field']
+        self.connector_class = import_module('google.cloud.{}'.format(self.api_name))
+
+        # Set client from model conf
         client_name = model['client_name']
         logger.debug("Client name: {}".format(client_name))
+
         client_class = getattr(self.connector_class, client_name)
         logger.debug("Imported client class: {}".format(client_class))
         self.client = client_class()
 
+    def postprocess_item(self, item, model=None, **params):
+        """Run returned items through JSON serialization"""
+
+        if isinstance(item, proto.Message):
+            data = proto.Message.to_dict(item)
+        elif isinstance(item, dict):
+            data = item
+        else:
+            logger.error("postprocess_item: item {} is not of type dict or protobuf. Item type = {}".format(item,type(item)))
+            data = {}
+        return data
+
+        # return proto.Message.to_dict(item)
+    
+    def discover_data(self, model_name=None, input_data=None, **params):
+        
+        model = self.models[model_name]
+        # Instantiate the relevant API client class from google.cloud
+        self.set_current_client_from_model(model)
+        
+        return super().discover_data(model_name, input_data=input_data, **params)
+    
     def build_request(self,model,**params):
         # Import request builder and instanciate a request in context
         request_builder = getattr(self.connector_class, model['request_builder'])
@@ -61,24 +103,18 @@ class gcloudSDKEngine(RESTExtractor):
         # model = self.models[model_name]
 
         # Instantiate the relevant API client class from google.cloud
-        self.set_client_from_model(model)
+        self.set_current_client_from_model(model)
         # Prepare Request object and load the method for calling the request
         request_object = self.build_request(model,**params)
         query_gen = getattr(self.client,model['query_name'])
 
-        try:
-            # Generate request iterator
-            response_iter = query_gen(request_object)
+        # Generate request iterator
+        response_iter = query_gen(request_object)
 
-            for item in response_iter:
-                if isinstance(item, proto.Message):
-                    data = proto.Message.to_dict(item)
-                    total_count += 1
-                    output_docs += data,
-                else:
-                    logger.debug("item: {}".format(item))
+        for item in response_iter:
 
-        except TransportError as e:
-            logger.error(e)
-        
+            data = self.postprocess_item(item)
+            total_count += 1
+            output_docs += data,
+
         return total_count,output_docs
