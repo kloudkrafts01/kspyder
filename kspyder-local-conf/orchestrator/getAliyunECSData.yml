@@ -1,22 +1,89 @@
 Steps:
 
-  - Name: SetAliyunRegionId
-    Job: set_static_data
-    Output: RegionData
-    Params:
-      data:
-        - region_id: cn-shanghai
+  # - Name: SetAliyunRegionId
+  #   Job: set_static_data
+  #   Output: RegionData
+  #   Params:
+  #     data:
+  #       - region_id: cn-shanghai
 
-  - Name: GetVMs
-    Worker: aliyunConnector
-    Job: get_data
-    Input: RegionData.data
-    Output: ECSInstances
-    Params:
-      model_name: ECSInstances
+  # - Name: GetVMs
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: RegionData.data
+  #   Output: ECSInstances
+  #   Params:
+  #     model_name: ECSInstances
 
-  - Name: StoreInstancesToMongo
+  # - Name: StoreInstancesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ECSInstances
+  #   Output: ECSInstancesInsertionResult
+
+  # - Name: GetImages
+  #   Worker: aliyunCLIConnector
+  #   Job: get_data
+  #   Output: ECSImages
+  #   Params:
+  #     model_name: ECSImages
+  #     last_days: null
+
+  # - Name: StoreImagesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ECSImages
+  #   Output: ECSImagesInsertionResult
+
+  # - Name: GetMarketplaceImages
+  #   Worker: aliyunCLIConnector
+  #   Job: get_data
+  #   Output: ECSImagesFromMarketPlace
+  #   Params:
+  #     model_name: ECSImages
+  #     last_days: null
+  #     search_domains:
+  #       - - 'ImageOwnerAlias'
+  #         - 'eq'
+  #         - 'marketplace'
+
+  # - Name: StoreMarketplaceImagesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ECSImagesFromMarketPlace
+  #   Output: ECSMarketPlaceImagesInsertionResult
+
+  - Name: ExtractRHELImages
     Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: ECSInstances
-    Output: ECSInstancesInsertionResult
+    Job: execute_query
+    Output: AliyunECS_RHELImages
+    Params:
+      query_name: ExtractRHELImages
+      query_conf:
+        collection: ECSImages
+        dump_csv: true
+        dump_json: true
+        operations:
+          $match:
+            ImageOwnerAlias: marketplace
+            Platform:
+              $regex: "^(Red Hat)"
+          $project:
+            ImageId: $ImageId
+            Name: $ImageName
+            Description: $Description
+            Version: $ImageVersion
+            ProductCode: $ProductCode
+            Family: $ImageFamily
+            OSType: $OSType
+            OSName: $OSName
+            OSNameEn: $OSNameEn
+            Platform: $Platform
+            Arch: $Architecture
+            BootMode: $BootMode
+            IsPublic: $IsPublic
+            cloudInit: $IsSupportCloudInit
+            IsSupportIoOptimized: $IsSupportIoOptimized
+            LoginAsNonRootSupported: $LoginAsNonRootSupported
+          $unset:
+            - _id

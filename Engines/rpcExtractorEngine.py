@@ -27,6 +27,7 @@ class GenericRPCExtractor():
         logger.debug("Extractor object: {}".format(self.__dict__))
 
         # sd = []
+        model = self.models[model_name]
 
         if last_days:
             now = datetime.datetime.utcnow()
@@ -36,18 +37,14 @@ class GenericRPCExtractor():
             logger.info("UTC start datetime is {}".format(yesterday))
             search_domains += [self.update_field,'>=',yesterday],
 
-        count, dataset = self.fetch_dataset(model_name=model_name,search_domains=search_domains,**params)
+        count, dataset = self.fetch_dataset(model=model,search_domains=search_domains,**params)
 
-        if dataset == []:
-            logger.info('no results were found.')
-            return {}
-        
-        else: 
-            full_dataset = {
+        full_dataset = {
                 'header': {
                     'schema': self.schema,
                     'scopes': self.scopes,
-                    'model': model_name,
+                    'model_name': model_name,
+                    'model': model,
                     'count': count,
                     'params': params,
                     'json_dump': None,
@@ -55,16 +52,20 @@ class GenericRPCExtractor():
                 },
                 'data': dataset
             }
-
+        
+        if dataset == []:
+            logger.info('no results were found.')
+        
+        else: 
             if DUMP_JSON:
                 full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
-            return full_dataset
+        
+        return full_dataset
 
-    def fetch_dataset(self,model_name=None,search_domains=[],**params):
+    def fetch_dataset(self,model=None,search_domains=[],**params):
 
         output_rows = []    
-        model = self.models[model_name]
         total_count = self.get_count(model,search_domains=search_domains,**params)
 
         if total_count > 0:    

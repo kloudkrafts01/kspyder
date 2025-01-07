@@ -25,7 +25,6 @@ APIs:
         next_token_key: next_token
         last_request_key: request_id
         max_results_key: max_results
-        total_count_key: total_count
         convert_response_case: true
 
     
@@ -88,6 +87,7 @@ Models:
         datapath: Instances.Instance[]
         accepted_inputs:
             - region_id
+            - max_results
         index_keys:
             - InstanceId
             - InstanceName
@@ -97,3 +97,10 @@ Models:
         request_builder: DescribeImagesRequest
         query_name: describe_images_with_options
         datapath: Images.Image[]
+        accepted_inputs:
+            - region_id
+            - image_owner_alias
+        index_keys:
+            - ImageId
+            - ImageName
+            - ImageOwnerAlias

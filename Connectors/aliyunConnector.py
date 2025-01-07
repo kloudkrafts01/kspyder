@@ -113,7 +113,7 @@ class aliyunConnector(RESTExtractor):
         request_params = {}
         if start_token:
             request_params[ self.next_token_key ] = start_token
-        if self.max_results_key:
+        if self.max_results_key and self.max_results_key in model['accepted_inputs']:
             request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
 
         if 'accepted_inputs' in model.keys():
@@ -163,6 +163,8 @@ class aliyunConnector(RESTExtractor):
         else:
             datapath = jmespath.compile(model['datapath'])
             results = datapath.search(response_dict)
+
+        logger.debug("TotalCount: {}".format(response_dict['TotalCount']))
         
         response_next_token_key = self.next_token_key
         response_max_results = self.max_results_key
