@@ -6,7 +6,6 @@ Steps:
     Params:
       data:
         - region_id: cn-shanghai
-        - region_id: cn-hangzhou
 
   - Name: GetVMs
     Worker: aliyunConnector

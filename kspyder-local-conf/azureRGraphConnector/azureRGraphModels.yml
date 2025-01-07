@@ -46,6 +46,9 @@ Models:
 
     VirtualNetworks:
         base_name: Microsoft.Network/VirtualNetworks
+        index_keys:
+            - name
+            - properties.resourceGuid
 
     NetworkInterfaces:
         base_name: Microsoft.Network/networkInterfaces

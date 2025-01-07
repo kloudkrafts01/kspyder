@@ -1,4 +1,4 @@
-import json
+import json, jmespath
 from pymongo import MongoClient
 
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
@@ -44,7 +44,7 @@ class mongoDBConnector():
 
             filter = {}
             for key in model['index_keys']:
-                filter[key] = document[key]
+                filter[key] = jmespath.search(key,document)
             # logger.debug("Using the following filter: {}".format(filter))
             # logger.debug("Upserting document: {}".format(document))
             upsert_result = dbcollection.replace_one(filter, document, upsert=True)

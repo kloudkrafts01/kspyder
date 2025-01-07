@@ -1,9 +1,9 @@
-import os
+import os, re
 from importlib import import_module
 import jmespath
 
 from Engines.restExtractorEngine import RESTExtractor
-from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
+from common.config import MODULES_MAP, PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 
 from alibabacloud_tea_openapi.models import Config
@@ -60,6 +60,7 @@ class aliyunConnector(RESTExtractor):
         # All the fields below are set at each query context
         self.api_name = None
         self.api_conf = None
+        self.convert_case = False
         self.is_truncated_key = None
         self.next_token_key = None
         self.last_request_key = None
@@ -67,6 +68,20 @@ class aliyunConnector(RESTExtractor):
         self.client = None
         self.source_models = None
         self.runtime_options = None
+
+    def convert_to_camelcase(self,string):
+        
+        if string:
+            old_string = string
+
+            # using regex to split string at every underscore
+            temp = re.split('_+', string)
+            # using lambda function to convert first letter of every word to uppercase
+            string = ''.join(map(lambda x: x.title(), temp))
+            
+            logger.debug("Converted field {} to {}".format(old_string, string))
+
+        return string
 
     def set_current_client_from_model(self, model):
 
@@ -76,10 +91,12 @@ class aliyunConnector(RESTExtractor):
         self.api_name = self.api_conf['name']
         logger.debug("Setting client from API conf: {}".format(self.api_conf))
 
+        self.convert_case = self.api_conf['convert_response_case'] if 'convert_response_case' in self.api_conf.keys() else False
         self.update_field = self.api_conf['update_field']
-        self.is_truncated_key = self.api_conf['is_truncated_key']
+        self.is_truncated_key = self.api_conf['is_truncated_key'] if 'is_truncated_key' in self.api_conf.keys() else None
         self.next_token_key = self.api_conf['next_token_key']
         self.last_request_key = self.api_conf['last_request_key']
+        self.max_results_key = self.api_conf['max_results_key'] if 'max_results_key' in self.api_conf.keys() else None
 
         # Instantiate a new AliyunClient and set it to current client
         aliyun_client = AliyunClient.from_env(api_name = self.api_name)
@@ -93,9 +110,11 @@ class aliyunConnector(RESTExtractor):
         request_context = []
 
         # Instanciate a request object with the sdk module needed arguments
-        request_params = {
-            str.lower(self.next_token_key): start_token
-        } if start_token else {}
+        request_params = {}
+        if start_token:
+            request_params[ self.next_token_key ] = start_token
+        if self.max_results_key:
+            request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
 
         if 'accepted_inputs' in model.keys():
             # accepted_inputs = (x['key'] for x in model['accepted_inputs'])
@@ -137,13 +156,32 @@ class aliyunConnector(RESTExtractor):
         response_dict = response.body.to_map()
         results = []
 
+        logger.debug("Response dict keys: {}".format(response_dict.keys()))
+
         if model['datapath'] == '$root':
             results = response_dict
         else:
             datapath = jmespath.compile(model['datapath'])
             results = datapath.search(response_dict)
         
-        is_truncated = response_dict[self.is_truncated_key] if self.is_truncated_key in response_dict.keys() else None
-        next_token = response_dict[self.next_token_key] if self.next_token_key in response_dict.keys() else None
+        response_next_token_key = self.next_token_key
+        response_max_results = self.max_results_key
+        response_is_truncated_key = self.is_truncated_key
+
+        # If specified in the API conf, convert field name to CamelCase to look for the needed fields in the response dict
+        if self.convert_case:
+            response_next_token_key = self.convert_to_camelcase(response_next_token_key)
+            response_max_results = self.convert_to_camelcase(response_max_results)
+            response_is_truncated_key = self.convert_to_camelcase(response_is_truncated_key)
+
+        next_token = response_dict[response_next_token_key] if response_next_token_key in response_dict.keys() else ''
+        # logger.debug("Next Token: {}".format(next_token))
+
+        is_next_token = next_token != ''
+        # logger.debug("Is Next Token ? {}".format(is_next_token))
+        is_truncated_key = response_is_truncated_key in response_dict.keys()
+
+        is_truncated = response_dict[response_is_truncated_key] if is_truncated_key else is_next_token
+        # logger.debug("Is response truncated ? {}".format(is_truncated))
 
         return results, is_truncated, next_token

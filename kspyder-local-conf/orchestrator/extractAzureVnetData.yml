@@ -1,19 +1,19 @@
 Steps:
 
-  # - Name: GetAzureVnets
-  #   Worker: azureRGraphConnector
-  #   Job: get_data
-  #   Output: AzVnets
-  #   Params:
-  #     model_name: VirtualNetworks
+  - Name: GetAzureVnets
+    Worker: azureRGraphConnector
+    Job: get_data
+    Output: AzVnets
+    Params:
+      model_name: VirtualNetworks
 
-  # - Name: StoreAzVnetsToMongo
-  #   Worker : mongoDBConnector
-  #   Job: insert_dataset
-  #   Input: AzVnets.data
-  #   Output: AzVnetsInsertionResult
-  #   Params:
-  #     collection: AzureVirtualNetworks
+  - Name: StoreAzVnetsToMongo
+    Worker : mongoDBConnector
+    Job: upsert_dataset
+    Input: AzVnets
+    Output: AzVnetsInsertionResult
+    Params:
+      collection: AzureVirtualNetworks
 
   - Name: ExtractVnetTabularData
     Worker: mongoDBConnector

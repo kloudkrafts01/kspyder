@@ -21,10 +21,12 @@ APIs:
 
     ECS:
         name: alibabacloud_ecs20140526
-        update_field: UpdateDate
-        is_truncated_key: IsTruncated
-        next_token_key: Marker
-        last_request_key: RequestId
+        update_field: update_date
+        next_token_key: next_token
+        last_request_key: request_id
+        max_results_key: max_results
+        total_count_key: total_count
+        convert_response_case: true
 
     
 Models:
@@ -86,6 +88,9 @@ Models:
         datapath: Instances.Instance[]
         accepted_inputs:
             - region_id
+        index_keys:
+            - InstanceId
+            - InstanceName
 
     ECSImages:
         API: ECS
