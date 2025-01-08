@@ -38,6 +38,9 @@ APIs:
     
 Models:
 
+
+# ================ RAM Models ==================
+
     RAMUsers:
         API: RAM
         request_builder: ListUsersRequest
@@ -74,51 +77,16 @@ Models:
         index_keys:
             - AccessKeyId
 
-    ACKClusters:
-        API: CS
-        request_builder: DescribeClustersV1Request
-        query_name: describe_clusters_v1with_options
-        datapath: clusters[]
 
-    ACKClusterDetails:
-        API: CS
-        request_builder: DescribeClusterDetailsRequest
-        query_name: describe_cluster_details_with_options
-        datapath: cluster_details[]
-        accepted_inputs:
-            - cluster_id
+# ================ CloudSSO Models ==================
 
-    ECSInstances:
-        API: ECS
-        request_builder: DescribeInstancesRequest
-        query_name: describe_instances_with_options
-        datapath: Instances.Instance[]
-        accepted_inputs:
-            - region_id
-            - max_results
-        index_keys:
-            - InstanceId
-            - InstanceName
-
-    ECSImages:
-        API: ECS
-        request_builder: DescribeImagesRequest
-        query_name: describe_images_with_options
-        datapath: Images.Image[]
-        accepted_inputs:
-            - region_id
-            - image_owner_alias
-        index_keys:
-            - ImageId
-            - ImageName
-            - ImageOwnerAlias
-
-    CloudSSODirectories:
-        API: CloudSSO
-        query_name: list_directories
-        datapath: Directories.Directory[]
-        index_keys:
-            - DirectoryId
+    # To be reworked : not iterable result (see the aliyunCLIModel equivalent)
+    # CloudSSODirectories:
+    #     API: CloudSSO
+    #     query_name: list_directories
+    #     datapath: Directories.Directory[]
+    #     index_keys:
+    #         - DirectoryId
 
     CloudSSOUsers:
         API: CloudSSO
@@ -153,3 +121,47 @@ Models:
         index_keys:
             - UserId
             - GroupId
+
+# ================ ACK Kubernetes Models ==================
+
+    ACKClusters:
+        API: CS
+        request_builder: DescribeClustersV1Request
+        query_name: describe_clusters_v1with_options
+        datapath: clusters[]
+
+    ACKClusterDetails:
+        API: CS
+        request_builder: DescribeClusterDetailsRequest
+        query_name: describe_cluster_details_with_options
+        datapath: cluster_details[]
+        accepted_inputs:
+            - cluster_id
+
+
+# ================ Elastic Compute Service Models ==================
+
+    ECSInstances:
+        API: ECS
+        request_builder: DescribeInstancesRequest
+        query_name: describe_instances_with_options
+        datapath: Instances.Instance[]
+        accepted_inputs:
+            - region_id
+            - max_results
+        index_keys:
+            - InstanceId
+            - InstanceName
+
+    ECSImages:
+        API: ECS
+        request_builder: DescribeImagesRequest
+        query_name: describe_images_with_options
+        datapath: Images.Image[]
+        accepted_inputs:
+            - region_id
+            - image_owner_alias
+        index_keys:
+            - ImageId
+            - ImageName
+            - ImageOwnerAlias
