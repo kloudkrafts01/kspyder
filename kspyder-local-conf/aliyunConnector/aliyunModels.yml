@@ -27,6 +27,14 @@ APIs:
         max_results_key: max_results
         convert_response_case: true
 
+    CloudSSO:
+        name: alibabacloud_cloudsso20210515
+        update_field: update_time
+        is_truncated_key: is_truncated
+        next_token_key: next_token
+        last_request_key: request_id
+        max_results_key: max_results
+        convert_response_case: true
     
 Models:
 
@@ -104,3 +112,44 @@ Models:
             - ImageId
             - ImageName
             - ImageOwnerAlias
+
+    CloudSSODirectories:
+        API: CloudSSO
+        query_name: list_directories
+        datapath: Directories.Directory[]
+        index_keys:
+            - DirectoryId
+
+    CloudSSOUsers:
+        API: CloudSSO
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        datapath: Users[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - UserId
+            - UserName
+
+    CloudSSOGroups:
+        API: CloudSSO
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        datapath: Groups[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - GroupId
+            - GroupName
+
+    CloudSSOGroupMembers:
+        API: CloudSSO
+        request_builder: ListGroupMembersRequest
+        query_name: list_group_members_with_options
+        datapath: GroupMembers[]
+        accepted_inputs:
+            - directory_id
+            - group_id
+        index_keys:
+            - UserId
+            - GroupId

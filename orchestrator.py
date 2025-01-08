@@ -41,7 +41,6 @@ class documentPipelineEngine:
 
         return static_dataset
 
-
     def get_unique_key_list(self,input_data=None,key=None,datapath=None):
 
         values_list = jmespath.search(datapath,input_data)

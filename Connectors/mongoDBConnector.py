@@ -23,14 +23,14 @@ class mongoDBConnector():
 
         return result
 
-    def upsert_dataset(self,input_data={},collection=None):
+    def upsert_dataset(self,input_data={},collection=None,model=None):
 
         result_dataset = []
         insert_count = 0
         update_count = 0
         
-        model_name = input_data['header']['model_name']
-        model = input_data['header']['model']
+        model_name = model['name'] if model else input_data['header']['model_name']
+        model = model if model else input_data['header']['model']
         dataset = input_data['data']
 
         if len(dataset) == 0:
@@ -140,10 +140,10 @@ class mongoDBConnector():
 
     def execute_query(self,query_name,query_conf):
 
-        model_name, queryPipeline = build_mongo_query(query_conf)
-        collection = self.db[model_name]
+        collection_name, queryPipeline = build_mongo_query(query_conf)
+        collection = self.db[collection_name]
 
-        logger.info("Executing mongo Query on Collection {}: {}".format(model_name,queryPipeline))
+        logger.info("Executing mongo Query on Collection {}: {}".format(collection_name,queryPipeline))
 
         results = collection.aggregate(queryPipeline)
         results_list = list(results)
@@ -151,7 +151,7 @@ class mongoDBConnector():
         result_dataset = {
             "header": {
                 "schema": APP_NAME,
-                "model_name": model_name,
+                "collection": collection_name,
                 "query_name": query_name,
                 "query_conf": query_conf,
                 "count": len(results_list),
@@ -175,10 +175,10 @@ class mongoDBConnector():
 def build_mongo_query(query_conf):
 
     queryPipeline = []
-    model_name = query_conf['collection']
+    collection_name = query_conf['collection']
 
     for operation_name,operation in query_conf['operations'].items():
         
         queryPipeline += {operation_name: operation},
 
-    return model_name, queryPipeline
+    return collection_name, queryPipeline

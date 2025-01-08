@@ -96,7 +96,7 @@ class aliyunCLIClient:
                 )
             output = json.JSONDecoder().decode(result.stdout)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
         return output
 
@@ -106,10 +106,11 @@ class aliyunCLIClient:
 
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
         output = self.execute_command(command)
-        
+        total_count_key = model['total_count_key'] if 'total_count_key' in model.keys() else 'TotalCount'
+
         if output:
-            if 'TotalCount' in output.keys():
-                count = output['TotalCount']
+            if total_count_key in output.keys():
+                count = output[total_count_key]
             else:
                 count = len(output)
                 # logger.error("Model is not RPC-based. Switch this config to a REST-based connector instead.") 
@@ -120,10 +121,12 @@ class aliyunCLIClient:
 
         # Build the command and add up the offset and page size params
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
-
-        if limit:
+        
+        paginate = model['paginated'] if 'paginated' in model.keys() else True
+        
+        if paginate:
             # AliyunCLI page size is strictly limited to 100
-            capped_limit = limit if limit < 100 else 100
+            capped_limit = min(limit,100)
             command = command + ['--PageSize',str(capped_limit)]
             # calculate page number
             pageno = int(offset / capped_limit) + 1 if offset else 1
@@ -134,8 +137,6 @@ class aliyunCLIClient:
         
         datapath = model['datapath']
         dataset = jmespath.search(datapath,output)
-
-        logger.debug('search_read dataset output:\n{}'.format(dataset))
 
         return dataset
 

@@ -107,6 +107,7 @@ class aliyunConnector(RESTExtractor):
 
     def build_request(self, model, start_token=None, **params):
 
+        request_builder = None
         request_context = []
 
         # Instanciate a request object with the sdk module needed arguments
@@ -117,27 +118,33 @@ class aliyunConnector(RESTExtractor):
             request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
 
         if 'accepted_inputs' in model.keys():
-            # accepted_inputs = (x['key'] for x in model['accepted_inputs'])
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
             for key in valid_keys:
                 request_params[key] = params[key]
 
-        # Import request builder and instanciate a request object
-        request_builder = getattr(self.source_models, model['request_builder'])
-        logger.debug("request builder name: {}".format(model['request_builder']))
-        logger.debug("request builder object: {}".format(request_builder))
-        logger.debug("request builder params: {}".format(request_params))
-        request = request_builder(**request_params)
-        # Add the request to request context
-        request_context.append(request)
+        if 'request_builder' in model.keys():
+            # Import request builder and instanciate a request object
+            request_builder = getattr(self.source_models, model['request_builder'])
+            logger.debug("request builder name: {}".format(model['request_builder']))
+            logger.debug("request builder object: {}".format(request_builder))
+            logger.debug("request builder params: {}".format(request_params))
+            request = request_builder(**request_params)
+            
+            # Add the request to request context
+            request_context.append(request)
+
+            # Add RuntimeOptions (mandatory)
+            request_context.append(self.runtime_options)
+
+        else:
+            # if no request builder class is provided, just pass on the valid key-value params
+            request_context.append(request_params)
 
         # If the API requires a header (e.g. ContainerServices API), add it
         if 'header' in self.api_conf.keys():
             request_context.append(self.api_conf['header'])
 
-        # Add RuntimeOptions (mandatory)
-        request_context.append(self.runtime_options)
-
+        logger.debug("Request context: {}".format(request_context))
         return request_context
 
     def read_query(self,model,search_domains=[],start_token=None,query_args=[],**params):
@@ -163,8 +170,6 @@ class aliyunConnector(RESTExtractor):
         else:
             datapath = jmespath.compile(model['datapath'])
             results = datapath.search(response_dict)
-
-        logger.debug("TotalCount: {}".format(response_dict['TotalCount']))
         
         response_next_token_key = self.next_token_key
         response_max_results = self.max_results_key
