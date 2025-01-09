@@ -6,43 +6,45 @@ Connector:
 
 Models:
 
+# ================== Management & Governance Services Models =================
+
     ResourceGroups:    
         class: resourcecontainers
         base_name: microsoft.resources/subscriptions/resourcegroups
+        index_keys:
+            - resourceGroup
+            - subscriptionId
+
+    PolicyInsights:
+        base_name: Microsoft.PolicyInsights/attestations
+        fields: name,properties
+
+# ================== Compute / IaaS Models =================
 
     VirtualMachines:
         base_name: Microsoft.Compute/VirtualMachines
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== Container / Kubernetes Models ==================
 
     ContainerServices:
         base_name: Microsoft.ContainerService/containerServices
 
     AKSClusters:
         base_name: Microsoft.ContainerService/managedClusters
+        index_keys:
+            - name
+            - resourceGroup
 
     ContainerRegistries:
         base_name: Microsoft.ContainerRegistry/registries
+        index_keys:
+            - name
+            - resourceGroup
 
-    PublicIPs:
-        base_name: Microsoft.Network/publicIPAddresses
-
-    KeyVaults:
-        base_name: Microsoft.KeyVault/vaults
-
-    PolicyInsights:
-        base_name: Microsoft.PolicyInsights/attestations
-        fields: name,properties
-    
-    VirtualWAN:
-        base_name: Microsoft.Network/virtualWans
-
-    VirtualHubs:
-        base_name: Microsoft.Network/virtualHubs
-
-    VirtualHubRouteTables:
-        base_name: Microsoft.Network/virtualHubs/hubRouteTables
-        
-    VirtualHubConnections:
-        base_name: Microsoft.Network/virtualHubs/hubVirtualNetworkConnections
+# ================== Networking Models ==================
 
     VirtualNetworks:
         base_name: Microsoft.Network/VirtualNetworks
@@ -50,19 +52,70 @@ Models:
             - name
             - properties.resourceGuid
 
+    PublicIPs:
+        base_name: Microsoft.Network/publicIPAddresses
+        index_keys:
+            - name
+            - resourceGroup
+
     NetworkInterfaces:
         base_name: Microsoft.Network/networkInterfaces
         fields: name,location,extendedLocation,tags,properties
+        index_keys:
+            - name
+            - resourceGroup
 
     NetworkSecurityGroups:
         base_name: Microsoft.Network/networkSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
             
     ApplicationSecurityGroups:
         base_name: Microsoft.Network/ApplicationSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
        
     AppGateways:
         base_name: Microsoft.Network/applicationGateways
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualWAN:
+        base_name: Microsoft.Network/virtualWans
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualHubs:
+        base_name: Microsoft.Network/virtualHubs
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualHubRouteTables:
+        base_name: Microsoft.Network/virtualHubs/hubRouteTables
+        index_keys:
+            - name
+            - resourceGroup
         
+    VirtualHubConnections:
+        base_name: Microsoft.Network/virtualHubs/hubVirtualNetworkConnections
+        index_keys:
+            - name
+            - resourceGroup
+        
+
+# ================== IAM / Auth Services Models ==================
+
+    KeyVaults:
+        base_name: Microsoft.KeyVault/vaults
+
+
+# ================== Other Models ==================
+
     AutomationJobs:
         base_name: Microsoft.Automation/automationAccounts/jobs
         fields: name,properties
