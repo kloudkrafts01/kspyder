@@ -9,8 +9,14 @@ APIs:
     resourcemanager:
         name: resourcemanager_v3
         update_field: update_time
+
+    GCS:
+        name: storage
+        update_field: update_time
     
 Models:
+
+# =================== Compute Models =========================
 
     ComputeInstances:
         API: compute_v1
@@ -20,6 +26,8 @@ Models:
         accepted_inputs:
             - project
             - zone
+
+# =================== Resource Management Models ======================
 
     Organization:
         API: resourcemanager
@@ -31,7 +39,6 @@ Models:
         index_keys:
             - name
             - display_name
-
     
     Organizations:
         API: resourcemanager
@@ -66,6 +73,32 @@ Models:
         index_keys:
             - name
             - project_id
+
+
+# =================== Data Stores Models ======================
+
+    GCSBuckets:
+        API: GCS
+        client_name: Client
+        request_builder: ListBucketsRequest
+        query_name: list_buckets
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+            - name
+
+    GCSBucketIAMPolicies:
+        API: GCS
+        client_name: bucket
+        request_builder: GetIamPolicyRequest
+        query_name: get_iam_policy
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+            - name
+
 
 
     
