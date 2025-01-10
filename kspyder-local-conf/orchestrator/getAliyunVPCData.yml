@@ -1,0 +1,65 @@
+Steps:
+
+  # - Name: GetVPCs
+  #   Worker: aliyunCLIConnector
+  #   Job: get_data
+  #   Output: AliyunVPCs
+  #   Params:
+  #     model_name: VPCs
+  #     last_days: null
+
+  # - Name: StoreVPCsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: AliyunVPCs
+  #   Output: AliyunVPCsInsertionResult
+  #   Params:
+  #     collection: AliyunVPCs
+ 
+  # - Name: GetVSwitches
+  #   Worker: aliyunCLIConnector
+  #   Job: get_data
+  #   Output: AliyunVSwitches
+  #   Params:
+  #     model_name: VSwitches
+  #     last_days: null
+
+  # - Name: StoreVSwitchesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: AliyunVSwitches
+  #   Output: AliyunVSwitchesInsertionResult
+  #   Params:
+  #     collection: AliyunVSwitches
+
+  - Name: ExtractVSwitchInfo
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AliyunVSwitchInfo
+    Params:
+      query_name: ExtractVSwitchInfo
+      query_conf:
+        collection: AliyunVSwitches
+        dump_csv: true
+        dump_json: true
+        operations:
+          $lookup:
+            from: AliyunVPCs
+            localField: VpcId
+            foreignField: VpcId
+            as: VpcInfo
+          # $unwind: $VpcInfo
+          $project:
+            VpcName: $VpcInfo.VpcName
+            VpcId: 1
+            VSwitchName: 1
+            VSwitchId: 1
+            ZoneId: 1
+            CreationTime: 1
+            CidrBlock: 1
+            AvailableIpAddressCount: 1
+          $unset: 
+            - _id
+
+   
+

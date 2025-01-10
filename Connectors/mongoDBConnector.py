@@ -147,6 +147,9 @@ class mongoDBConnector():
 
         results = collection.aggregate(queryPipeline)
         results_list = list(results)
+        results_count = len(results_list)
+
+        logger.info("Query returned {} items.".format(results_count))
 
         result_dataset = {
             "header": {
@@ -154,21 +157,23 @@ class mongoDBConnector():
                 "collection": collection_name,
                 "query_name": query_name,
                 "query_conf": query_conf,
-                "count": len(results_list),
+                "count": results_count,
             },
             "data": results_list
         }
 
         # If the query conf specifies the atomic query result needs to be dumped into csv or json,
         # proceed. Order is important : csv first, then json
+        save_result = query_conf['save'] if 'save' in query_conf.keys() else None
         query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
         query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
 
-        if query_dump_csv:
-            result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
+        if results_count > 0:
+            if query_dump_csv:
+                result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
 
-        if query_dump_json:
-            result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
+            if query_dump_json:
+                result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
         return result_dataset
 

@@ -91,12 +91,17 @@ class aliyunConnector(RESTExtractor):
         self.api_name = self.api_conf['name']
         logger.debug("Setting client from API conf: {}".format(self.api_conf))
 
-        self.convert_case = self.api_conf['convert_response_case'] if 'convert_response_case' in self.api_conf.keys() else False
         self.update_field = self.api_conf['update_field']
+
+        # Initiate all fields that can be useful for pagination
+        self.convert_case = self.api_conf['convert_response_case'] if 'convert_response_case' in self.api_conf.keys() else False
         self.is_truncated_key = self.api_conf['is_truncated_key'] if 'is_truncated_key' in self.api_conf.keys() else None
-        self.next_token_key = self.api_conf['next_token_key']
-        self.last_request_key = self.api_conf['last_request_key']
+        self.next_token_key = self.api_conf['next_token_key'] if 'next_token_key' in self.api_conf.keys() else None
+        self.last_request_key = self.api_conf['last_request_key'] if 'last_request_key' in self.api_conf.keys() else None
         self.max_results_key = self.api_conf['max_results_key'] if 'max_results_key' in self.api_conf.keys() else None
+        self.page_number_key = self.api_conf['page_number_key'] if 'page_number_key' in self.api_conf.keys() else None
+        self.page_size_key = self.api_conf['page_size_key'] if 'page_size_key' in self.api_conf.keys() else None
+
 
         # Instantiate a new AliyunClient and set it to current client
         aliyun_client = AliyunClient.from_env(api_name = self.api_name)
@@ -174,12 +179,16 @@ class aliyunConnector(RESTExtractor):
         response_next_token_key = self.next_token_key
         response_max_results = self.max_results_key
         response_is_truncated_key = self.is_truncated_key
+        response_page_size_key = self.page_size_key
+        response_page_number_key = self.page_number_key
 
         # If specified in the API conf, convert field name to CamelCase to look for the needed fields in the response dict
         if self.convert_case:
             response_next_token_key = self.convert_to_camelcase(response_next_token_key)
             response_max_results = self.convert_to_camelcase(response_max_results)
             response_is_truncated_key = self.convert_to_camelcase(response_is_truncated_key)
+            response_page_size_key = self.convert_to_camelcase(response_page_size_key)
+            response_page_number_key = self.convert_to_camelcase(response_page_number_key)
 
         next_token = response_dict[response_next_token_key] if response_next_token_key in response_dict.keys() else ''
         # logger.debug("Next Token: {}".format(next_token))

@@ -5,6 +5,7 @@ Connector:
 UnpackingFields: null
     
 Models:
+
     RAMUsers:
         base_name: User
         nested: true
@@ -45,6 +46,27 @@ Models:
         index_keys:
             - ImageId
             - ImageName
+
+    VPCs:
+        base_name: VPC
+        class: vpc
+        paginated: false
+        query_domains:
+            - DescribeVpcs
+        datapath: Vpcs.Vpc[]
+        index_keys:
+            - VpcId
+            - VpcName
+
+    VSwitches:
+        base_name: VSwitch
+        class: vpc
+        query_domains:
+            - DescribeVSwitches
+        datapath: VSwitches.VSwitch[]
+        index_keys:
+            - VSwitchId
+            - VSwitchName
 
     LoadBalancers:
         base_name: LoadBalancer
