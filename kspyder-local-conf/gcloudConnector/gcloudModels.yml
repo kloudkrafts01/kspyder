@@ -10,10 +10,26 @@ APIs:
         name: resourcemanager_v3
         update_field: update_time
 
+    GKE:
+        name: container
+        update_field: update_time
+
     GCS:
         name: storage
         update_field: update_time
+
+    BigQuery:
+        name: bigquery
+        update_field: last_modified_time
     
+    CloudRun:
+        name: run_v2
+        update_field: update_time
+
+    VPC:
+        name: vpcaccess_v1
+        update_field: null
+
 Models:
 
 # =================== Compute Models =========================
@@ -27,18 +43,27 @@ Models:
             - project
             - zone
 
-# =================== Resource Management Models ======================
-
-    Organization:
-        API: resourcemanager
-        client_name: OrganizationsClient
-        request_builder: GetOrganizationRequest
-        query_name: get_organization
+    GKEClusters:
+        API: GKE
+        client_name: ClusterManagerClient
+        request_builder: ListClustersRequest
+        query_name: list_clusters
         accepted_inputs:
-            - name
+            - parent
         index_keys:
             - name
-            - display_name
+
+    CloudRunServices:
+        API: CloudRun
+        client_name: ServicesClient
+        request_builder: ListServicesRequest
+        query_name: list_services
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+# =================== Resource Management Models ======================
     
     Organizations:
         API: resourcemanager
@@ -75,12 +100,23 @@ Models:
             - project_id
 
 
+# =================== Cloud Network Models ======================
+
+    VPCs:
+        API: VPC
+        client_name: VpcAccessServiceClient
+        request_builder: ListConnectorsRequest
+        query_name: list_connectors
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
 # =================== Data Stores Models ======================
 
     GCSBuckets:
         API: GCS
         client_name: Client
-        request_builder: ListBucketsRequest
         query_name: list_buckets
         accepted_inputs:
             - project
@@ -88,16 +124,23 @@ Models:
             - id
             - name
 
-    GCSBucketIAMPolicies:
-        API: GCS
-        client_name: bucket
-        request_builder: GetIamPolicyRequest
-        query_name: get_iam_policy
+    BigQueryProjects:
+        API: BigQuery
+        client_name: Client
+        # request_builder: ListProjectsRequest
+        query_name: list_projects
+        index_keys:
+            - project_id
+
+    BigQueryModels:
+        API: BigQuery
+        client_name: Client
+        request_builder: ListModelsRequest
+        query_name: list_models
         accepted_inputs:
-            - project
+            - project_id
         index_keys:
             - id
-            - name
 
 
 

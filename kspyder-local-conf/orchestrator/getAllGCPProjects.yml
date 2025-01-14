@@ -1,44 +1,58 @@
 Steps:
 
-  - Name: GetFolderLeavesFromMongo
+  # - Name: GetFolderLeavesFromMongo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCPFolderLeaves
+  #   Params:
+  #     query_name: GetFolderLeaves
+  #     query_conf:
+  #       dump_json: true
+  #       collection: GCPFolderLeaves
+  #       operations:
+  #         $project:
+  #           name: $name
+  #           display_name: $display_name
+  #           parent: $parent
+  #           children: $children
+  #           level: $level
+  #         $unset:
+  #           - _id
+
+  # - Name: GetFolderLeafIds
+  #   Job: get_unique_key_list
+  #   Input: GCPFolderLeaves
+  #   Output: GCPFolderLeafIds
+  #   Params:
+  #     key: parent
+  #     datapath: "data[].name"
+
+  # - Name: GetProjects
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Output: GCPProjects
+  #   Input: GCPFolderLeafIds
+  #   Params:
+  #     model_name: Projects
+
+  # - Name: StoreProjectsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: GCPProjects
+  #   Output: GCPProjectsInsertionResult
+  #   Params:
+  #     collection: GCPProjects
+
+  - Name: ExportProjects
     Worker: mongoDBConnector
     Job: execute_query
-    Output: GCPFolderLeaves
+    Output: GCPProjectsExtract
     Params:
-      query_name: GetFolderLeaves
+      query_name: ExtractProjects
       query_conf:
+        collection: GCPProjects
         dump_json: true
-        collection: GCPFolderLeaves
         operations:
-          $project:
-            name: $name
-            display_name: $display_name
-            parent: $parent
-            children: $children
-            level: $level
           $unset:
             - _id
 
-  - Name: GetFolderLeafIds
-    Job: get_unique_key_list
-    Input: GCPFolderLeaves
-    Output: GCPFolderLeafIds
-    Params:
-      key: parent
-      datapath: "data[].name"
-
-  - Name: GetProjects
-    Worker: gcloudConnector
-    Job: get_data
-    Output: GCPProjects
-    Input: GCPFolderLeafIds
-    Params:
-      model_name: Projects
-
-  - Name: StoreProjectsToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: GCPProjects
-    Output: GCPProjectsInsertionResult
-    Params:
-      collection: GCPProjects
