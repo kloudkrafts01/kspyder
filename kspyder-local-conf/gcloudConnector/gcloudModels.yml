@@ -99,6 +99,16 @@ Models:
             - name
             - project_id
 
+    ProjectIAMPolicies:
+        API : resourcemanager
+        client_name: ProjectsClient
+        # request_builder: GetIamPolicyRequest
+        query_name: get_iam_policy
+        accepted_inputs:
+            - resource
+        index_keys:
+            - resource
+        iterable: false
 
 # =================== Cloud Network Models ======================
 
@@ -132,13 +142,13 @@ Models:
         index_keys:
             - project_id
 
-    BigQueryModels:
+    BigQueryDatasets:
         API: BigQuery
         client_name: Client
-        request_builder: ListModelsRequest
-        query_name: list_models
+        # request_builder: ListModelsRequest
+        query_name: list_datasets
         accepted_inputs:
-            - project_id
+            - project
         index_keys:
             - id
 

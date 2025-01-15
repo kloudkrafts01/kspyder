@@ -2,7 +2,6 @@ from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
 from google.api.client import services
-from google.auth.exceptions import TransportError
 
 from common.config import BASE_FILE_HANDLER as fh
 
