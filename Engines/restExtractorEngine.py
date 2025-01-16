@@ -128,9 +128,11 @@ class RESTExtractor():
             # Compile and search for the parameter key in the URL path expression
             pattern_string = '\{\$(%s)\}' % key
             var_pattern = re.compile(pattern_string,re.I)
-            matches = re.search(var_pattern, path_expression).groups()
+            # match_groups = []
+            matches = re.search(var_pattern, path_expression)
+            match_groups = matches.groups() if matches else []
 
-            for matched_item in matches:
+            for matched_item in match_groups:
                 # if parameter was matched, sub the expression
                 logger.debug("Matched following item in path: {}".format(matched_item))
                 url_path = re.sub(var_pattern, str(value), url_path)

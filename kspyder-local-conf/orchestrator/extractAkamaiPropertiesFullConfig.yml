@@ -1,0 +1,60 @@
+Steps:
+
+  - Name: ExtractFullRuleTrees
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiFullPropertyDescriptions
+    Params:
+      query_name: GetFullPropertyData
+      query_conf:
+        collection: AkamaiPropertyRules
+        dump_json: true
+        operations:
+          $lookup:
+            from: AkamaiProperties
+            localField: propertyId
+            foreignField: propertyId
+            as: propertyInfo
+          $unset:
+            - _id
+
+  - Name: Save.AkamaiFullPropertyDescriptions
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: AkamaiFullPropertyDescriptions
+    Output: AkamaiFullPropertyDescriptions.InsertionResult
+    Params:
+      collection: AkamaiFullPropertyDescriptions
+      model:
+        name: AkamaiFullPropertyDescriptions
+        index_keys:
+          - propertyId
+
+  - Name: Extract.AkamaiPropertyCheck
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiPropertyCheck
+    Params:
+      query_name: CheckAkamaiPropertyConfig
+      query_conf:
+        collection: AkamaiPropertyRules
+        dump_json: true
+        dump_csv: true
+        operations:
+          # $match:
+          #   version: $propertyInfo.latestVersion
+          $unwind: $behaviors
+          $project:
+            propertyId: 1
+            version: 1
+            # propertyName: $propertyInfo.propertyName
+            # productionVersion: $propertyInfo.productionVersion
+            # stagingVersion: $propertyInfo.stagingVersion
+            name: 1
+            behavior: $behaviors.name
+            origin_hostname: $behaviors.options.hostname
+            cache_key_hostname: $behaviors.options.cacheKeyHostname
+            forward_host_header: $behaviors.options.forwardHostHeader
+          $unset:
+            - _id
+        

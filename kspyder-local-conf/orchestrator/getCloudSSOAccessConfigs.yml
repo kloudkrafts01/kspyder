@@ -1,0 +1,252 @@
+Steps:
+
+  # - Name: GetDirectories
+  #   Worker: aliyunCLIConnector
+  #   Job: get_data
+  #   Output: CloudSSODirectories
+  #   Params:
+  #     model_name: CloudSSODirectories
+  #     last_days: null
+
+  # - Name: GetDirectoryList
+  #   Job: get_unique_key_list
+  #   Input: CloudSSODirectories
+  #   Output: DirectoryIds
+  #   Params:
+  #     key: directory_id
+  #     datapath: data[].DirectoryId
+
+  # - Name: StoreDirectoriesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSODirectories
+  #   Output: CloudSSODirectories.InsertionResult
+  #   Params:
+  #     collection: CloudSSODirectories
+  
+  - Name: ExtractDirectoryIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: DirectoryIds
+    Params:
+      query_name: ExtractDirectoryIds
+      query_conf:
+        collection: CloudSSODirectories
+        operations:
+          $project: 
+            directory_id: $DirectoryId
+          $unset:
+            - _id
+
+  # - Name: GetAccessConfigs
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: DirectoryIds
+  #   Output: CloudSSOAccessConfigurations
+  #   Params:
+  #     model_name: CloudSSOAccessConfigurations
+  
+  # - Name: StoreAccessConfigsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOAccessConfigurations
+  #   Output: CloudSSOAccessConfigurations.InsertionResult
+
+  - Name: ExtractAccessConfigIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AccessConfigIds
+    Params:
+      query_name: ExtractAccessConfigIds
+      query_conf:
+        collection: CloudSSOAccessConfigurations
+        operations:
+          $project: 
+            directory_id: $directory_id
+            access_configuration_id: $AccessConfigurationId
+          $unset:
+            - _id
+  
+  # - Name: GetToMongo.CloudSSOPolicies
+  #   Job: get_data_to_mongo
+  #   Input: AccessConfigIds.data
+  #   Output: CloudSSOPolicies
+  #   Params:
+  #     from_worker: aliyunConnector
+  #     model_name: CloudSSOPolicies
+
+  - Name: GetToMongo.CloudSSOAssignments
+    Job: get_data_to_mongo
+    Input: AccessConfigIds.data
+    Output: CloudSSOAssignments
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOAssignments
+
+  # - Name: GetCloudSSOPolicies
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: AccessConfigIds.data
+  #   Output: CloudSSOPolicies
+  #   Params:
+  #     model_name: CloudSSOPolicies
+
+  # - Name: StoreCloudSSOPoliciesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOPolicies
+  #   Output: CloudSSOPolicies.InsertionResult
+  
+        
+  # - Name: GetGroups
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: DirectoryIds
+  #   Output: CloudSSOGroups
+  #   Params:
+  #     model_name: CloudSSOGroups
+  
+  # - Name: StoreGroupsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOGroups
+  #   Output: CloudSSOGroupsInsertionResult
+
+  # - Name: GetDirectoryGroupIds
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: DirectoryGroupIds
+  #   Params:
+  #     query_name: GetDirectoryGroupIds
+  #     query_conf:
+  #       collection: CloudSSOGroups
+  #       operations:
+  #         $project:
+  #           directory_id: $directory_id
+  #           group_id: $GroupId
+  #         $unset:
+  #           - _id
+
+  # - Name: GetGroupMembers
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: DirectoryGroupIds.data
+  #   Output: CloudSSOGroupMembers
+  #   Params:
+  #     model_name: CloudSSOGroupMembers
+  
+  # - Name: StoreGroupMembersToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOGroupMembers
+  #   Output: CloudSSOGroupMembersInsertionResult
+
+  # - Name: AugmentGroupMembersGroupInfo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: CloudSSOGroupMembersFull
+  #   Params:
+  #     query_name: AugmentGroupMembersGroupInfo
+  #     query_conf:
+  #       save: true
+  #       collection: CloudSSOGroupMembers
+  #       operations:
+  #         $lookup:
+  #           from: CloudSSOGroups
+  #           localField: GroupId
+  #           foreignField: GroupId
+  #           as: GroupInfo
+  #         $unwind: $GroupInfo
+  #         $project:
+  #           GroupId: 1
+  #           GroupName: $GroupInfo.GroupName
+  #           UserId: 1
+  #           UserName: 1
+  #           DisplayName: 1
+  #           JoinTime: 1
+  #           Status: 1
+  #           ProvisionType: 1
+  #         $unset:
+  #           - _id
+  
+  # - Name: SaveBackGMembersToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOGroupMembersFull
+  #   Output: CloudSSOUsersByGroupFullInsertionResult
+  #   Params:
+  #     collection: CloudSSOGroupMembersFull
+  #     model:
+  #       name: CloudSSOGroupMembersFull
+  #       index_keys:
+  #         - UserId
+  #         - GroupId
+
+  # - Name: AugmentGroupMembersUserInfo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: CloudSSOGroupMembersFull
+  #   Params:
+  #     query_name: AugmentGroupMembersUserInfo
+  #     query_conf:
+  #       save: true
+  #       collection: CloudSSOGroupMembersFull
+  #       operations:
+  #         $match:
+  #           $not:
+  #             GroupName:
+  #               $eq: CDC1DG-ALN-AliyunSync
+  #         $lookup:
+  #           from: CloudSSOUsers
+  #           localField: UserId
+  #           foreignField: UserId
+  #           as: UserInfo
+  #         $unwind: $UserInfo
+  #         $project:
+  #           GroupId: 1
+  #           GroupName: 1
+  #           UserId: 1
+  #           UserName: 1
+  #           DisplayName: 1
+  #           JoinTime: 1
+  #           Status: 1
+  #           ProvisionType: 1
+  #           Issuer: $UserInfo.ExternalId.Issuer
+  #           IssuerId: $UserInfo.ExternalId.Id
+  #           UserCreatedTime: $UserInfo.CreateTime
+  #           UserUpdatedTime: $UserInfo.UpdateTime
+  #         $unset:
+  #           - _id
+  
+  # - Name: SaveBackGMembersToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOGroupMembersFull
+  #   Output: CloudSSOUsersByGroupFullInsertionResult
+  #   Params:
+  #     collection: CloudSSOGroupMembersFull
+  #     model:
+  #       name: CloudSSOGroupMembersFull
+  #       index_keys:
+  #         - UserId
+  #         - GroupId
+
+  # - Name: QueryUserInfoWithoutGlobalSyncGroup
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: CloudSSOGroupMembersLean
+  #   Params:
+  #     query_name: QueryUserInfoWithoutGlobalSyncGroup
+  #     query_conf:
+  #       dump_json: true
+  #       dump_csv: true
+  #       collection: CloudSSOGroupMembersFull
+  #       operations:
+  #         $match:
+  #             GroupName:
+  #               $not:
+  #                 $eq: CDC1DG-ALN-AliyunSync
+  #         $unset:
+  #           - _id
+
+  

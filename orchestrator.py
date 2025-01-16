@@ -13,6 +13,7 @@ class documentPipelineEngine:
     def __init__(self,**params):
 
         self.schema = "documentPipelineEngine"
+        self.ch = clientHandler()
 
     def apply_filters(self,input_data=None,filters=None):
 
@@ -53,6 +54,20 @@ class documentPipelineEngine:
 
         return output_data
 
+    def get_data_to_mongo(self,input_data=[{}],from_worker=None,**params):
+        """Shortcut method to get data from a connector and get the output to mongoDB directly
+        This method assumes model_name = collection_name"""
+
+        worker_module = self.ch.get_client(from_worker)
+        full_dataset = worker_module.get_data(input_data=input_data,**params)
+        # model_name = full_dataset['header']['model_name']
+        # model = full_dataset['header']['model']
+
+        mongo_module = self.ch.get_client('mongoDBConnector')
+        insertion_result = mongo_module.upsert_dataset(input_data=full_dataset)
+
+        return full_dataset
+
     def execute_pipeline_from_file(self,filename,input=[]):
 
         pipeline_data = fh.load_yaml(filename, subpath='orchestrator')
@@ -60,7 +75,7 @@ class documentPipelineEngine:
 
     def execute_pipeline(self,pipeline,input=[]):
 
-        ch = clientHandler()
+        # ch = clientHandler()
         datasets = {}
 
         for step in pipeline['Steps']:
@@ -77,7 +92,7 @@ class documentPipelineEngine:
             
             # If no Worker name is given in the Step definition,
             # It is assumed that the job is one of documentPipelineEngine's own methods
-            worker_module = ch.get_client(step['Worker']) if 'Worker' in step.keys() else self
+            worker_module = self.ch.get_client(step['Worker']) if 'Worker' in step.keys() else self
             job_instance = getattr(worker_module,job_name)
             logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
 

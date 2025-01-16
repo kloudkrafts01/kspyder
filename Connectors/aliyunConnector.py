@@ -198,6 +198,6 @@ class aliyunConnector(RESTExtractor):
         is_truncated_key = response_is_truncated_key in response_dict.keys()
 
         is_truncated = response_dict[response_is_truncated_key] if is_truncated_key else is_next_token
-        # logger.debug("Is response truncated ? {}".format(is_truncated))
+        logger.debug("Is response truncated ? {}".format(is_truncated))
 
         return results, is_truncated, next_token
