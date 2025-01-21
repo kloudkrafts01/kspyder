@@ -151,7 +151,9 @@ Models:
         accepted_inputs:
             - directory_id
         index_keys:
-            - AccessAssignmentId
+            - AccessConfigurationId
+            - PrincipalId
+            - TargetId
 
 # ================ ACK Kubernetes Models ==================
 
