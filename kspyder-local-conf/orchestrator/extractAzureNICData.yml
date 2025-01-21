@@ -1,0 +1,66 @@
+Steps:
+
+  - Name: GetNics
+    Job: get_data_to_mongo
+    Output: AzNics
+    Params:
+      from_worker: azureRGraphConnector
+      model_name: NetworkInterfaces
+
+  - Name: ExtractNICdata
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AzureNicIPConfigs
+    Params:
+      query_name: AzureNicIPConfigs
+      query_conf:
+        collection: NetworkInterfaces
+        dump_csv: true
+        dump_json: true
+        operations:
+          $unwind: $properties.ipConfigurations
+          $project:
+            environment: $tags.environment
+            name: 1
+            location: 1
+            subscriptionId: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.ipConfigurations.id
+                  - "/"
+                - 2
+            resourceGroup: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.ipConfigurations.id
+                  - "/"
+                - 4
+            privateIP: $properties.ipConfigurations.properties.privateIPAddress
+            vnet: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.ipConfigurations.properties.subnet.id
+                  - "/"
+                - -3
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.ipConfigurations.properties.subnet.id
+                  - "/"
+                - -1
+            publicIP: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.ipConfigurations.properties.publicIPAddress.id
+                  - "/"
+                - -1
+            sku: $properties.nicType
+            vmId: $properties.virtualMachine.id
+            vmName: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.virtualMachine.id
+                  - "/"
+                - -1
+          $unset:
+            - _id
