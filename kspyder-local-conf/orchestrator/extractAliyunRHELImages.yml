@@ -1,0 +1,36 @@
+Steps:
+
+  - Name: ExtractRHELImages
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AliyunECS_RHELImages
+    Params:
+      query_name: ExtractRHELImages
+      query_conf:
+        collection: ECSImages
+        dump_csv: true
+        dump_json: true
+        operations:
+          $match:
+            ImageOwnerAlias: marketplace
+            Platform:
+              $regex: "^(Red Hat)"
+          $project:
+            ImageId: $ImageId
+            Name: $ImageName
+            Description: $Description
+            Version: $ImageVersion
+            ProductCode: $ProductCode
+            Family: $ImageFamily
+            OSType: $OSType
+            OSName: $OSName
+            OSNameEn: $OSNameEn
+            Platform: $Platform
+            Arch: $Architecture
+            BootMode: $BootMode
+            IsPublic: $IsPublic
+            cloudInit: $IsSupportCloudInit
+            IsSupportIoOptimized: $IsSupportIoOptimized
+            LoginAsNonRootSupported: $LoginAsNonRootSupported
+          $unset:
+            - _id
