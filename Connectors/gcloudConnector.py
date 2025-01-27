@@ -71,7 +71,6 @@ class gcloudConnector(RESTExtractor):
             data = {}
         return data
 
-        # return proto.Message.to_dict(item)
     
     def discover_data(self, model_name=None, input_data=None, **params):
         

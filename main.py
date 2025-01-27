@@ -25,7 +25,8 @@ fetch_all = None
 action = None
 scopes = None
 search_domain = None
-query_domain = None
+# query_domain = None
+input_data = [{}]
 
 params = {}
 
@@ -121,12 +122,19 @@ def manage_db():
     result = db_actions.main(params)
     return result
 
+class KwargsParse(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, dict())
+        for value in values:
+            key, value = value.split('=')
+            getattr(namespace, self.dest)[key] = value
+
 
 if __name__ == "__main__":
 
 
     # Define Arg Parser
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='kspyder')
     parser.add_argument('operation',action='store',type=str)
     parser.add_argument('-s','--source',action='store',type=str,dest=source)
     parser.add_argument('-k','--scopes',action='store',type=str,nargs='+',dest=scopes)
@@ -136,7 +144,8 @@ if __name__ == "__main__":
     parser.add_argument('-a','--all',action='store_true',dest=fetch_all,default=False)
     parser.add_argument('-x','--action',action='store',type=str,dest=action)
     parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
-    parser.add_argument('-q','--querydomain',action='store',type=str,nargs=1,dest=query_domain)
+    # parser.add_argument('-q','--querydomain',action='store',type=str,nargs=1,dest=query_domain)
+    parser.add_argument('-i', '--inputs', action=KwargsParse, nargs='*')
     
 
     args = parser.parse_args()
@@ -149,17 +158,19 @@ if __name__ == "__main__":
     action = args.action
     scopes = args.scopes
     search_domain = args.searchdomain
-    query_domain = args.querydomain
+    # query_domain = args.querydomain
+    input_data = [args.inputs]
     
     params = {
         'trigger': 'cli',
         'last_days': (None if fetch_all else last_days),
         'models': models,
         'search_domain': search_domain,
-        'query_domain': query_domain,
+        # 'query_domain': query_domain,
         'source': source,
         'action': action,
-        'scopes': scopes
+        'scopes': scopes,
+        'input_data': input_data
     }
 
     print(params)
