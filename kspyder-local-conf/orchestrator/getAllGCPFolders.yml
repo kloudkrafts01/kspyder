@@ -5,7 +5,7 @@ Steps:
     Job: get_data
     Output: GCPOrganizationData
     Params:
-      model_name: Organizations
+      model_name: GCloudOrganizations
 
   - Name: DiscoverAllFolders
     Worker: gcloudConnector
@@ -13,12 +13,11 @@ Steps:
     Output: GCPFolders
     Input: GCPOrganizationData.data
     Params:
-      model_name: Folders
+      model_name: GCloudFolders
 
   - Name: StoreFoldersToMongo
     Worker: mongoDBConnector
     Job: upsert_dataset
     Input: GCPFolders
     Output: GCPFoldersInsertionResult
-    Params:
-      collection: GCPFolders
+  

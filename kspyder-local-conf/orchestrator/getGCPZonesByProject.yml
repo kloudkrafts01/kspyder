@@ -7,7 +7,7 @@ Steps:
     Params:
       query_name: GetProjectIds
       query_conf:
-        collection: GCPProjects
+        collection: GCloudProjects
         operations:
           $set:
             region: europe-west4

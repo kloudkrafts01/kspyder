@@ -10,6 +10,10 @@ APIs:
         name: resourcemanager_v3
         update_field: update_time
 
+    ServiceUsage:
+        name: service_usage_v1 
+        update_field: update_time
+
     GKE:
         name: container
         update_field: update_time
@@ -42,6 +46,30 @@ Models:
         accepted_inputs:
             - project
             - zone
+        index_keys:
+            - id
+            - name
+
+    ComputeOSImages:
+        API: compute_v1
+        client_name: ImagesClient
+        request_builder: ListImagesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+
+    ComputeMachineTypes:
+        API: compute_v1
+        client_name: MachineTypesClient
+        request_builder: ListMachineTypesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
 
     GKEClusters:
         API: GKE
@@ -65,7 +93,7 @@ Models:
 
 # =================== Resource Management Models ======================
     
-    Organizations:
+    GCloudOrganizations:
         API: resourcemanager
         client_name: OrganizationsClient
         request_builder: SearchOrganizationsRequest
@@ -76,7 +104,7 @@ Models:
             - name
             - display_name
 
-    Folders:
+    GCloudFolders:
         API: resourcemanager
         client_name: FoldersClient
         request_builder: ListFoldersRequest
@@ -88,7 +116,7 @@ Models:
         index_keys:
             - name
 
-    Projects:
+    GCloudProjects:
         API: resourcemanager
         client_name: ProjectsClient
         request_builder: ListProjectsRequest
@@ -110,9 +138,40 @@ Models:
             - resource
         iterable: false
 
+    GCPServices:
+        API: ServiceUsage
+        client_name: ServiceUsageClient
+        request_builder: ListServicesRequest
+        query_name: list_services
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
 # =================== Cloud Network Models ======================
 
-    VPCs:
+    GCloudVPCs:
+        API: compute_v1
+        client_name: NetworksClient
+        request_builder: ListNetworksRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - name
+    
+    GCloudSubnets:
+        API: compute_v1
+        client_name: SubnetworksClient
+        request_builder: ListSubnetworksRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - name
+    
+    GCloudVPCAccess:
         API: VPC
         client_name: VpcAccessServiceClient
         request_builder: ListConnectorsRequest

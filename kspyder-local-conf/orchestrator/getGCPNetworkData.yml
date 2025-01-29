@@ -1,0 +1,44 @@
+Steps:
+
+  - Name: GetProjectIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectIds
+    Params:
+      query_name: GetProjectIds
+      query_conf:
+        collection: GCPProjects
+        operations:
+          $project:
+            project: $project_id
+          $unset:
+            - _id
+
+  # - Name: BuildParentURIs
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: ProjectParentURIs
+  #   Params:
+  #     query_name: BuildParentURIs
+  #     query_conf:
+  #       collection: GCPProjects
+  #       operations:
+  #         $set:
+  #           parent: 
+  #             $replaceOne:
+  #               input: "/projects/{project_id}/global/networks"
+  #               find: "{project_id}"
+  #               replacement: $project_id
+  #         $project:
+  #           parent: 1
+  #         $unset:
+  #           - _id
+
+  - Name: GetToMongo.GCloudVPCs
+    Job: get_data_to_mongo
+    Input: GCPProjectIds.data
+    Output: GCloudVPCs
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudVPCs
+    

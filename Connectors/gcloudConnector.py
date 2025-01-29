@@ -1,6 +1,7 @@
 from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
+import time
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 
 from common.config import BASE_FILE_HANDLER as fh
@@ -131,6 +132,8 @@ class gcloudConnector(RESTExtractor):
                 logger.debug("post-processed item: {}".format(data))
                 total_count += 1
                 output_docs += data,
+
+                time.sleep(1.5)
         
         else:
             data = self.postprocess_item(response)

@@ -196,7 +196,7 @@ class aliyunConnector(RESTExtractor):
         is_next_token = next_token != ''
         # logger.debug("Is Next Token ? {}".format(is_next_token))
         is_truncated_key = response_is_truncated_key in response_dict.keys()
-
+        # determine whether pagination should continue : if response explicitly tells so, relay the info. If not, see if a "next" token exists
         is_truncated = response_dict[response_is_truncated_key] if is_truncated_key else is_next_token
         logger.debug("Is response truncated ? {}".format(is_truncated))
 

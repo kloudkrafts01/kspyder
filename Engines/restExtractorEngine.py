@@ -76,7 +76,9 @@ class ElementGraph():
             # When all children are added to queue, complete element and store it to graph
             element['children'] = child_count
             element['described'] = True
+            element['is_leaf'] = False
             if child_count == 0:
+                element['is_leaf'] = True
                 logger.debug("Element {} is a Leaf.".format(element[self.node_key]))
 
             self.add_node(element)
