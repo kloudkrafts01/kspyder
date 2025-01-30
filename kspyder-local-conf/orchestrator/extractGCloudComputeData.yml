@@ -1,0 +1,210 @@
+Variables:
+
+  - Name: filter_regex
+    Description: "Regex for filtering over GCP project Ids"
+
+  - Name: collection_name
+    Description: "Base name for the filtered Compute Instances collection"
+
+Steps:
+
+  # ============= Save and extract raw Instances data ================
+
+  - Name: Get.ComputeInstancesData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: FilteredComputeInstances
+    Params:
+      query_name: Get.ComputeInstancesData
+      query_conf:
+        collection: ComputeInstances
+        operations:
+          $match:
+            project:
+              $regex: "{{filter_regex}}"
+          $unset:
+            - _id
+
+  - Name: Save.SAPComputeInstancesData
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: FilteredComputeInstances
+    Output: FilteredComputeInstancesInsertionResult
+    Params:
+      model:
+        name: "{{collection_name}}" 
+        index_keys:
+          - id
+
+  - Name: Extract.FilteredComputeInstancesData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: FilteredComputeInstancesData
+    Params:
+      query_name: Extract.SAPComputeInstancesData
+      query_conf:
+        dump_csv: true
+        dump_json: true
+        collection: "{{collection_name}}"
+        operations:
+          $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+
+  # ============= Expand, save, extract Instance NIC data ================
+
+  - Name: Extend.FilteredComputeInstances.Nics
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ComputeInstancesNics
+    Params:
+      query_name: Extend.FilteredComputeInstances.Nics
+      query_conf:
+        collection: "{{collection_name}}"
+        operations:
+          $unwind: $network_interfaces
+          $unset:
+            - _id
+
+  - Name: Save.FilteredComputeInstances.Nics
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: ComputeInstancesNics
+    Output: ComputeInstancesNicsInsertionResult
+    Params:
+      model:
+        name: ComputeInstancesNics 
+        index_keys:
+          - id
+          - network_interfaces.name
+
+  - Name: Extend.FilteredComputeInstances.NicAliases
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ComputeInstancesNicAliases
+    Params:
+      query_name: Extend.SAPComputeInstancesData.NicAliases
+      query_conf:
+        collection: ComputeInstancesNics
+        dump_json: true
+        operations:
+          $unwind: $network_interfaces.alias_ip_ranges
+          $unset:
+            - _id
+
+  - Name: Save.FilteredComputeInstances.NicAliases
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: ComputeInstancesNicAliases
+    Output: ComputeInstancesNicAliasesInsertionResult
+    Params:
+      model:
+        name: ComputeInstancesNetworkData
+        index_keys:
+          - id
+          - network_interfaces.name
+          - network_interfaces.alias_ip_ranges
+
+  - Name: Extract.ComputeInstancesNetworkData.Network
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ComputeInstancesNetworkData
+    Params:
+      query_name: Extract.ComputeInstancesNetworkData.Network
+      query_conf:
+        dump_csv: true
+        dump_json: false
+        collection: ComputeInstancesNetworkData
+        operations:
+          $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            nic: $network_interfaces.name
+            vpc: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.network
+                  - "/"
+                - -1
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.subnetwork
+                  - "/"
+                - -1
+            ip_address: $network_interfaces.network_i_p
+            ip_alias: $network_interfaces.alias_ip_ranges.ip_cidr_range
+
+  # ============= Expand, save, extract Instance Disks data ================
+
+  - Name: Extend.FilteredComputeInstances.Disks
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ComputeInstancesDisks
+    Params:
+      query_name: Extend.FilteredComputeInstances.Disks
+      query_conf:
+        collection: "{{collection_name}}"
+        operations:
+          $unwind: $disks
+          $unset:
+            - _id
+
+  - Name: Save.ComputeInstancesDisks
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: ComputeInstancesDisks
+    Output: ComputeInstancesDisksInsertionResult
+    Params:
+      model:
+        name: ComputeInstancesDisks 
+        index_keys:
+          - id
+          - disks.device_name
+
+  - Name: Extract.ComputeInstancesDisksData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ComputeInstancesDisksData
+    Params:
+      query_name: Extract.ComputeInstancesDisksData
+      query_conf:
+        dump_csv: true
+        dump_json: true
+        collection: ComputeInstancesDisks
+        operations:
+          $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            disk_name: $disks.device_name
+            boot_disk: $disks.boot
+            disk_number: $disks.index
+            disk_arch: $disks.architecture
+            disk_size: $disks.disk_size_gb
