@@ -6,10 +6,10 @@ Steps:
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: SAPComputeInstances
-    DumpJSON: true
+    DumpJSON: false
     DumpCSV: false
     Params:
-      # save_to: SAPComputeInstances
+      save_to: SAPComputeInstances
       collection_name: ComputeInstances
       pipeline:
         - $match:
@@ -18,29 +18,15 @@ Steps:
         - $unset:
           - _id
 
-  # - Name: Save.SAPComputeInstancesData
-  #   Worker: mongoDBConnector
-  #   Job: upsert_dataset
-  #   Input: SAPComputeInstances
-  #   Output: SAPComputeInstancesInsertionResults
-  #   Params:
-  #     model:
-  #       name: SAPComputeInstances 
-  #       index_keys:
-  #         - id
-
   # - Name: Extract.SAPComputeInstancesData
   #   Worker: mongoDBConnector
-  #   Job: execute_query
+  #   Job: aggregate_data
   #   Output: SAPComputeInstancesData
+  #   DumpCSV: true
   #   Params:
-  #     query_name: Extract.SAPComputeInstancesData
-  #     query_conf:
-  #       dump_csv: true
-  #       dump_json: true
-  #       collection: SAPComputeInstances
-  #       operations:
-  #         $project:
+  #     collection_name: SAPComputeInstances
+  #     pipeline:
+  #       - $project:
   #           project: 1
   #           id: 1
   #           name: 1
@@ -55,136 +41,50 @@ Steps:
 
   # ============= Expand, save, extract Instance NIC data ================
 
-  # - Name: Extend.SAPComputeInstancesData.Nics
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: SAPComputeExtendedNics
-  #   Params:
-  #     query_name: Extend.SAPComputeInstancesData.Nics
-  #     query_conf:
-  #       collection: SAPComputeInstances
-  #       operations:
-  #         $unwind: $network_interfaces
-  #         $unset:
-  #           - _id
-
-  # - Name: Save.ExtendedSAPData.Nics
-  #   Worker: mongoDBConnector
-  #   Job: upsert_dataset
-  #   Input: SAPComputeExtendedNics
-  #   Output: SAPComputeExtendedNicsInsertionResults
-  #   Params:
-  #     model:
-  #       name: SAPComputeInstances 
-  #       index_keys:
-  #         - id
-  #         - network_interfaces.name
-
-  # - Name: Extend.SAPComputeInstancesData.NicAliases
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: SAPComputeExtendedNicAliases
-  #   Params:
-  #     query_name: Extend.SAPComputeInstancesData.NicAliases
-  #     query_conf:
-  #       collection: SAPComputeNetworkData
-  #       dump_json: true
-  #       operations:
-  #         $unwind: $network_interfaces.alias_ip_ranges
-  #         $unset:
-  #           - _id
-
-  # - Name: Save.ExtendedSAPData.NicAliases
-  #   Worker: mongoDBConnector
-  #   Job: upsert_dataset
-  #   Input: SAPComputeExtendedNicAliases
-  #   Output: SAPComputeExtendedNicsInsertionResults
-  #   Params:
-  #     model:
-  #       name: SAPComputeNetworkData 
-  #       index_keys:
-  #         - id
-  #         - network_interfaces.name
-  #         - network_interfaces.alias_ip_ranges
-
-
-  # - Name: Extract.SAPComputeInstancesData
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: SAPComputeExtendedNicAliases
-  #   Params:
-  #     query_name: Extract.SAPComputeInstancesData
-  #     query_conf:
-  #       dump_csv: true
-  #       dump_json: false
-  #       collection: SAPComputeInstances
-  #       operations:
-  #         $project:
-  #           project: 1
-  #           id: 1
-  #           name: 1
-  #           status: 1
-  #           created: $creation_timestamp
-  #           machine_type:
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $machine_type
-  #                 - "/"
-  #               - -1
-  #           nic: $network_interfaces.name
-  #           vpc: 
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $network_interfaces.network
-  #                 - "/"
-  #               - -1
-  #           subnet: 
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $network_interfaces.subnetwork
-  #                 - "/"
-  #               - -1
-  #           ip_address: $network_interfaces.network_i_p
-
-  # - Name: Extract.SAPComputeInstancesData.Network
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: SAPComputeExtendedNicAliases
-  #   Params:
-  #     query_name: Extract.SAPComputeInstancesData.Network
-  #     query_conf:
-  #       dump_csv: true
-  #       dump_json: false
-  #       collection: SAPComputeNetworkData
-  #       operations:
-  #         $project:
-  #           project: 1
-  #           id: 1
-  #           name: 1
-  #           status: 1
-  #           created: $creation_timestamp
-  #           machine_type:
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $machine_type
-  #                 - "/"
-  #               - -1
-  #           nic: $network_interfaces.name
-  #           vpc: 
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $network_interfaces.network
-  #                 - "/"
-  #               - -1
-  #           subnet: 
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $network_interfaces.subnetwork
-  #                 - "/"
-  #               - -1
-  #           ip_address: $network_interfaces.network_i_p
-  #           ip_alias: $network_interfaces.alias_ip_ranges.ip_cidr_range
-
+  - Name: Extend.SAPComputeInstancesData.Nics
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SAPComputeExtendedNics
+    DumpCSV: false
+    Params:
+      save_to: SAPComputeInstancesNetworkData
+      collection_name: SAPComputeInstances
+      pipeline:
+        - $unwind: $network_interfaces
+        # - $unwind: $network_interfaces.alias_ip_ranges
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            nic: $network_interfaces.name
+            vpc: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.network
+                  - "/"
+                - -1
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.subnetwork
+                  - "/"
+                - -1
+            ip_address: $network_interfaces.network_i_p
+            ip_alias: $network_interfaces.alias_ip_ranges.ip_cidr_range
+              # $arrayElemAt:
+              #   - $split:
+              #     - $network_interfaces.alias_ip_ranges.ip_cidr_range
+              #     - "/"
+              #   - 0
+              
   # # ============= Expand, save, extract Instance Disks data ================
 
   # - Name: Extend.SAPComputeInstancesData.Disks
@@ -212,31 +112,21 @@ Steps:
   #         - id
   #         - disks.device_name
 
-  # - Name: Extract.SAPComputeInstancesData.Disks
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: SAPComputeInstancesDiskData
-  #   Params:
-  #     query_name: Extract.SAPComputeInstancesData.Disks
-  #     query_conf:
-  #       dump_csv: true
-  #       dump_json: true
-  #       collection: SAPComputeDiskData
-  #       operations:
-  #         $project:
-  #           project: 1
-  #           id: 1
-  #           name: 1
-  #           status: 1
-  #           created: $creation_timestamp
-  #           machine_type:
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $machine_type
-  #                 - "/"
-  #               - -1
-  #           disk_name: $disks.device_name
-  #           boot_disk: $disks.boot
-  #           disk_number: $disks.index
-  #           disk_arch: $disks.architecture
-  #           disk_size: $disks.disk_size_gb
+  - Name: Extract.SAPComputeInstancesDisks
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SAPComputeInstancesDiskData
+    Params:
+        save_to: SAPComputeInstancesDisks
+        collection_name: SAPComputeInstances
+        pipeline:
+          - $unwind: $disks
+          - $project:
+              project: 1
+              id: 1
+              name: 1
+              disk_name: $disks.device_name
+              boot_disk: $disks.boot
+              disk_number: $disks.index
+              disk_arch: $disks.architecture
+              disk_size: $disks.disk_size_gb

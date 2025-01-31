@@ -90,7 +90,8 @@ class documentPipelineEngine:
             
             # If no Worker name is given in the Step definition,
             # It is assumed that the job is one of documentPipelineEngine's own methods
-            worker_module = self.ch.get_client(step['Worker']) if 'Worker' in step.keys() else self
+            step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
+            worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
             job_instance = getattr(worker_module,job_name)
             logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
 
@@ -113,10 +114,10 @@ class documentPipelineEngine:
 
             if results_count > 0:
                 if dump_csv:
-                    result_dataset = fh.dump_csv(result,step_input_name,step_output_name)
+                    result_dataset = fh.dump_csv(result,step['Worker'],step_output_name)
 
                 if dump_json:
-                    result_dataset = fh.dump_json(result,step_input_name,step_output_name)
+                    result_dataset = fh.dump_json(result,step['Worker'],step_output_name)
 
 
 if __name__ == "__main__":

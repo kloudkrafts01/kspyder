@@ -2,63 +2,27 @@ Steps:
 
   - Name: AugmentGroupMembersGroupInfo
     Worker: mongoDBConnector
-    Job: execute_query
-    Output: CloudSSOGroupMembersFull
+    Job: aggregate_data
+    Output: CloudSSOUserGroupsData
     Params:
-      query_name: AugmentGroupMembersGroupInfo
-      query_conf:
-        save: true
-        collection: CloudSSOGroupMembers
-        operations:
-          $lookup:
+      save_to: CloudSSOUserGroupsData
+      collection_name: CloudSSOGroupMembers
+      pipeline:
+        - $lookup:
             from: CloudSSOGroups
             localField: GroupId
             foreignField: GroupId
             as: GroupInfo
-          $unwind: $GroupInfo
-          $project:
-            GroupId: 1
-            GroupName: $GroupInfo.GroupName
-            UserId: 1
-            UserName: 1
-            DisplayName: 1
-            JoinTime: 1
-            Status: 1
-            ProvisionType: 1
-          $unset:
-            - _id
-  
-  - Name: SaveBackGMembersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroupMembersFull
-    Output: CloudSSOUsersByGroupFullInsertionResult
-    Params:
-      collection: CloudSSOGroupMembersFull
-      model:
-        name: CloudSSOGroupMembersFull
-        index_keys:
-          - UserId
-          - GroupId
-
-  - Name: AugmentGroupMembersUserInfo
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: CloudSSOGroupMembersFull
-    Params:
-      query_name: AugmentGroupMembersUserInfo
-      query_conf:
-        collection: CloudSSOGroupMembersFull
-        operations:
-          $lookup:
+        - $unwind: $GroupInfo
+        - $lookup:
             from: CloudSSOUsers
             localField: UserId
             foreignField: UserId
             as: UserInfo
-          $unwind: $UserInfo
-          $project:
+        - $unwind: $UserInfo
+        - $project:
             GroupId: 1
-            GroupName: 1
+            GroupName: $GroupInfo.GroupName
             UserId: 1
             UserName: 1
             DisplayName: 1
@@ -69,38 +33,19 @@ Steps:
             IssuerId: $UserInfo.ExternalId.Id
             UserCreatedTime: $UserInfo.CreateTime
             UserUpdatedTime: $UserInfo.UpdateTime
-          $unset:
-            - _id
-  
-  - Name: SaveBackGMembersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroupMembersFull
-    Output: CloudSSOUsersByGroupFullInsertionResult
-    Params:
-      collection: CloudSSOGroupMembersFull
-      model:
-        name: CloudSSOGroupMembersFull
-        index_keys:
-          - UserId
-          - GroupId
 
   - Name: QueryUserInfoWithoutGlobalSyncGroup
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: CloudSSOGroupMembersLean
+    DumpJSON: false
+    DumpCSV: true
     Params:
-      query_name: QueryUserInfoWithoutGlobalSyncGroup
-      query_conf:
-        dump_json: true
-        dump_csv: true
-        collection: CloudSSOGroupMembersFull
-        operations:
-          $match:
-              GroupName:
-                $not:
-                  $eq: CDC1DG-ALN-AliyunSync
-          $unset:
-            - _id
+      collection_name: CloudSSOUserGroupsData
+      pipeline:
+        - $match:
+            GroupName:
+              $not:
+                $eq: CDC1DG-ALN-AliyunSync
 
-  
+

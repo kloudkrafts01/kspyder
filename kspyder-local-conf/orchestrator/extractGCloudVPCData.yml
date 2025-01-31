@@ -1,18 +1,26 @@
 Steps:
 
-  - Name: Extract.SubnetSecondaryRanges
+# ============ Flatten IP Ranges data for Subnets ==============
+
+  - Name: GCP.SubnetData
     Worker: mongoDBConnector
-    Job: execute_query
-    Output: SubnetSecondaryRanges
+    Job: aggregate_data
+    Output: GCloudSubnetData
+    DumpCSV: true
     Params:
-      query_name: Extract.SubnetSecondaryRanges
-      query_conf:
-        collection: GCloudSubnets
-        dump_json: false
-        dump_csv: true
-        operations:
-          $unwind: $secondary_ip_ranges
-          $project:
+      save_to: GCloudSubnetData
+      collection_name: GCloudSubnets
+      pipeline:
+        - $set: 
+            ip_cidr_type: primary
+        - $unionWith:
+            coll: GCloudSubnets
+            pipeline:
+              - $unwind: $secondary_ip_ranges
+              - $set:
+                  ip_cidr_range: $secondary_ip_ranges.ip_cidr_range
+                  ip_cidr_type: secondary
+        - $project:
             project: 1
             id: 1
             vpc:
@@ -22,74 +30,62 @@ Steps:
                   - "/"
                 - -1
             name: 1
-            primary_cidr: $ip_cidr_range
-            secondary_cidr: $secondary_ip_ranges.ip_cidr_range
+            ip_cidr_range: 1
+            ip_cidr_type: 1
             private_ip_google_access: 1
             enable_flow_logs: 1
             purpose: 1
-          $unset:
-            - _id
+        - $sort:
+            name: 1
+            ip_cidr_type: 1
+  
+# ============ Get VPC Peerings Data ==============
 
-  - Name: Extract.SubnetData
+  - Name: Extract.VPCPeerings
     Worker: mongoDBConnector
-    Job: execute_query
-    Output: SubnetData
+    Job: aggregate_data
+    Output: GCloudVPCPeerings
     Params:
-      query_name: Extract.SubnetData
-      query_conf:
-        collection: GCloudSubnets
-        dump_json: true
-        dump_csv: true
-        operations:
-          $project:
-            project: 1
-            id: 1
-            vpc:
+      save_to: GCloudVPCPeerings
+      collection_name: GCloudVPCs
+      pipeline:
+        - $unwind: $peerings
+        - $set:
+            peer: 
               $arrayElemAt:
                 - $split:
-                  - $network
+                  - $peerings.network
                   - "/"
                 - -1
+        - $lookup:
+            from: GCloudVPCs
+            localField: peer
+            foreignField: name
+            as: peer_info
+        - $set:
+            peer_id: $peer_info.id
+        - $unwind: $peer_id
+        - $project:
+            project: 1
+            id: 1
             name: 1
-            primary_cidr: $ip_cidr_range
-            secondary_ip_ranges: 1
-            private_ip_google_access: 1
-            enable_flow_logs: 1
-            purpose: 1
-          $unset:
-            - _id
-
-
-  # - Name: Extract.VPCPeerings
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: VPCPeerings
-  #   Params:
-  #     query_name: Extract.VPCPeerings
-  #     query_conf:
-  #       collection: GCloudVPCs
-  #       dump_json: false
-  #       dump_csv: true
-  #       operations:
-  #         $unwind: $peerings
-  #         $project:
-  #           project: 1
-  #           id: 1
-  #           name: 1
-  #           routing_mode: $routing_config.routing.mode
-  #           peering: $peerings.name
-  #           peer: 
-  #             $arrayElemAt:
-  #               - $split:
-  #                 - $peerings.network
-  #                 - "/"
-  #               - -1
-  #           peering_state: $peerings.state
-  #           peering_exchange_subnet_routes: $peerings.exchange_subnet_routes
-  #           peering_import_custom_routes: $peerings.import_custom_routes
-  #           peering_export_custom_routes: $peerings.export_custom_routes
-  #           peering_auto_create_routes: $peerings.auto_create_routes
-  #           peering_import_subnet_routes_with_public_ip: $peerings.import_subnet_routes_with_public_ip
-  #           peering_export_subnet_routes_with_public_ip: $peerings.export_subnet_routes_with_public_ip
-  #         $unset:
-  #           - _id
+            routing_mode: $routing_config.routing.mode
+            peering: $peerings.name
+            pair_id:
+              $sum:
+                - $convert:
+                    input: $id
+                    to: double
+                - $convert:
+                    input: $peer_id
+                    to: double
+            peer: 1
+            peering_state: $peerings.state
+            peering_exchange_subnet_routes: $peerings.exchange_subnet_routes
+            peering_import_custom_routes: $peerings.import_custom_routes
+            peering_export_custom_routes: $peerings.export_custom_routes
+            peering_auto_create_routes: $peerings.auto_create_routes
+            peering_import_subnet_routes_with_public_ip: $peerings.import_subnet_routes_with_public_ip
+            peering_export_subnet_routes_with_public_ip: $peerings.export_subnet_routes_with_public_ip
+        - $sort:
+            pair_id: 1
