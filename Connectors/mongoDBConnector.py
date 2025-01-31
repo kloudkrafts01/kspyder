@@ -1,5 +1,6 @@
 import json, jmespath
-from pymongo import MongoClient
+from pymongo import MongoClient,errors
+import datetime
 
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
@@ -146,7 +147,7 @@ class mongoDBConnector():
         logger.info("Executing mongo Query on Collection {}: {}".format(collection_name,queryPipeline))
 
         results = collection.aggregate(queryPipeline)
-        results_list = list(results)
+        results_list = results.to_list()
         results_count = len(results_list)
 
         logger.info("Query returned {} items.".format(results_count))
@@ -176,6 +177,75 @@ class mongoDBConnector():
                 result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
         return result_dataset
+
+    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None):
+        
+        count = 0
+        results_list = []
+
+        if save_to:
+            view, count = self.create_view(
+                name = save_to,
+                collection_name = collection_name,
+                pipeline = pipeline,
+                overwrite = True
+                )
+
+            results = view.find()
+            results_list = results.to_list()
+        
+        else:
+            collection = self.db[collection_name]
+
+            logger.info("Executing aggregation on Collection {}: {}".format(collection_name,pipeline))
+
+            results = collection.aggregate(pipeline)
+            results_list = results.to_list()
+            count = len(results_list)
+
+            logger.info("Query returned {} items.".format(count))
+
+        result_dataset = {
+            "header": {
+                "schema": APP_NAME,
+                "view": save_to,
+                "collection": collection_name,
+                "pipeline": pipeline,
+                "count": count,
+            },
+            "data": results_list
+        }
+
+        return result_dataset
+
+    def create_view(self,name=None,collection_name=None,pipeline=None,overwrite=False):
+
+        now = datetime.datetime.now()
+        count = 0
+        logger.info("Creating view {} from collection : {}".format(name,collection_name))
+        logger.debug("pipeline definition: \n {}".format(pipeline))
+
+        try:
+            view = self.db.create_collection(name, viewOn=collection_name, pipeline=pipeline)
+            count = view.estimated_document_count()
+
+        except errors.CollectionInvalid:
+            
+            if overwrite:
+                logger.info("Collection already exists: {}. Overwriting.".format(name))
+                existing_collection = self.db[name]
+                existing_collection.drop()
+                view = self.db.create_collection(name, viewOn=collection_name, pipeline=pipeline)
+                count = view.estimated_document_count()
+
+            else:
+                logger.info("Collection already exists: {}. NOT Overwriting.".format(name))
+                view = self.db[name]
+                count = view.estimated_document_count()
+
+        logger.info("Collection {} has {} documents.".format(name,count))
+
+        return view, count
 
 def build_mongo_query(query_conf):
 

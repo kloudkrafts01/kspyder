@@ -60,8 +60,6 @@ class documentPipelineEngine:
 
         worker_module = self.ch.get_client(from_worker)
         full_dataset = worker_module.get_data(input_data=input_data,**params)
-        # model_name = full_dataset['header']['model_name']
-        # model = full_dataset['header']['model']
 
         mongo_module = self.ch.get_client('mongoDBConnector')
         insertion_result = mongo_module.upsert_dataset(input_data=full_dataset)
@@ -106,6 +104,19 @@ class documentPipelineEngine:
             logger.debug("Inserting result set {} in the pile.".format(step_output_name))
             datasets[step_output_name] = result
             logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
+
+            # If the step conf specifies the result needs to be dumped into csv or json, proceed.
+            # Order is important : csv first, then json
+            dump_json = step['DumpJSON'] if 'DumpJSON' in step.keys() else None
+            dump_csv = step['DumpCSV'] if 'DumpCSV' in step.keys() else None
+            results_count = result['header']['count']
+
+            if results_count > 0:
+                if dump_csv:
+                    result_dataset = fh.dump_csv(result,step_input_name,step_output_name)
+
+                if dump_json:
+                    result_dataset = fh.dump_json(result,step_input_name,step_output_name)
 
 
 if __name__ == "__main__":
