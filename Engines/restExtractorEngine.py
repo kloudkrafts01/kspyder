@@ -76,7 +76,9 @@ class ElementGraph():
             # When all children are added to queue, complete element and store it to graph
             element['children'] = child_count
             element['described'] = True
+            element['is_leaf'] = False
             if child_count == 0:
+                element['is_leaf'] = True
                 logger.debug("Element {} is a Leaf.".format(element[self.node_key]))
 
             self.add_node(element)
@@ -102,6 +104,32 @@ class RESTExtractor():
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
 
+    def build_url_path(self,path_expression,valid_params={}):
+        
+        url_path = path_expression
+        params_to_pop = []
+
+        for key,value in valid_params.items():
+            
+            # Compile and search for the parameter key in the URL path expression
+            pattern_string = '\{\$(%s)\}' % key
+            var_pattern = re.compile(pattern_string,re.I)
+            matches = re.search(var_pattern, path_expression)
+            match_groups = matches.groups() if matches else []
+
+            for matched_item in match_groups:
+                # if parameter was matched, sub the expression
+                logger.debug("Matched following item in path: {}".format(matched_item))
+                url_path = re.sub(var_pattern, str(value), url_path)
+                params_to_pop.append(key)
+
+        # pop out any parameter used to build the URL so there's no duplicate in request parameters
+        for key in params_to_pop:
+            valid_params.pop(key)
+        
+        return url_path, valid_params
+
+
     def build_request(self,model,baseurl=None,**params):
         """Method to build valid URL, parameters and headers for a python request call from a model definition."""
 
@@ -120,26 +148,8 @@ class RESTExtractor():
         # build URL
         logger.debug("Now building Query URL...")
         path_expression = model['path']
-        url_path = path_expression
-        params_to_pop = []
+        url_path, valid_params = self.build_url_path(path_expression,valid_params=valid_params)
 
-        for key,value in valid_params.items():
-            
-            # Compile and search for the parameter key in the URL path expression
-            pattern_string = '\{\$(%s)\}' % key
-            var_pattern = re.compile(pattern_string,re.I)
-            matches = re.search(var_pattern, path_expression).groups()
-
-            for matched_item in matches:
-                # if parameter was matched, sub the expression
-                logger.debug("Matched following item in path: {}".format(matched_item))
-                url_path = re.sub(var_pattern, str(value), url_path)
-                params_to_pop.append(key)
-
-        # pop out any parameter used to build the URL so there's no duplicate in request parameters
-        for key in params_to_pop:
-            valid_params.pop(key)
-        
         url = urljoin(baseurl, url_path)
         logger.debug("Query URL: {}".format(url))
         logger.debug("Final Valid Params: {}".format(valid_params))
@@ -212,7 +222,7 @@ class RESTExtractor():
                 logger.exception(e)
                 failed_items += {
                     'item': input_item,
-                    'reason': e
+                    'reason': e.message
                 },
                 continue
         

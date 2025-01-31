@@ -18,3 +18,10 @@ sp_data.json
 **/kspyder-eacloud-conf
 **/kspyder-alex-conf
 inputs/**
+kspyder-local-conf/orchestrator/getECSforDHCPtest.yml
+kspyder-local-conf/orchestrator/getDataikuInfo.yml
+kspyder-local-conf/orchestrator/getGKEData.yml
+kspyder-local-conf/orchestrator/getSAPData.yml
+kspyder-local-conf/orchestrator/getPANData.yml
+kspyder-local-conf/orchestrator/extractSAPData.yml
+kspyder-local-conf/orchestrator/extractPANData.yml

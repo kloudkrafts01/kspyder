@@ -1,44 +1,59 @@
 Steps:
 
-  - Name: GetFolderLeavesFromMongo
+  - Name: GetFolderIdsFromMongo
     Worker: mongoDBConnector
     Job: execute_query
-    Output: GCPFolderLeaves
+    Output: GCloudFoldersIds
     Params:
-      query_name: GetFolderLeaves
+      query_name: GetFolderIds
       query_conf:
+        collection: GCloudFolders
         dump_json: true
-        collection: GCPFolderLeaves
         operations:
+          $match:
+            name:
+              $not:
+                $regex: organizations
           $project:
-            name: $name
-            display_name: $display_name
-            parent: $parent
-            children: $children
-            level: $level
+            parent: $name
           $unset:
             - _id
 
-  - Name: GetFolderLeafIds
-    Job: get_unique_key_list
-    Input: GCPFolderLeaves
-    Output: GCPFolderLeafIds
-    Params:
-      key: parent
-      datapath: "data[].name"
+  # - Name: GetFolderLeavesFromMongo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCPFolderLeafIds
+  #   Params:
+  #     query_name: GetFolderLeafIds
+  #     query_conf:
+  #       dump_json: true
+  #       collection: GCPFolders
+  #       operations:
+  #         $match:
+  #           is_leaf: true
+  #         $project:
+  #           parent: $name
+  #         $unset:
+  #           - _id
 
-  - Name: GetProjects
-    Worker: gcloudConnector
-    Job: get_data
-    Output: GCPProjects
-    Input: GCPFolderLeafIds
+  - Name: GetToMongo.GCPProjects
+    Job: get_data_to_mongo
+    Input: GCloudFoldersIds.data
+    Output: GCloudProjects
     Params:
-      model_name: Projects
+      from_worker: gcloudConnector
+      model_name: GCloudProjects
 
-  - Name: StoreProjectsToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: GCPProjects
-    Output: GCPProjectsInsertionResult
-    Params:
-      collection: GCPProjects
+  # - Name: ExportProjects
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCPProjectsExtract
+  #   Params:
+  #     query_name: ExtractProjects
+  #     query_conf:
+  #       collection: GCPProjects
+  #       dump_json: true
+  #       operations:
+  #         $unset:
+  #           - _id
+

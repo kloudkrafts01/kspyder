@@ -53,6 +53,8 @@ class akamaiConnector(RESTExtractor):
         result = response.status_code
         logger.debug("Result: {}".format(result))
         raw_response_data = response.json()
+        # logger.debug("Raw response data: {}".format(raw_response_data))
+
         response_data = []
 
         if result == 200:

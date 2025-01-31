@@ -1,0 +1,107 @@
+Steps:
+  
+  # - Name: Extract.CloudSSOPolicies
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: CloudSSOPolicies
+  #   Params:
+  #     query_name: CloudSSOPolicies
+  #     query_conf:
+  #       collection: CloudSSOPolicies
+  #       dump_json: true
+  #       dump_csv: true
+  #       operations:
+  #         $project:
+  #           PermissionPolicyDocument: 0
+  #         $unset:
+  #           - _id
+
+  - Name: Extract.CloudSSOPoliciesByAccessConfig
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: CloudSSOPoliciesByAccessConfig
+    Params:
+      query_name: CloudSSOPoliciesByAccessConfig
+      query_conf:
+        collection: CloudSSOAccessConfigurations
+        # dump_json: true
+        # dump_csv: true
+        operations:
+          $lookup:
+            from: CloudSSOPolicies
+            localField: AccessConfigurationId
+            foreignField: access_configuration_id
+            as: Policies
+          $unwind: $Policies
+          $project: 
+            AccessConfigurationId: 1
+            AccessConfigurationName: 1
+            UpdateTime: 1
+            Description: 1
+            SessionDuration: 1
+            Permission: $Policies.PermissionPolicyName
+            PermissionType: $Policies.PermissionPolicyType
+            PermissionDocument: $Policies.PermissionPolicyDocument
+          $unset:
+            - _id
+
+  - Name: Save.CloudSSOPoliciesByAccessConfig
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: CloudSSOPoliciesByAccessConfig
+    Output: CloudSSOPoliciesByAccessConfig.InsertionResult
+    Params:
+      model:
+        name: CloudSSOPoliciesByAccessConfig
+        index_keys:
+          - AccessConfigurationId
+          - Permission
+
+  - Name: Extract.CloudSSOPolicyGrants
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: CloudSSOPolicyGrants
+    Params:
+      query_name: CloudSSOPolicyGrants
+      query_conf:
+        collection: CloudSSOAssignments
+        dump_json: true
+        dump_csv: true
+        operations:
+          $lookup:
+            from: CloudSSOPoliciesByAccessConfig
+            localField: AccessConfigurationId
+            foreignField: AccessConfigurationId
+            as: Policies
+          $unwind: $Policies
+          $project: 
+            AccessConfigurationId: 1
+            AccessConfigurationName: 1
+            PrincipalId: 1
+            PrincipalName: 1
+            PrincipalType: 1
+            Description: $Policies.Description
+            Permission: $Policies.Permission
+            PermissionType: $Policies.PermissionType
+            # PermissionDocument: $Policies.PermissionDocument
+            TargetId: 1
+            TargetName: 1
+            TargetPathName: 1
+            TargetType: 1
+            SessionDuration: $Policies.SessionDuration
+          $unset:
+            - _id 
+
+  # - Name: Save.CloudSSOPolicyGrants
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudSSOPolicyGrants
+  #   Output: CloudSSOPolicyGrants.InsertionResult
+  #   Params:
+  #     model:
+  #       name: CloudSSOPolicyGrants
+  #       index_keys:
+  #         - GroupId
+  #         - AccessConfigurationId
+  #         - Permission
+  #         - TargetId

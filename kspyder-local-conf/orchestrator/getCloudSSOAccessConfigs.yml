@@ -1,0 +1,73 @@
+Steps:
+
+  # - Name: GetToMongo.CloudSSODirectories
+  #   Job: get_data_to_mongo
+  #   Output: CloudSSODirectories
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: CloudSSODirectories
+  #     last_days: null
+
+  - Name: GetDirectoryList
+    Job: get_unique_key_list
+    Input: CloudSSODirectories
+    Output: DirectoryIds
+    Params:
+      key: directory_id
+      datapath: data[].DirectoryId
+  
+  - Name: ExtractDirectoryIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: DirectoryIds
+    Params:
+      query_name: ExtractDirectoryIds
+      query_conf:
+        collection: CloudSSODirectories
+        operations:
+          $project: 
+            directory_id: $DirectoryId
+          $unset:
+            - _id
+  
+  - Name: GetToMongo.CloudSSOAccessConfigurations
+    Job: get_data_to_mongo
+    Input: DirectoryIds.data
+    Output: CloudSSOAccessConfigurations
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOAccessConfigurations
+
+  - Name: ExtractAccessConfigIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AccessConfigIds
+    Params:
+      query_name: ExtractAccessConfigIds
+      query_conf:
+        collection: CloudSSOAccessConfigurations
+        operations:
+          $project: 
+            directory_id: $directory_id
+            access_configuration_id: $AccessConfigurationId
+          $unset:
+            - _id
+  
+  - Name: GetToMongo.CloudSSOPolicies
+    Job: get_data_to_mongo
+    Input: AccessConfigIds.data
+    Output: CloudSSOPolicies
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOPolicies
+
+  - Name: GetToMongo.CloudSSOAssignments
+    Job: get_data_to_mongo
+    Input: AccessConfigIds.data
+    Output: CloudSSOAssignments
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOAssignments
+
+
+  

@@ -1,20 +1,19 @@
 Steps:
 
-  - Name: GetDirectories
-    Worker: aliyunCLIConnector
-    Job: get_data
-    Output: CloudSSODirectories
-    Params:
-      model_name: CloudSSODirectories
-      last_days: null
+  # - Name: GetToMongo.CloudSSODirectories
+  #   Job: get_data_to_mongo
+  #   Output: CloudSSODirectories
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: CloudSSODirectories
 
-  - Name: GetDirectoryList
-    Job: get_unique_key_list
-    Input: CloudSSODirectories
-    Output: DirectoryIds
-    Params:
-      key: directory_id
-      datapath: data[].DirectoryId
+  # - Name: GetDirectoryList
+  #   Job: get_unique_key_list
+  #   Input: CloudSSODirectories
+  #   Output: DirectoryIds
+  #   Params:
+  #     key: directory_id
+  #     datapath: data[].DirectoryId
 
   - Name: GetUsers
     Worker: aliyunConnector
@@ -72,113 +71,3 @@ Steps:
     Job: upsert_dataset
     Input: CloudSSOGroupMembers
     Output: CloudSSOGroupMembersInsertionResult
-
-  - Name: AugmentGroupMembersGroupInfo
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: CloudSSOGroupMembersFull
-    Params:
-      query_name: AugmentGroupMembersGroupInfo
-      query_conf:
-        save: true
-        collection: CloudSSOGroupMembers
-        operations:
-          $lookup:
-            from: CloudSSOGroups
-            localField: GroupId
-            foreignField: GroupId
-            as: GroupInfo
-          $unwind: $GroupInfo
-          $project:
-            GroupId: 1
-            GroupName: $GroupInfo.GroupName
-            UserId: 1
-            UserName: 1
-            DisplayName: 1
-            JoinTime: 1
-            Status: 1
-            ProvisionType: 1
-          $unset:
-            - _id
-  
-  - Name: SaveBackGMembersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroupMembersFull
-    Output: CloudSSOUsersByGroupFullInsertionResult
-    Params:
-      collection: CloudSSOGroupMembersFull
-      model:
-        name: CloudSSOGroupMembersFull
-        index_keys:
-          - UserId
-          - GroupId
-
-  - Name: AugmentGroupMembersUserInfo
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: CloudSSOGroupMembersFull
-    Params:
-      query_name: AugmentGroupMembersUserInfo
-      query_conf:
-        save: true
-        collection: CloudSSOGroupMembersFull
-        operations:
-          $match:
-            $not:
-              GroupName:
-                $eq: CDC1DG-ALN-AliyunSync
-          $lookup:
-            from: CloudSSOUsers
-            localField: UserId
-            foreignField: UserId
-            as: UserInfo
-          $unwind: $UserInfo
-          $project:
-            GroupId: 1
-            GroupName: 1
-            UserId: 1
-            UserName: 1
-            DisplayName: 1
-            JoinTime: 1
-            Status: 1
-            ProvisionType: 1
-            Issuer: $UserInfo.ExternalId.Issuer
-            IssuerId: $UserInfo.ExternalId.Id
-            UserCreatedTime: $UserInfo.CreateTime
-            UserUpdatedTime: $UserInfo.UpdateTime
-          $unset:
-            - _id
-  
-  - Name: SaveBackGMembersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroupMembersFull
-    Output: CloudSSOUsersByGroupFullInsertionResult
-    Params:
-      collection: CloudSSOGroupMembersFull
-      model:
-        name: CloudSSOGroupMembersFull
-        index_keys:
-          - UserId
-          - GroupId
-
-  - Name: QueryUserInfoWithoutGlobalSyncGroup
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: CloudSSOGroupMembersLean
-    Params:
-      query_name: QueryUserInfoWithoutGlobalSyncGroup
-      query_conf:
-        dump_json: true
-        dump_csv: true
-        collection: CloudSSOGroupMembersFull
-        operations:
-          $match:
-              GroupName:
-                $not:
-                  $eq: CDC1DG-ALN-AliyunSync
-          $unset:
-            - _id
-
-  

@@ -1,8 +1,7 @@
 from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
-import time
-from google.cloud.bigquery.dataset import Dataset, DatasetListItem
+from google.api.client import services
 
 from common.config import BASE_FILE_HANDLER as fh
 
@@ -27,7 +26,6 @@ class gcloudConnector(RESTExtractor):
         self.update_field = update_field
         self.connector_class = connector_class
         self.client = client
-        self.iterate_output = True
 
     def set_current_client_from_model(self, model):
 
@@ -49,8 +47,6 @@ class gcloudConnector(RESTExtractor):
         logger.debug("Imported client class: {}".format(client_class))
         self.client = client_class()
 
-        self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
-
     def postprocess_item(self, item, model=None, **params):
         """Run returned items through JSON serialization"""
 
@@ -58,20 +54,12 @@ class gcloudConnector(RESTExtractor):
             data = proto.Message.to_dict(item)
         elif isinstance(item, dict):
             data = item
-        elif isinstance(item, DatasetListItem):
-            data = {
-                'dataset_id': item.dataset_id,
-                'friendly_name': item.friendly_name,
-                'full_dataset_id': item.full_dataset_id,
-                'project': item.project,
-                'reference': item.reference,
-                'labels': item.labels
-            }
         else:
-            logger.error("postprocess_item: item {} is not of an accepted type. Item type = {}".format(item,type(item)))
+            logger.error("postprocess_item: item {} is not of type dict or protobuf. Item type = {}".format(item,type(item)))
             data = {}
         return data
 
+        # return proto.Message.to_dict(item)
     
     def discover_data(self, model_name=None, input_data=None, **params):
         
@@ -122,22 +110,12 @@ class gcloudConnector(RESTExtractor):
         query_gen = getattr(self.client,model['query_name'])
 
         # Generate request iterator. If Requerst type object was built, pass it as argument, else pass keyword args directly
-        response = query_gen(request_object) if request_object else query_gen(**valid_params)
+        response_iter = query_gen(request_object) if request_object else query_gen(**valid_params)
 
-        if self.iterate_output:
+        for item in response_iter:
 
-            for item in response:
-
-                data = self.postprocess_item(item)
-                logger.debug("post-processed item: {}".format(data))
-                total_count += 1
-                output_docs += data,
-
-                time.sleep(1.5)
-        
-        else:
-            data = self.postprocess_item(response)
-            total_count +=1
+            data = self.postprocess_item(item)
+            total_count += 1
             output_docs += data,
 
         return total_count,output_docs

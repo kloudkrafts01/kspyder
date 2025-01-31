@@ -1,0 +1,82 @@
+Steps:
+
+  - Name: GetProjectIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectIds
+    Params:
+      query_name: GetProjectIds
+      query_conf:
+        collection: GCloudProjects
+        operations:
+          $project:
+            project: $project_id
+          $unset:
+            - _id
+  
+  - Name: SetProjectRegionIds
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectsEUW4
+    Params:
+      query_name: SetProjectRegionIds
+      query_conf:
+        collection: GCloudProjects
+        operations:
+          $set:
+            region: europe-west4
+          $project:
+            project: $project_id
+            region: 1
+          $unset:
+            - _id
+
+  # - Name: GetToMongo.GCloudVPCs
+  #   Job: get_data_to_mongo
+  #   Input: GCPProjectIds.data
+  #   Output: GCloudVPCs
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: GCloudVPCs
+
+  # - Name: GetToMongo.GCloudSubnets
+  #   Job: get_data_to_mongo
+  #   Input: GCPProjectsEUW4.data
+  #   Output: GCloudSubnets
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: GCloudSubnets
+
+  - Name: GetToMongo.GCloudAddresses
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudAddresses
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudAddresses    
+
+
+
+  - Name: GetToMongo.GCloudForwardingRules
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudForwardingRules
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudForwardingRules    
+
+  - Name: GetToMongo.GCloudBackendBuckets
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudBackendBuckets
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudBackendBuckets
+
+  - Name: GetToMongo.GCloudInstanceGroups
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudInstanceGroups
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudInstanceGroups

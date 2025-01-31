@@ -122,6 +122,39 @@ Models:
             - UserId
             - GroupId
 
+    CloudSSOAccessConfigurations:
+        API: CloudSSO
+        request_builder: ListAccessConfigurationsRequest
+        query_name: list_access_configurations_with_options
+        datapath: AccessConfigurations[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+    
+    CloudSSOPolicies:
+        API: CloudSSO
+        request_builder: ListPermissionPoliciesInAccessConfigurationRequest
+        query_name: list_permission_policies_in_access_configuration_with_options
+        datapath: PermissionPolicies[]
+        accepted_inputs:
+            - directory_id
+            - access_configuration_id
+        index_keys:
+            - PermissionPolicyName
+
+    CloudSSOAssignments:
+        API: CloudSSO
+        request_builder: ListAccessAssignmentsRequest
+        query_name: list_access_assignments_with_options
+        datapath: AccessAssignments[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+            - PrincipalId
+            - TargetId
+
 # ================ ACK Kubernetes Models ==================
 
     ACKClusters:
