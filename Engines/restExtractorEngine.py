@@ -222,7 +222,7 @@ class RESTExtractor():
                 logger.exception(e)
                 failed_items += {
                     'item': input_item,
-                    'reason': e
+                    'reason': e.message
                 },
                 continue
         

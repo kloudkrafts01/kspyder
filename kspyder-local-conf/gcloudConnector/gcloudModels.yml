@@ -49,6 +49,18 @@ Models:
         index_keys:
             - id
             - name
+    
+    GCloudComputeInstanceGroups:
+        API: compute_v1
+        client_name: InstanceGroupsClient
+        request_builder: ListInstanceGroupsRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
+            - name
 
     ComputeOSImages:
         API: compute_v1
@@ -171,6 +183,38 @@ Models:
         index_keys:
             - name
     
+    GCloudAddresses:
+        API: compute_v1
+        client_name: AddressesClient
+        request_builder: ListAddressesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - id
+
+    GCloudForwardingRules:
+        API: compute_v1
+        client_name: ForwardingRulesClient
+        request_builder: ListForwardingRulesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - id
+
+    GCloudBackendBuckets:
+        API: compute_v1
+        client_name: BackendBucketsClient
+        request_builder: ListBackendBucketsRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+
     GCloudVPCAccess:
         API: VPC
         client_name: VpcAccessServiceClient
