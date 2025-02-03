@@ -1,0 +1,25 @@
+Connector:
+    schema: opendata-fr
+    update_field: modifiedSince
+
+APIs:
+
+    DiDo:
+        name: dido
+        base_url: https://data.statistiques.developpement-durable.gouv.fr
+        default_headers:
+            accept: application/json
+
+Models:
+
+    DiDoDatasetCatalogue:
+        API: DiDo
+        path: /dido/api/v1/datasets
+        datapath: data
+        accepted_inputs:
+            - page
+            - pageSize
+            - text
+            - topics
+        index_keys:
+            - id

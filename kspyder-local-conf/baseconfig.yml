@@ -18,3 +18,4 @@ Modules:
   aliyunConnector: aliyunModels
   akamaiConnector : akamaiModels
   gcloudConnector: gcloudModels
+  openDataConnector: openDataModels
