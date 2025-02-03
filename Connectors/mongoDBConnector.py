@@ -139,44 +139,44 @@ class mongoDBConnector():
         if DUMP_JSON:
             result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
-    def execute_query(self,query_name,query_conf):
+    # def execute_query(self,query_name,query_conf):
 
-        collection_name, queryPipeline = build_mongo_query(query_conf)
-        collection = self.db[collection_name]
+    #     collection_name, queryPipeline = build_mongo_query(query_conf)
+    #     collection = self.db[collection_name]
 
-        logger.info("Executing mongo Query on Collection {}: {}".format(collection_name,queryPipeline))
+    #     logger.info("Executing mongo Query on Collection {}: {}".format(collection_name,queryPipeline))
 
-        results = collection.aggregate(queryPipeline)
-        results_list = results.to_list()
-        results_count = len(results_list)
+    #     results = collection.aggregate(queryPipeline)
+    #     results_list = results.to_list()
+    #     results_count = len(results_list)
 
-        logger.info("Query returned {} items.".format(results_count))
+    #     logger.info("Query returned {} items.".format(results_count))
 
-        result_dataset = {
-            "header": {
-                "schema": APP_NAME,
-                "collection": collection_name,
-                "query_name": query_name,
-                "query_conf": query_conf,
-                "count": results_count,
-            },
-            "data": results_list
-        }
+    #     result_dataset = {
+    #         "header": {
+    #             "schema": APP_NAME,
+    #             "collection": collection_name,
+    #             "query_name": query_name,
+    #             "query_conf": query_conf,
+    #             "count": results_count,
+    #         },
+    #         "data": results_list
+    #     }
 
-        # If the query conf specifies the atomic query result needs to be dumped into csv or json,
-        # proceed. Order is important : csv first, then json
-        save_result = query_conf['save'] if 'save' in query_conf.keys() else None
-        query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
-        query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
+    #     # If the query conf specifies the atomic query result needs to be dumped into csv or json,
+    #     # proceed. Order is important : csv first, then json
+    #     save_result = query_conf['save'] if 'save' in query_conf.keys() else None
+    #     query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
+    #     query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
 
-        if results_count > 0:
-            if query_dump_csv:
-                result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
+    #     if results_count > 0:
+    #         if query_dump_csv:
+    #             result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
 
-            if query_dump_json:
-                result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
+    #         if query_dump_json:
+    #             result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
-        return result_dataset
+    #     return result_dataset
 
     def aggregate_data(self,save_to=None,collection_name=None,pipeline=None):
         
@@ -247,13 +247,13 @@ class mongoDBConnector():
 
         return view, count
 
-def build_mongo_query(query_conf):
+# def build_mongo_query(query_conf):
 
-    queryPipeline = []
-    collection_name = query_conf['collection']
+#     queryPipeline = []
+#     collection_name = query_conf['collection']
 
-    for operation_name,operation in query_conf['operations'].items():
+#     for operation_name,operation in query_conf['operations'].items():
         
-        queryPipeline += {operation_name: operation},
+#         queryPipeline += {operation_name: operation},
 
-    return collection_name, queryPipeline
+#     return collection_name, queryPipeline

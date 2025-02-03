@@ -1,40 +1,41 @@
 Steps:
 
-  - Name: GetAKSClusters
-    Worker: azureRGraphConnector
-    Job: get_data
-    Output: AKSClusters
-    Params:
-      model_name: AKSClusters
+  # - Name: GetAKSClusters
+  #   Job: get_data_to_mongo
+  #   Output: AzureAKSClusters
+  #   Params:
+  #     from_worker: azureRGraphConnector
+  #     model_name: AzureAKSClusters
 
-  - Name: StoreAKSClustersToMongo
-    Worker : mongoDBConnector
-    Job: insert_dataset
-    Input: AKSClusters.data
-    Output: AKSClustersInsertionResult
-    Params:
-      collection: AKSClusters
+  # - Name: GetAKSRoleBindings
+  #   Job: get_data_to_mongo
+  #   Output: AzureCSTrustedAccessRoleBindings
+  #   Params:
+  #     from_worker: azureRGraphConnector
+  #     model_name: AzureCSTrustedAccessRoleBindings
 
-  - Name: ExtractAKSTabularData
-    Worker: mongoDBConnector
-    Job: execute_query
-    Output: AKSDataExtract
+  - Name: GetAKSNodePools
+    Job: get_data_to_mongo
+    Output: AzureAKSNodePools
     Params:
-      query_name: ExtractAKSInfo
-      query_conf:
-        collection: AKSClusters
-        dump_csv: true
-        dump_json: true
-        operations:
-          $project:
-            environment: $tags.environment
-            name: $name
-            region: $location
-            subscriptionId: $subscriptionId
-            resourceGroup: $resourceGroup
-            dnsPrefix: $properties.dnsPrefix
-            endpoint: $properties.fqdn
-            kubeVersion: $properties.currentKubernetesVersion
-          $unset:
-            - _id
+      from_worker: azureRGraphConnector
+      model_name: AzureAKSNodePools
+
+  # - Name: ExtractAKSTabularData
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: AzureAKSData
+  #   Params:
+  #     save_to: AzureAKSData
+  #     collection_name: AKSClusters
+  #     pipeline:
+  #       - $project:
+  #           environment: $tags.environment
+  #           name: $name
+  #           region: $location
+  #           subscriptionId: $subscriptionId
+  #           resourceGroup: $resourceGroup
+  #           dnsPrefix: $properties.dnsPrefix
+  #           endpoint: $properties.fqdn
+  #           kubeVersion: $properties.currentKubernetesVersion
 
