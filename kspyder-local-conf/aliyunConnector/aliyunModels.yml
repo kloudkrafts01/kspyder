@@ -1,5 +1,5 @@
 Connector:
-    schema: aliyunRESTConnector
+    schema: Aliyun
 
 APIs:
 
@@ -199,3 +199,23 @@ Models:
             - ImageName
             - ImageOwnerAlias
 
+    AliyunNSGs:
+        API: ECS
+        request_builder: DescribeSecurityGroupsRequest
+        query_name: describe_security_groups_with_options
+        datapath: SecurityGroups.SecurityGroup[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - SecurityGroupId
+
+    AliyunNSGRules:
+        API: ECS
+        request_builder: DescribeSecurityGroupAttributeRequest
+        query_name: describe_security_group_attribute_with_options
+        datapath: Permissions.Permission[]
+        accepted_inputs:
+            - region_id
+            - security_group_id
+        index_keys:
+            - SecurityGroupRuleId

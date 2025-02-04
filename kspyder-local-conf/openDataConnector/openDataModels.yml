@@ -23,3 +23,13 @@ Models:
             - topics
         index_keys:
             - id
+
+    DiDoDatafiles:
+        API: DiDo
+        path: /dido/api/v1/datafiles/{$rid}/json
+        datapath: "[]"
+        accepted_inputs:
+            - rid
+            - millesime
+        index_keys:
+            - PERIODE

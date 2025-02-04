@@ -1,21 +1,45 @@
 Steps:
 
-  - Name: SetParent
-    Job: set_static_data
-    Output: ClusterParentIds
+  - Name: BuildGKEParentIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GKEParentIds
     Params:
-      data:
-        - parent: /projects/cdc-ai-factory-prd/locations/europe-west4
-        - parent: /projects/cdc-ai-factory-uat/locations/europe-west4
-        - parent: /projects/cdc-ai-factory-dev/locations/europe-west4
+      collection_name: GCPProjectZones
+      pipeline:
+        - $match:
+            project:
+              $regex: "(ai-factory)|(shared-data)"
+        # - $set:
+        #     parent_first_step:
+        #         $replaceOne:
+        #           input: "/projects/{{project}}/locations/{{zone}}"
+        #           find: "{{project}}"
+        #           replacement: $project
+        # - $set:
+        #     parent:
+        #         $replaceOne:
+        #           input: $parent_first_step
+        #           find: "{{zone}}"
+        #           replacement: $zone
+        - $set:
+            parent:
+                $replaceOne:
+                  input: "/projects/{{project}}/locations/europe-west4"
+                  find: "{{project}}"
+                  replacement: $project
+        - $project:
+            parent: 1
+        - $unset:
+            - _id
 
-  - Name: GetVPCs
-    Worker: gcloudConnector
-    Job: get_data
-    Input: ClusterParentIds.data
-    Output: GoogleVPCs
+  - Name: GetToMongo.GKEClusters
+    Job: get_data_to_mongo
+    Input: GKEParentIds.data
+    Output: GKEClusters
     Params:
-      model_name: VPCs
+      from_worker: gcloudConnector
+      model_name: GKEClusters
 
   # - Name: GetClusters
   #   Worker: gcloudConnector

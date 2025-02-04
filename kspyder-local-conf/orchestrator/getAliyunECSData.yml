@@ -34,3 +34,32 @@ Steps:
         - - 'ImageOwnerAlias'
           - 'eq'
           - 'marketplace'
+
+  - Name: GetToMongo.NSGs
+    Job: get_data_to_mongo
+    Input: RegionData.data
+    Output: AliyunNSGs
+    Params:
+      from_worker: aliyunConnector
+      model_name: AliyunNSGs
+
+  - Name: Extract.NSGIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: NSGIds
+    Params:
+      collection_name: AliyunNSGs
+      pipeline:
+        - $project:
+            security_group_id: $SecurityGroupId
+            region_id: cn-shanghai
+        - $unset:
+          - _id
+
+  - Name: GetToMongo.NSGRules
+    Job: get_data_to_mongo
+    Input: NSGIds.data
+    Output: AliyunNSGRules
+    Params:
+      from_worker: aliyunConnector
+      model_name: AliyunNSGRules

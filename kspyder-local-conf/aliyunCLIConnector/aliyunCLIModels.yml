@@ -1,5 +1,5 @@
 Connector:
-    schema: aliyunCLIConnector
+    schema: Aliyun
     update_field: CreationStartTime
 
 UnpackingFields: null
@@ -14,7 +14,7 @@ Models:
             - ListUsers
         datapath: Users.User[]
     
-    NSGs:
+    AliyunNSGs:
         base_name: SecurityGroup
         nested: true
         class: ecs
@@ -25,6 +25,17 @@ Models:
             - SecurityGroupId
             - SecurityGroupName
             - VpcId
+
+    AliyunNSGRules:
+        base_name: SecurityGroupRule
+        class: ecs
+        query_domains:
+            - DescribeSecurityGroupAttribute
+        datapath: Permissions.Permission[]
+        accepted_inputs:
+            - SecurityGroupId
+        index_keys:
+            - SecurityGroupRuleId
 
     ECSInstances:
         base_name: Instance

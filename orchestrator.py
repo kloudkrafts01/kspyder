@@ -36,7 +36,10 @@ class documentPipelineEngine:
     def set_static_data(self, data=None):
 
         static_dataset = {
-            'header': { 'operation': 'set_static_data' },
+            'header': { 
+                'operation': 'set_static_data',
+                'count': len(data)
+            },
             'data': data
         }
 
