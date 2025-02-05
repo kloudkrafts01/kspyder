@@ -8,7 +8,7 @@ Steps:
     Output: GCloudComputeNetworkData
     DumpCSV: false
     Params:
-      save_to: GCloudComputeNetworkData
+      save_to: GCloud.Compute.NetworkData
       collection_name: GCloudComputeInstances
       pipeline:
         - $unwind: $network_interfaces
