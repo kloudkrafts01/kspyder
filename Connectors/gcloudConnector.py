@@ -6,7 +6,7 @@ from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 
 from common.config import BASE_FILE_HANDLER as fh
 
-from Engines.restExtractorEngine import RESTExtractor
+from Engines.apiExtractorEngine import RESTExtractor
 from common.loggingHandler import logger
 
 CONF = fh.load_yaml('gcloudModels', subpath=__name__)

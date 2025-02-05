@@ -1,9 +1,6 @@
 import jmespath
 import requests
 
-from akamai.edgegrid import EdgeGridAuth, EdgeRc
-
-
 from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from Engines.apiExtractorEngine import RESTExtractor
@@ -15,21 +12,12 @@ CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
+APIs = CONF['APIs']
 MODELS = CONF['Models']
 
-class akamaiClient():
-
-    def __init__(self):
-
-        edgerc = EdgeRc('~/.edgerc')
-        default_section = 'default'
-        self.baseurl = 'https://{}'.format(edgerc.get(default_section, 'host'))
-
-        self.session = requests.Session()
-        self.session.auth = EdgeGridAuth.from_edgerc(edgerc, default_section)
 
 
-class akamaiConnector(RESTExtractor):
+class openDataConnector(RESTExtractor):
 
     def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME, **params):
 
@@ -37,14 +25,20 @@ class akamaiConnector(RESTExtractor):
         self.models = models
         self.update_field = update_field
         self.scopes = scopes
+        self.api_name = None
+        self.base_url = None
 
-        self.client = akamaiClient()
-
+    def set_api_from_model(self,model):
+        
+        self.api_name = model['API']
+        self.base_url = APIs[self.api_name]['base_url']
 
     def read_query(self,model,start_token=None,**params):
 
-        url, headers, valid_params = self.build_request(model, baseurl = self.client.baseurl, **params)
-        response = self.client.session.get(url, headers = headers, params = valid_params)
+        self.set_api_from_model(model)
+        
+        url, headers, valid_params = self.build_request(model, baseurl = self.base_url, **params)
+        response = requests.get(url, headers = headers, params = valid_params)
 
         next_token = 'toto'
         # infer if is truncated from this, cause the natural field result_truncated ain't worth shit

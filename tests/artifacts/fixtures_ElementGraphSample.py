@@ -1,6 +1,6 @@
 #!python
 
-from Engines.restExtractorEngine import ElementGraph
+from Engines.apiExtractorEngine import ElementGraph
 
 SAMPLE_GRAPH_NODES = [
     {
