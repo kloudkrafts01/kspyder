@@ -27,11 +27,17 @@ class openDataConnector(RESTExtractor):
         self.scopes = scopes
         self.api_name = None
         self.base_url = None
+        self.iterate_output = True
+        self.rate_limit = None
 
     def set_api_from_model(self,model):
         
         self.api_name = model['API']
-        self.base_url = APIs[self.api_name]['base_url']
+        api_def = APIs[self.api_name]
+        self.base_url = api_def['base_url']
+        self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
+        self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
+        
 
     def read_query(self,model,start_token=None,**params):
 
@@ -47,15 +53,15 @@ class openDataConnector(RESTExtractor):
         result = response.status_code
         logger.debug("Result: {}".format(result))
         raw_response_data = response.json()
-        # logger.debug("Raw response data: {}".format(raw_response_data))
+        logger.debug("Raw response data: {}".format(raw_response_data))
 
         response_data = []
 
         if result == 200:
-            response_data = jmespath.search(model['datapath'], raw_response_data)
+            response_data = jmespath.search(model['datapath'], raw_response_data) if self.iterate_output else [raw_response_data]
             # logger.debug("Successful response data: {}".format(response_data))
 
         else:
-            logger.error("Encountered error in response: {}".format(response_data))
+            logger.exception("Encountered error in response: {}".format(response_data))
 
         return response_data, is_truncated, next_token

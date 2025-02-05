@@ -8,7 +8,7 @@ Steps:
     Output: GCloudSubnetData
     DumpCSV: true
     Params:
-      save_to: GCloudSubnetData
+      save_to: GCloud.VPC.SubnetData
       collection_name: GCloudSubnets
       pipeline:
         - $set: 
@@ -32,6 +32,18 @@ Steps:
             name: 1
             ip_cidr_range: 1
             ip_cidr_type: 1
+            ip_cidr_start:
+              $arrayElemAt:
+                - $split:
+                  - $ip_cidr_range
+                  - "/"
+                - 0
+            ip_cidr_size:
+              $arrayElemAt:
+                - $split:
+                  - $ip_cidr_range
+                  - "/"
+                - 1
             private_ip_google_access: 1
             enable_flow_logs: 1
             purpose: 1
@@ -44,9 +56,10 @@ Steps:
   - Name: Extract.VPCPeerings
     Worker: mongoDBConnector
     Job: aggregate_data
-    Output: GCloudVPCPeerings
+    Output: GCloudVPCPeeringData
+    DumpCSV: true
     Params:
-      save_to: GCloudVPCPeerings
+      save_to: GCloud.VPC.PeeringData
       collection_name: GCloudVPCs
       pipeline:
         - $unwind: $peerings
@@ -89,3 +102,90 @@ Steps:
             peering_export_subnet_routes_with_public_ip: $peerings.export_subnet_routes_with_public_ip
         - $sort:
             pair_id: 1
+
+
+ # ============= Extract VPC Address data ================
+
+  - Name: Extract.VPCAddressesData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GCloudAddressData
+    DumpCSV: false
+    Params:
+      save_to: GCloud.VPC.AddressData
+      collection_name: GCloudAddresses
+      pipeline:
+        - $project:
+            id: 1
+            project: 1
+            name: 1
+            ip_address: $address
+            address_type: 1
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $subnetwork
+                  - "/"
+                - -1
+            purpose: 1
+  
+# ============= Regroup Address data by Subnet ================
+
+  - Name: Expand.SubnetIPData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SubnetIPData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.VPC.Subnet.IPAddresses
+      collection_name: GCloud.VPC.AddressData
+      pipeline:
+        - $match:
+            address_type: INTERNAL
+        - $unionWith:
+            coll: GCloud.Compute.NetworkData
+            pipeline:
+              - $project:
+                  project: 1
+                  ip_address: 1
+                  name: 1
+                  purpose: COMPUTE_INSTANCE
+                  address_type: INTERNAL
+                  subnet: 1
+        - $lookup:
+            from: GCloud.VPC.SubnetData
+            localField: subnet
+            foreignField: name
+            as: subnetInfo
+        - $unwind: $subnetInfo
+        - $project:
+            project: 1
+            vpc: $subnetInfo.vpc
+            subnet: 1
+            name: 1
+            ip_address: 1
+            purpose: 1
+            subnet_cidr: $subnetInfo.ip_cidr_range
+            subnet_cidr_start: $subnetInfo.ip_cidr_start
+            subnet_cidr_size: $subnetInfo.ip_cidr_size
+
+# ============= Aggregate Subnet occupation data ================
+
+  - Name: Extract.SubnetOccupationData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SubnetOccupationData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.VPC.Subnet.OccupationData
+      collection_name: GCloud.VPC.Subnet.IPAddresses
+      pipeline:
+        - $group:
+            _id: $subnet
+            occupation:
+              $sum: 1
+            cidr_size:
+              $max: $subnet_cidr_size
+            vpc:
+              $first: $vpc
+

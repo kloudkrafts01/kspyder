@@ -53,3 +53,44 @@ Steps:
             col_desc: $datafiles.millesimes.columns.description
             col_type: $datafiles.millesimes.columns.type
             col_unit: $datafiles.millesimes.columns.unit
+
+# ============= Sum up INSEE / Melodi catalog by datafiles ================
+
+  - Name: Summary.MelodiDatasets
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: MelodiDatasetsSummary
+    # DumpCSV: true
+    Params:
+      save_to: OpenData.INSEE.MelodiDatasets.Summary
+      collection_name: MelodiDatasets
+      pipeline:
+        - $unwind: $title
+        - $unwind: $subtitle
+        - $unwind: $type
+        - $unwind: $temporalResolution
+        - $unwind: $temporalResolution.label
+        - $unwind: $accrualPeriodicity
+        - $unwind: $accrualPeriodicity.label
+        - $unwind: $spatial
+        - $unwind: $spatial.label
+        # - $unwind: $theme
+        # - $unwind: $theme.label
+        - $match:
+            title.lang: fr
+            subtitle.lang: fr
+            type.lang: fr
+            temporalResolution.label.lang: fr
+            accrualPeriodicity.label.lang: fr
+            spatial.label.lang: fr
+            theme.label.lang: fr
+        - $project:
+            title: $title.content
+            subtitle: $subtitle.content
+            type: $type.content
+            time_resolution: $temporalResolution.label.content
+            time_periodicity: $accrualPeriodicity.label.content
+            geography: $spatial.label.content
+            theme: $theme.label.content
+
+

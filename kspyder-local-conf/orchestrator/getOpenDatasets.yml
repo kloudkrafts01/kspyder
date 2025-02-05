@@ -1,44 +1,68 @@
 Steps:
 
-  # - Name: Build.StarterRequest
-  #   Job: set_static_data
-  #   Output: StarterRequest
-  #   Params:
-  #     data:
-  #       - page: 1
-  #         pageSize: 20
-  #       - page: 2
-  #         pageSize: 20
-
-  # - Name: GetToMongo.OpenDatasets
-  #   Job: get_data_to_mongo
-  #   Output: DiDoDatasets
-  #   Input: StarterRequest
-  #   Params:
-  #     from_worker: openDataConnector
-  #     model_name: DiDoDatasetCatalogue
-
-
-  - Name: Extract.DatafileRids
-    Worker: mongoDBConnector
-    Job: aggregate_data
-    Output: DatafileRids
+  - Name: Build.StarterRequest
+    Job: set_static_data
+    Output: StarterRequest
     Params:
-      collection_name: OpenData.DiDo.Datafiles.Summary
-      pipeline:
-        - $project:
-            rid: $datafile_rid
-            millesime: 1
-        - $unset: 
-            - _id 
+      data:
+        - page: 1
+          pageSize: 'all'
 
-  - Name: Get.DatafilesByRid
+  - Name: GetToMongo.DiDoDatasets
     Job: get_data_to_mongo
-    Input: DatafileRids.data
-    Output: OpenData.DiDo.Datafiles
+    Output: DiDoDatasets
+    Input: StarterRequest.data
     Params:
       from_worker: openDataConnector
-      model_name: DiDoDatafiles
+      model_name: DiDoDatasetCatalogue
+
+  - Name: GetToMongo.MelodiCatalogue
+    Job: get_data_to_mongo
+    Output: MelodiDatasetCatalogue
+    Params:
+      from_worker: openDataConnector
+      model_name: MelodiDatasetCatalogue
+
+  - Name: Extract.MelodiDatasetIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: MelodiDatasetIds
+    Params:
+      collection_name: MelodiDatasetCatalogue
+      pipeline:
+        - $project:
+            identifier: 1
+        - $unset:
+            - _id
+  
+  - Name: GetToMongo.MelodiDatasets
+    Job: get_data_to_mongo
+    Input: MelodiDatasetIds.data
+    Output: MelodiDatasets
+    Params:
+      from_worker: openDataConnector
+      model_name: MelodiDatasets
+
+  # - Name: Extract.DatafileRids
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: DatafileRids
+  #   Params:
+  #     collection_name: OpenData.DiDo.Datafiles.Summary
+  #     pipeline:
+  #       - $project:
+  #           rid: $datafile_rid
+  #           millesime: 1
+  #       - $unset: 
+  #           - _id 
+
+  # - Name: Get.DatafilesByRid
+  #   Job: get_data_to_mongo
+  #   Input: DatafileRids.data
+  #   Output: OpenData.DiDo.Datafiles
+  #   Params:
+  #     from_worker: openDataConnector
+  #     model_name: DiDoDatafiles
 
 
 
