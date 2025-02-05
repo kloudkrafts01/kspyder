@@ -2,23 +2,21 @@ Steps:
 
   - Name: GetProjectZones
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: GCPProjectZones
     Params:
-      query_name: GetProjectZones
-      query_conf:
-        collection: GCPProjectZones
-        operations:
-          $unset:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $unset:
             - _id
   
   - Name: GetToMongo.ComputeInstances
     Job: get_data_to_mongo
     Input: GCPProjectZones.data
-    Output: ComputeInstances
+    Output: GCloudComputeInstances
     Params:
       from_worker: gcloudConnector
-      model_name: ComputeInstances
+      model_name: GCloudComputeInstances
 
   # # CAREFUL WITH THAT AXE, EUGENE : 
   # # many requests will be sent with this one you might blow up your API quota

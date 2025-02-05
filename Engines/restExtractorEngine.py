@@ -129,7 +129,6 @@ class RESTExtractor():
         
         return url_path, valid_params
 
-
     def build_request(self,model,baseurl=None,**params):
         """Method to build valid URL, parameters and headers for a python request call from a model definition."""
 

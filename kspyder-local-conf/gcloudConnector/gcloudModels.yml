@@ -38,7 +38,7 @@ Models:
 
 # =================== Compute Models =========================
 
-    ComputeInstances:
+    GCloudComputeInstances:
         API: compute_v1
         client_name: InstancesClient
         request_builder: ListInstancesRequest

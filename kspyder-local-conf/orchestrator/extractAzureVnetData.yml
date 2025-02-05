@@ -1,67 +1,58 @@
 Steps:
 
-  - Name: GetAzureVnets
-    Worker: azureRGraphConnector
-    Job: get_data
-    Output: AzVnets
-    Params:
-      model_name: VirtualNetworks
+  # - Name: GetAzureVnets
+  #   Worker: azureRGraphConnector
+  #   Job: get_data
+  #   Output: AzVnets
+  #   Params:
+  #     model_name: VirtualNetworks
 
-  - Name: StoreAzVnetsToMongo
-    Worker : mongoDBConnector
-    Job: upsert_dataset
-    Input: AzVnets
-    Output: AzVnetsInsertionResult
-    Params:
-      collection: AzureVirtualNetworks
+  # - Name: StoreAzVnetsToMongo
+  #   Worker : mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: AzVnets
+  #   Output: AzVnetsInsertionResult
+  #   Params:
+  #     collection: AzureVirtualNetworks
 
   - Name: ExtractVnetTabularData
     Worker: mongoDBConnector
-    Job: execute_query
-    Output: VnetDataExtract
+    Job: aggregate_data
+    Output: AzureVnetData
     Params:
-      query_name: ExtractVnetInfo
-      query_conf:
-        collection: AzureVirtualNetworks
-        dump_csv: true
-        dump_json: true
-        operations:
-          $unwind:
-            path: $properties.addressSpace.addressPrefixes
-          $project:
+      save_to: AzureVnetData
+      collection_name: AzureVirtualNetworks
+      pipeline:
+        - $unwind: $properties.addressSpace.addressPrefixes
+        - $project:
             environment: $tags.environment
-            name: $name
+            name: 1
             region: $location
-            subscriptionId: $subscriptionId
-            resourceGroup: $resourceGroup
+            subscriptionId: 1
+            resourceGroup: 1
             CIDR: $properties.addressSpace.addressPrefixes
             dnsServers: $properties.dhcpOptions.dnsServers
-          $unset:
-            - _id
 
   - Name: ExtractSubnetTabularData
     Worker: mongoDBConnector
-    Job: execute_query
-    Output: SubnetDataExtract
+    Job: aggregate_data
+    Output: AzureSubnetData
     Params:
-      query_name: ExtractSubnetInfo
-      query_conf:
-        collection: AzureVirtualNetworks
-        dump_csv: true
-        dump_json: true
-        operations:
-          $unwind: $properties.subnets
-          $set:
+      save_to: AzureSubnetData
+      collection_name: AzureVirtualNetworks
+      pipeline:
+        - $unwind: $properties.subnets
+        - $set:
             ipConfigs: $properties.subnets.properties.ipConfigurations
-          $match:
+        - $match:
             ipConfigs:
               $exists: true
-          $project:
+        - $project:
             environment: $tags.environment
             vnetName: $name
             region: $location
-            subscriptionId: $subscriptionId
-            resourceGroup: $resourceGroup
+            subscriptionId: 1
+            resourceGroup: 1
             vnetDnsServers: $properties.dhcpOptions.dnsServers
             subnetName: $properties.subnets.name
             subnetCIDR: $properties.subnets.properties.addressPrefix
@@ -71,6 +62,4 @@ Steps:
               $size: $ipConfigs
             hasPrivateEndpoints: $properties.subnets.properties.privateEndpointNetworkPolicies
             hasPrivateLinks: $properties.subnets.properties.privateLinkServiceNetworkPolicies
-          $unset:
-            - _id
 

@@ -1,27 +1,22 @@
 Steps:
 
-  - Name: Extract.ComputeMachineTypes
+  - Name: GCP.ComputeMachineTypes
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: ComputeMachineTypes
     Params:
-      query_name: Extract.ComputeMachineTypes
-      query_conf:
+      save_to: GCloudMachineTypeData
         collection: ComputeMachineTypes
-        dump_csv: true
-        dump_json: true
-        operations:
-          $project:
-            id: 1
-            name: 1
-            zone: 1
-            architecture: 1
-            guest_cpus: 1
-            # memory_mb: 1
-            memory_gb: 
-              $multiply:
-                - $memory_mb
-                - 1024
-            maximum_persistent_disks: 1
-          $unset:
-            - _id
+        pipeline:
+          - $project:
+              id: 1
+              name: 1
+              zone: 1
+              architecture: 1
+              guest_cpus: 1
+              # memory_mb: 1
+              memory_gb: 
+                $multiply:
+                  - $memory_mb
+                  - 1024
+              maximum_persistent_disks: 1

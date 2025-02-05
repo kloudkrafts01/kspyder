@@ -36,7 +36,10 @@ class documentPipelineEngine:
     def set_static_data(self, data=None):
 
         static_dataset = {
-            'header': { 'operation': 'set_static_data' },
+            'header': { 
+                'operation': 'set_static_data',
+                'count': len(data)
+            },
             'data': data
         }
 
@@ -60,8 +63,6 @@ class documentPipelineEngine:
 
         worker_module = self.ch.get_client(from_worker)
         full_dataset = worker_module.get_data(input_data=input_data,**params)
-        # model_name = full_dataset['header']['model_name']
-        # model = full_dataset['header']['model']
 
         mongo_module = self.ch.get_client('mongoDBConnector')
         insertion_result = mongo_module.upsert_dataset(input_data=full_dataset)
@@ -92,7 +93,8 @@ class documentPipelineEngine:
             
             # If no Worker name is given in the Step definition,
             # It is assumed that the job is one of documentPipelineEngine's own methods
-            worker_module = self.ch.get_client(step['Worker']) if 'Worker' in step.keys() else self
+            step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
+            worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
             job_instance = getattr(worker_module,job_name)
             logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
 
@@ -106,6 +108,19 @@ class documentPipelineEngine:
             logger.debug("Inserting result set {} in the pile.".format(step_output_name))
             datasets[step_output_name] = result
             logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
+
+            # If the step conf specifies the result needs to be dumped into csv or json, proceed.
+            # Order is important : csv first, then json
+            dump_json = step['DumpJSON'] if 'DumpJSON' in step.keys() else None
+            dump_csv = step['DumpCSV'] if 'DumpCSV' in step.keys() else None
+            results_count = result['header']['count']
+
+            if results_count > 0:
+                if dump_csv:
+                    result_dataset = fh.dump_csv(result,step['Worker'],step_output_name)
+
+                if dump_json:
+                    result_dataset = fh.dump_json(result,step['Worker'],step_output_name)
 
 
 if __name__ == "__main__":

@@ -5,21 +5,18 @@ Steps:
     Output: AzNics
     Params:
       from_worker: azureRGraphConnector
-      model_name: NetworkInterfaces
+      model_name: AzureNetworkInterfaces
 
   - Name: ExtractNICdata
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: AzureNicIPConfigs
     Params:
-      query_name: AzureNicIPConfigs
-      query_conf:
-        collection: NetworkInterfaces
-        dump_csv: true
-        dump_json: true
-        operations:
-          $unwind: $properties.ipConfigurations
-          $project:
+      save_to: AzureNicIPConfigs
+      collection_name: AzureNetworkInterfaces
+      pipeline:
+        - $unwind: $properties.ipConfigurations
+        - $project:
             environment: $tags.environment
             name: 1
             location: 1
@@ -62,5 +59,3 @@ Steps:
                   - $properties.virtualMachine.id
                   - "/"
                 - -1
-          $unset:
-            - _id
