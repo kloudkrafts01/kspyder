@@ -10,6 +10,13 @@ APIs:
         default_headers:
             accept: application/json
 
+    INSEE:
+        name: insee
+        base_url: https://api.insee.fr
+        rate_limit: 2.2
+        default_headers:
+            accept: application/json
+
 Models:
 
     DiDoDatasetCatalogue:
@@ -33,3 +40,20 @@ Models:
             - millesime
         index_keys:
             - PERIODE
+
+    MelodiDatasetCatalogue:
+        API: INSEE
+        path: /melodi/catalog/ids
+        datapath: "[]"
+        index_keys:
+            - identifier
+
+    MelodiDatasets:
+        API: INSEE
+        path: /melodi/catalog/{$identifier}
+        datapath: "*"
+        iterable: False
+        accepted_inputs:
+            - identifier
+        index_keys:
+            - identifier

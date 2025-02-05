@@ -1,5 +1,6 @@
 import datetime
 import traceback
+import time
 import re
 from urllib.parse import urljoin
 
@@ -100,6 +101,8 @@ class RESTExtractor():
         self.scopes = "Empty scope from the RESTExtractor interface"
         self.update_field = "Empty update_field from the RESTExtractor interface"
         self.models = [{"default": "Empty schema from the RESTExtractor interface"}]
+        self.iterate_output = True
+        self.rate_limit = None
 
     def read_query(self,**kwargs):
         ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
@@ -220,8 +223,8 @@ class RESTExtractor():
             except Exception as e:
                 logger.exception(e)
                 failed_items += {
-                    'item': input_item,
-                    'reason': e.message
+                    'item': input_item
+                    # 'reason': e
                 },
                 continue
         
@@ -278,6 +281,9 @@ class RESTExtractor():
 
             # set for the next query iteration
             start_token = next_token
+
+            if self.rate_limit:
+                time.sleep(self.rate_limit)
             
     def postprocess_item(self,item,model=None,**params):
         """Placeholder method ; if the API returns elements that need postprocessing
