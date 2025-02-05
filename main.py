@@ -15,6 +15,7 @@ from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
 from AzureFunctions.F_db_activity import db_actions
 
+from Engines.pipelineEngine import pipelineEngine
 
 operation = 'operation'
 source = None
@@ -64,6 +65,12 @@ def extract():
         full_results += dataset,
         
     return full_results
+
+def pipelines():
+
+    p_engine = pipelineEngine()
+    for model_name in models:
+        p_engine.execute_pipeline_from_file(model_name)
 
 def get_to_mongo():
 
@@ -146,7 +153,6 @@ if __name__ == "__main__":
     parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
     # parser.add_argument('-q','--querydomain',action='store',type=str,nargs=1,dest=query_domain)
     parser.add_argument('-i', '--inputs', action=KwargsParse, nargs='*')
-    
 
     args = parser.parse_args()
 

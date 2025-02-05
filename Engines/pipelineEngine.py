@@ -8,11 +8,10 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
 
-class documentPipelineEngine:
+class pipelineEngine:
 
     def __init__(self,**params):
 
-        self.schema = "documentPipelineEngine"
         self.ch = clientHandler()
 
     def apply_filters(self,input_data=None,filters=None):
@@ -65,18 +64,17 @@ class documentPipelineEngine:
         full_dataset = worker_module.get_data(input_data=input_data,**params)
 
         mongo_module = self.ch.get_client('mongoDBConnector')
-        insertion_result = mongo_module.upsert_dataset(input_data=full_dataset)
+        mongo_module.upsert_dataset(input_data=full_dataset)
 
         return full_dataset
 
-    def execute_pipeline_from_file(self,filename,input=[]):
+    def execute_pipeline_from_file(self,filename):
 
-        pipeline_data = fh.load_yaml(filename, subpath='orchestrator')
-        self.execute_pipeline(pipeline_data,input=input)
+        pipeline_data = fh.load_yaml(filename, subpath='pipelines')
+        self.execute_pipeline(pipeline_data)
 
-    def execute_pipeline(self,pipeline,input=[]):
+    def execute_pipeline(self,pipeline):
 
-        # ch = clientHandler()
         datasets = {}
 
         for step in pipeline['Steps']:
@@ -89,10 +87,11 @@ class documentPipelineEngine:
             step_input_name = step['Input'] if 'Input' in step.keys() else None
             step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
             # logger.debug("Step Input: {}".format(step_input))
+
             step_params = step['Params'] if 'Params' in step.keys() else {}
             
             # If no Worker name is given in the Step definition,
-            # It is assumed that the job is one of documentPipelineEngine's own methods
+            # It is assumed that the job is one of pipelineEngine's own methods
             step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
             worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
             job_instance = getattr(worker_module,job_name)
@@ -130,7 +129,7 @@ if __name__ == "__main__":
 
     # input_data = fh.load_json(input_filename,input=TEMP_FOLDER)['data']
 
-    engine = documentPipelineEngine()
+    engine = pipelineEngine()
     engine.execute_pipeline_from_file(pipeline_name)
 
     # client = gRM.FoldersGraphClient(scope='christiandior.com',org_id = "organizations/68618737410")
