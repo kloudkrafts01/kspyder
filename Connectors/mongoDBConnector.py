@@ -8,6 +8,15 @@ from common.loggingHandler import logger
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
 # SCHEMA_NAME = APP_NAME
 
+ACCEPTED_OPS = {
+    "=": None,
+    "~=": "$regex",
+    ">": "$gt",
+    ">=": "$gte",
+    "<": "$lt",
+    "<=": "$lte"
+}
+
 class mongoDBConnector():
 
     def __init__(self):
@@ -178,10 +187,38 @@ class mongoDBConnector():
 
     #     return result_dataset
 
-    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None):
+    def process_filter(self,filter_def):
+
+        filter = {}
+
+        operator = filter_def[1]
+        if operator == "=":
+            filter['$match'] = {
+                filter_def[0]: filter_def[2]
+            }
+        else:
+            filter['$match'] = {
+                filter_def[0]: {
+                    ACCEPTED_OPS[operator]: filter_def[2]
+                }
+            }
+        
+        return filter
+
+    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None,filters=[],**params):
         
         count = 0
         results_list = []
+        processed_filter_chain = []
+
+        for filter in filters:
+            processed_filter_chain += self.process_filter(filter),
+        logger.debug("Adding filters to the pipeline: {}".format(processed_filter_chain))
+
+        if len(processed_filter_chain) > 0:
+            pipeline = processed_filter_chain + pipeline
+            
+        logger.debug("Final pipeline: {}".format(pipeline))
 
         if save_to:
             view, count = self.create_view(
