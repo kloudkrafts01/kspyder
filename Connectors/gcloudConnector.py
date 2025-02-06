@@ -5,6 +5,7 @@ import time
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 
 from common.config import BASE_FILE_HANDLER as fh
+from common.baseModels import Dataset
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.loggingHandler import logger
@@ -15,10 +16,11 @@ CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 APIS_CONF = CONF['APIs']
 MODELS = CONF['Models']
+DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
 
 class gcloudConnector(RESTExtractor):
 
-    def __init__(self, client=None, schema=SCHEMA_NAME, scopes=None, models=MODELS, update_field=None,connector_class=None,**params):
+    def __init__(self, client=None, schema=SCHEMA_NAME, scopes=None, models=MODELS, update_field=None,connector_class=None,rate_limit=DEFAULT_RATE,**params):
 
         self.schema = schema
         self.scopes = scopes
@@ -28,6 +30,7 @@ class gcloudConnector(RESTExtractor):
         self.connector_class = connector_class
         self.client = client
         self.iterate_output = True
+        self.rate_limit = rate_limit
 
     def set_current_client_from_model(self, model):
 
@@ -40,6 +43,7 @@ class gcloudConnector(RESTExtractor):
         # set API-level fields and import the GCP SDK module
         self.update_field = self.api_conf['update_field']
         self.connector_class = import_module('google.cloud.{}'.format(self.api_name))
+        self.rate_limit = self.api_conf['rate_limit'] if 'rate_limit' in self.api_conf.keys() else DEFAULT_RATE
 
         # Set client from model conf
         client_name = model['client_name']
@@ -107,12 +111,11 @@ class gcloudConnector(RESTExtractor):
 
         return valid_params, request
     
-    def fetch_dataset(self,model=None,search_domains=[],**params):
+    def fetch_dataset(self,dataset: Dataset,**params):
         """Supercharges the RESTExtractor method as Google Cloud client libraries
             provide a fancy shortcut to iterate over pagination"""
-
-        output_docs = []
-        total_count = 0
+        
+        model = dataset.model
 
         # Instantiate the relevant API client class from google.cloud
         self.set_current_client_from_model(model)
@@ -128,16 +131,12 @@ class gcloudConnector(RESTExtractor):
 
             for item in response:
 
-                data = self.postprocess_item(item)
-                logger.debug("post-processed item: {}".format(data))
-                total_count += 1
-                output_docs += data,
+                data_item = self.postprocess_item(item)
+                logger.debug("post-processed item: {}".format(data_item))
+                dataset.add_item(data_item)
 
-                time.sleep(1.5)
+                time.sleep(self.rate_limit)
         
         else:
-            data = self.postprocess_item(response)
-            total_count +=1
-            output_docs += data,
-
-        return total_count,output_docs
+            data_item = self.postprocess_item(response)
+            dataset.add_item(data_item)

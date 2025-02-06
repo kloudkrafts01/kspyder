@@ -138,20 +138,22 @@ Steps:
     DumpCSV: true
     Params:
       save_to: GCloud.VPC.Subnet.IPAddresses
-      collection_name: GCloud.VPC.AddressData
+      collection_name: GCloud.Compute.NetworkData
       pipeline:
-        - $match:
-            address_type: INTERNAL
-        - $unionWith:
-            coll: GCloud.Compute.NetworkData
-            pipeline:
-              - $project:
-                  project: 1
-                  ip_address: 1
-                  name: 1
-                  purpose: COMPUTE_INSTANCE
-                  address_type: INTERNAL
-                  subnet: 1
+        # - $match:
+        #     address_type: INTERNAL
+        # - $unionWith:
+        #     coll: GCloud.Compute.NetworkData
+        #     pipeline:
+        #       - $project:
+        #           project: 1
+        #           ip_address: 1
+        #           name: 1
+        #           purpose: COMPUTE_INSTANCE
+        #           address_type: INTERNAL
+        #           subnet: 1
+        - $set:
+            purpose: COMPUTE_INSTANCE
         - $lookup:
             from: GCloud.VPC.SubnetData
             localField: subnet
@@ -160,6 +162,7 @@ Steps:
         - $unwind: $subnetInfo
         - $project:
             project: 1
+            env: 1
             vpc: $subnetInfo.vpc
             subnet: 1
             name: 1
@@ -168,6 +171,44 @@ Steps:
             subnet_cidr: $subnetInfo.ip_cidr_range
             subnet_cidr_start: $subnetInfo.ip_cidr_start
             subnet_cidr_size: $subnetInfo.ip_cidr_size
+
+  # - Name: Expand.SubnetIPData
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: SubnetIPData
+  #   DumpCSV: true
+  #   Params:
+  #     save_to: GCloud.VPC.Subnet.IPAddresses
+  #     collection_name: GCloud.VPC.AddressData
+  #     pipeline:
+  #       - $match:
+  #           address_type: INTERNAL
+  #       - $unionWith:
+  #           coll: GCloud.Compute.NetworkData
+  #           pipeline:
+  #             - $project:
+  #                 project: 1
+  #                 ip_address: 1
+  #                 name: 1
+  #                 purpose: COMPUTE_INSTANCE
+  #                 address_type: INTERNAL
+  #                 subnet: 1
+  #       - $lookup:
+  #           from: GCloud.VPC.SubnetData
+  #           localField: subnet
+  #           foreignField: name
+  #           as: subnetInfo
+  #       - $unwind: $subnetInfo
+  #       - $project:
+  #           project: 1
+  #           vpc: $subnetInfo.vpc
+  #           subnet: 1
+  #           name: 1
+  #           ip_address: 1
+  #           purpose: 1
+  #           subnet_cidr: $subnetInfo.ip_cidr_range
+  #           subnet_cidr_start: $subnetInfo.ip_cidr_start
+  #           subnet_cidr_size: $subnetInfo.ip_cidr_size
 
 # ============= Aggregate Subnet occupation data ================
 
@@ -186,6 +227,8 @@ Steps:
               $sum: 1
             cidr_size:
               $max: $subnet_cidr_size
+            env:
+              $first: $env
             vpc:
               $first: $vpc
 

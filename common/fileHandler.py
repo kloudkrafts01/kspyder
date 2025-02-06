@@ -78,14 +78,14 @@ class FileHandler():
         # Specify the path of json dump into the dataset's metadata
         dataset.json_dump = filepath
 
-        # return dataset
+        return dataset
 
     def dump_csv(self,dataset: Dataset):
 
         dict_data = dataset.data
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = "{}_{}-{}.json".format(now,dataset.schema,dataset.model_name)
+        filename = "{}_{}-{}.csv".format(now,dataset.schema,dataset.model_name)
         filepath = os.path.join(self.output_folder,filename)
 
         fieldnameset = set()
@@ -106,4 +106,4 @@ class FileHandler():
         # Creates the header if not existing.
         dataset.csv_dump = filepath
 
-        # return dataset
+        return dataset

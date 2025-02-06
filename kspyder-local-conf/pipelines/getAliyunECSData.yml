@@ -5,7 +5,7 @@ Steps:
     Output: RegionData
     Params:
       data:
-        - region_id: cn-shanghai
+        - RegionId: cn-shanghai
 
   - Name: GetToMongo.ECSInstances
     Job: get_data_to_mongo

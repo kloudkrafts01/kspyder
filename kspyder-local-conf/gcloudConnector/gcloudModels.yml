@@ -1,5 +1,6 @@
 Connector:
-    schema: googleCloud
+    schema: GCloud
+    default_rate_limit: 1.2
 
 APIs:
     compute_v1:
@@ -38,7 +39,7 @@ Models:
 
 # =================== Compute Models =========================
 
-    GCloudComputeInstances:
+    ComputeInstances:
         API: compute_v1
         client_name: InstancesClient
         request_builder: ListInstancesRequest
@@ -50,7 +51,7 @@ Models:
             - id
             - name
     
-    GCloudComputeInstanceGroups:
+    ComputeInstanceGroups:
         API: compute_v1
         client_name: InstanceGroupsClient
         request_builder: ListInstanceGroupsRequest
@@ -105,7 +106,7 @@ Models:
 
 # =================== Resource Management Models ======================
     
-    GCloudOrganizations:
+    Organizations:
         API: resourcemanager
         client_name: OrganizationsClient
         request_builder: SearchOrganizationsRequest
@@ -116,7 +117,7 @@ Models:
             - name
             - display_name
 
-    GCloudFolders:
+    Folders:
         API: resourcemanager
         client_name: FoldersClient
         request_builder: ListFoldersRequest
@@ -128,7 +129,7 @@ Models:
         index_keys:
             - name
 
-    GCloudProjects:
+    Projects:
         API: resourcemanager
         client_name: ProjectsClient
         request_builder: ListProjectsRequest
@@ -162,7 +163,7 @@ Models:
 
 # =================== Cloud Network Models ======================
 
-    GCloudVPCs:
+    VPCs:
         API: compute_v1
         client_name: NetworksClient
         request_builder: ListNetworksRequest
@@ -172,7 +173,7 @@ Models:
         index_keys:
             - name
     
-    GCloudSubnets:
+    Subnets:
         API: compute_v1
         client_name: SubnetworksClient
         request_builder: ListSubnetworksRequest
@@ -183,7 +184,7 @@ Models:
         index_keys:
             - name
     
-    GCloudAddresses:
+    Addresses:
         API: compute_v1
         client_name: AddressesClient
         request_builder: ListAddressesRequest
@@ -194,7 +195,7 @@ Models:
         index_keys:
             - id
 
-    GCloudForwardingRules:
+    ForwardingRules:
         API: compute_v1
         client_name: ForwardingRulesClient
         request_builder: ListForwardingRulesRequest
@@ -205,7 +206,7 @@ Models:
         index_keys:
             - id
 
-    GCloudBackendBuckets:
+    BackendBuckets:
         API: compute_v1
         client_name: BackendBucketsClient
         request_builder: ListBackendBucketsRequest
@@ -215,7 +216,7 @@ Models:
         index_keys:
             - id
 
-    GCloudVPCAccess:
+    VPCAccess:
         API: VPC
         client_name: VpcAccessServiceClient
         request_builder: ListConnectorsRequest

@@ -13,7 +13,7 @@ class Dataset():
     data: list
     failed_items: list
 
-    def __init__(self,schema,model_name,model,params=None,count=0,scopes=None,**kwargs):
+    def __init__(self,schema,model_name,model,params=None,count=0,scopes=None,data=[],**kwargs):
         self.schema = schema
         self.model_name = model_name
         self.model = model
@@ -22,7 +22,7 @@ class Dataset():
         self.json_dump = None
         self.csv_dump = None
         self.scopes = scopes
-        self.data = []
+        self.data = data
         self.failed_items = []
 
     def to_json(self):
@@ -44,11 +44,17 @@ class Dataset():
 
         return full_dataset
     
-    def update(self,count=0,data=None):
+    def update_data(self,count=0,data=None):
 
         if data:
             self.count += count
             self.data.extend(data)
+
+    def add_item(self,item=None):
+
+        if item:
+            self.count += 1
+            self.data.append(item)
         
 
 

@@ -4,6 +4,7 @@ import datetime
 
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from common.baseModels import Dataset
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
 # SCHEMA_NAME = APP_NAME
@@ -33,24 +34,31 @@ class mongoDBConnector():
 
         return result
 
-    def upsert_dataset(self,input_data={},collection=None,model=None):
+    def upsert_dataset(self,dataset:Dataset=None,collection_name=None,model=None):
 
-        result_dataset = []
         insert_count = 0
         update_count = 0
         
-        model_name = model['name'] if model else input_data['header']['model_name']
-        model = model if model else input_data['header']['model']
-        dataset = input_data['data']
+        schema = dataset.schema
+        model_name = dataset.model_name
+        model = dataset.model 
 
-        if len(dataset) == 0:
+        if dataset.count == 0:
             logger.info("Provided dataset is empty.")
+            return dataset
 
-        collection_name = collection if collection else model_name
+        # result_dataset = Dataset(
+        #     schema,
+        #     model_name,
+        #     model
+        # )
+        
+        namespace = "%s.%s" %(schema, model_name)
+        collection_name = collection_name if collection_name else namespace
         dbcollection = self.db[collection_name]
-        logger.info("Upserting dataset to Mongo Collection: {}\nModel:\n{}".format(collection_name,model))
+        logger.info("Upserting dataset to Mongo Collection: {}\nModel: {}".format(collection_name,model))
 
-        for document in dataset:            
+        for document in dataset.data:            
 
             filter = {}
             for key in model['index_keys']:
@@ -64,36 +72,19 @@ class mongoDBConnector():
             else:
                 update_count += upsert_result.modified_count
 
-            context_result = {
-                'upsert_filter': filter,
-                'result': upsert_result.raw_result
-            }
+            # result_dataset.add_item(upsert_result)
 
-            result_dataset.append(context_result)
+        # context_result = {
+        #     'collection_name': collection_name,
+        #     'upsert_filter': filter,
+        #     'insert_count': insert_count,
+        #     'update_count': update_count
+        # }
 
-        full_dataset = {
-                'header': {
-                    'schema': self.schema,
-                    'operation': 'upsert_dataset',
-                    'collection_name': collection_name,
-                    'model_name': model_name,
-                    'model': model,
-                    'count': len(result_dataset),
-                    'insert_count': insert_count,
-                    'update_count': update_count,
-                    'json_dump': None,
-                    'csv_dump': None
-                },
-                'data': result_dataset
-            }
-        
-        if len(result_dataset) == 0:
-            logger.info("Provided dataset is empty.")
-        else:
-            if DUMP_JSON:
-                full_dataset = fh.dump_json(full_dataset, schema=self.schema, name=model_name)
-
-        return full_dataset
+        # logger.info("Upsert done. Inserted {} new documents, updated {} documents.".format(insert_count, update_count))
+        # result_dataset.params[__name__] = context_result
+        # logger.debug("Dataset params: {}".format(result_dataset.params))
+        # return result_dataset
 
     def insert_from_jsonfile(self,jsonpath):
         
@@ -205,7 +196,7 @@ class mongoDBConnector():
         
         return filter
 
-    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None,filters=[],**params):
+    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None,filters=[],output=None,**params):
         
         count = 0
         results_list = []
@@ -230,6 +221,7 @@ class mongoDBConnector():
 
             results = view.find()
             results_list = results.to_list()
+            count = len(results_list)
         
         else:
             collection = self.db[collection_name]
@@ -242,17 +234,27 @@ class mongoDBConnector():
 
             logger.info("Query returned {} items.".format(count))
 
-        result_dataset = {
-            "header": {
-                "schema": APP_NAME,
-                "view": save_to,
-                "collection": collection_name,
-                "pipeline": pipeline,
-                "count": count,
-            },
-            "data": results_list
+        # create the output dataset
+        params = {
+            "operation": 'aggregate_data',
+            "view_name": save_to,
+            "pipeline": pipeline
+        }
+        params.update(params)
+        model = {
+            'collection_name': collection_name,
+            'index_keys': ['_id']
         }
 
+        result_dataset = Dataset(
+            APP_NAME,
+            output,
+            model,
+            count = count,
+            data = results_list
+        )
+
+        # logger.debug("Result dataset: {}".format(result_dataset.to_json()))
         return result_dataset
 
     def create_view(self,name=None,collection_name=None,pipeline=None,overwrite=False):

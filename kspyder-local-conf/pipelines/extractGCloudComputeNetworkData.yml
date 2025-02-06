@@ -31,6 +31,7 @@ Steps:
         - $project:
             project: 1
             id: 1
+            env: $labels.lvmh_environment
             name: 1
             status: 1
             created: $creation_timestamp

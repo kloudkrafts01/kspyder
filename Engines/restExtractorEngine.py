@@ -162,7 +162,7 @@ class RESTExtractor():
 
         return url, headers, valid_params
 
-    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
+    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input=[{}],**params):
         """Get Data from the connector.
         
         INPUTS :
@@ -209,12 +209,13 @@ class RESTExtractor():
             params = params
         )
 
-        for input_item in input_data:
+        for input_item in input:
             
             logger.debug("Input item: {}".format(input_item))
 
             try:
-                self.fetch_dataset(dataset,search_domains=search_domains,input=input_item,**params)
+                params.update(input_item)
+                self.fetch_dataset(dataset,search_domains=search_domains,**params)
                 
             except Exception as e:
                 logger.exception(e)
@@ -225,25 +226,23 @@ class RESTExtractor():
             logger.info('no results were found.')
         else: 
             if DUMP_JSON:
-                fh.dump_json(dataset)
+                dataset = fh.dump_json(dataset)
 
         return dataset
 
     def fetch_dataset(self,dataset: Dataset,search_domains=[],input={},**params):
 
-        total_count = 0
-        params = {**params, **input}
+        # total_count = 0
         logger.debug("Using this as input params for this round: {}".format(params))
         
         ex_iter = self.paginated_fetch(dataset.model,search_domains=search_domains,**params)
 
         for results_count, results in ex_iter:
-            total_count += results_count
+            # total_count += results_count
             if results_count > 0:
                 results_full = [{**input, **item} for item in results]
-                dataset.update(results_count,results_full)
+                dataset.update_data(results_count,results_full)
         
-        # return total_count,dataset
 
     def paginated_fetch(self,model,search_domains=[],start_token=None,**params):
 

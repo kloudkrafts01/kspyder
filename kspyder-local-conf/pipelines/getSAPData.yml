@@ -2,63 +2,58 @@ Steps:
 
   - Name: GetSAPProjectIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectIds
     Params:
-      query_name: GetSAPProjectIds
-      query_conf:
-        collection: GCPProjects
-        operations:
-          $match:
+      collection_name: GCPProjects
+      pipeline:
+        - $match:
             display_name:
-              # $regex: "sap"
-              $regex: "(s4h)|(sap)|(spc)"
-          $project:
+              $regex: "sap"
+              # $regex: "(s4h)|(sap)|(spc)"
+        - $project:
             project: $display_name
-          $unset:
-            - _id
+        - $unset:
+          - _id
   
   - Name: GetSAPProjectRegions
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectRegions
     Params:
-      query_name: GetSAPProjectIds
-      query_conf:
-        collection: GCPProjects
-        operations:
-          $match:
+      collection_name: GCPProjects
+      pipeline:
+        - $match:
             display_name:
-              # $regex: "sap"
-              $regex: "(s4h)|(sap)|(spc)"
-          $set:
+              $regex: "sap"
+              # $regex: "(s4h)|(sap)|(spc)"
+        - $set:
             region: europe-west4
-          $project:
+        - $project:
             project: $project_id
             region: 1
-          $unset:
+        - $unset:
             - _id
 
   - Name: GetSAPProjectZones
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectZones
     Params:
-      query_name: GetSAPProjectZones
-      query_conf:
-        collection: GCPProjectZones
-        operations:
-          $match:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $match:
             project:
-              # $regex: "sap"
-              $regex: "(s4h)|(sap)|(spc)"
-          $unset:
+              $regex: "sap"
+              # $regex: "(s4h)|(sap)|(spc)"
+        - $unset:
             - _id
   
   - Name: GetToMongo.ComputeInstances
     Job: get_data_to_mongo
     Input: SAPProjectZones.data
     Output: SAP_ComputeInstances
+    DumpJSON: true
     Params:
       from_worker: gcloudConnector
       model_name: ComputeInstances
@@ -67,14 +62,16 @@ Steps:
     Job: get_data_to_mongo
     Input: SAPProjectIds.data
     Output: SAP_VPCs
+    DumpJSON: true
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudVPCs
+      model_name: VPCs
 
   - Name: GetToMongo.GCloudSubnets
     Job: get_data_to_mongo
     Input: SAPProjectRegions.data
     Output: SAP_Subnets
+    DumpJSON: true
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudSubnets
+      model_name: Subnets
