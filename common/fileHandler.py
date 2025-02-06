@@ -5,6 +5,8 @@ import json, yaml, csv, datetime
 from bson import ObjectId
 from importlib import import_module
 
+from .baseModels import Dataset
+
 
 class bJSONEncoder(json.JSONEncoder):
 
@@ -61,30 +63,29 @@ class FileHandler():
         
         return dict_data
     
-    def dump_json(self,dataset,schema,name):
+    def dump_json(self,dataset: Dataset):
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = "{}_{}-{}.json".format(now,schema,name)
+        filename = "{}_{}-{}.json".format(now,dataset.schema,dataset.model_name)
         filepath = os.path.join(self.output_folder,filename)
 
-        # Specify the path of json dump into the dataset's header. 
-        # Creates the header if not existing.
-        dataset['header']['json_dump'] = filepath
-
         encoder = bJSONEncoder()
-        encoded_json = encoder.encode(dataset)
+        encoded_json = encoder.encode(dataset.to_json())
         loaded_json = json.loads(encoded_json)
         with open(filepath,"w") as f:
             json.dump(loaded_json,f)
 
-        return dataset
+        # Specify the path of json dump into the dataset's metadata
+        dataset.json_dump = filepath
 
-    def dump_csv(self,dataset,schema,name):
+        # return dataset
 
-        dict_data = dataset['data']
+    def dump_csv(self,dataset: Dataset):
+
+        dict_data = dataset.data
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = "{}_{}-{}.csv".format(now,schema,name)
+        filename = "{}_{}-{}.json".format(now,dataset.schema,dataset.model_name)
         filepath = os.path.join(self.output_folder,filename)
 
         fieldnameset = set()
@@ -103,6 +104,6 @@ class FileHandler():
         
         # Specify the path of csv dump into the dataset's header. 
         # Creates the header if not existing.
-        dataset['header']['csv_dump'] = filepath
+        dataset.csv_dump = filepath
 
-        return dataset
+        # return dataset

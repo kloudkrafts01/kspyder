@@ -125,22 +125,5 @@ class pipelineEngine:
 if __name__ == "__main__":
 
     pipeline_name = sys.argv[1]
-    # input_filename = sys.argv[2]
-
-    # input_data = fh.load_json(input_filename,input=TEMP_FOLDER)['data']
-
     engine = pipelineEngine()
     engine.execute_pipeline_from_file(pipeline_name)
-
-    # client = gRM.FoldersGraphClient(scope='christiandior.com',org_id = "organizations/68618737410")
-    # folders_graph = client.get_all_folders()
-
-    # full_dataset = {
-    #     'header':{
-    #         folders_graph['graph_metadata']
-    #     },
-    #     'data': folders_graph['data']
-    # }
-
-    # # if DUMP_JSON:
-    # fh.dump_json(dataset = folders_graph, schema="gcloudRMConnector", name='GCloudFolders')

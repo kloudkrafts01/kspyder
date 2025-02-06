@@ -53,6 +53,7 @@ class azureRGraphConnector(RESTExtractor):
         self.schema = schema
         self.models = models
         self.update_field = update_field
+        self.rate_limit = None
 
         self.client = azureRGraphClient()
 
