@@ -1,0 +1,20 @@
+Steps:
+
+  - Name: ExtractCustomPolicyDocs
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunRAMCustomPolicyDocuments
+    DumpCSV: false
+    DumpJSON: true
+    Params:
+      save_to: Aliyun.RAM.CustomPolicyDocuments
+      collection_name: Aliyun.RAM.RAMPolicyVersions
+      pipeline:
+        - $match:
+            policy_type: Custom
+            IsDefaultVersion: true
+        - $project:
+            policy_name: 1
+            PolicyDocument: 1
+        - $unset:
+          - _id

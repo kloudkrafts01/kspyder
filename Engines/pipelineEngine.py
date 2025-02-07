@@ -13,6 +13,7 @@ class pipelineEngine:
     def __init__(self,**params):
 
         self.ch = clientHandler()
+        self.schema = __name__
 
     def apply_filters(self,input_data=None,filters=None):
 
@@ -52,9 +53,16 @@ class pipelineEngine:
         else:
             output_data = []
 
-        logger.debug("Extracted key-value list: {}".format(output_data))
+        # logger.debug("Extracted key-value list: {}".format(output_data))
 
-        return output_data
+        full_output_data ={
+            'header': {
+                'count': len(output_data)
+            },
+            'data': output_data
+        }
+
+        return full_output_data
 
     def get_data_to_mongo(self,input_data=[{}],from_worker=None,**params):
         """Shortcut method to get data from a connector and get the output to mongoDB directly

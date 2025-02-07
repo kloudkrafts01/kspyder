@@ -13,6 +13,7 @@ CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
 logger.debug("CONF: {}".format(CONF))
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
+DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
 
 APIS_CONF = CONF['APIs']
 MODELS = CONF['Models']
@@ -49,13 +50,14 @@ class AliyunClient:
 
 class aliyunConnector(RESTExtractor):
 
-    def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, scopes=None, **params):
+    def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, scopes=None, rate_limit=DEFAULT_RATE, **params):
 
         self.schema = schema
         self.models = models
         self.scopes = scopes
         self.params = params
         self.profile = profile
+        self.rate_limit = rate_limit
 
         # All the fields below are set at each query context
         self.api_name = None
@@ -92,6 +94,8 @@ class aliyunConnector(RESTExtractor):
         logger.debug("Setting client from API conf: {}".format(self.api_conf))
 
         self.update_field = self.api_conf['update_field']
+        if 'rate_limit' in self.api_conf.keys():
+            self.rate_limit = self.api_conf['rate_limit']
 
         # Initiate all fields that can be useful for pagination
         self.convert_case = self.api_conf['convert_response_case'] if 'convert_response_case' in self.api_conf.keys() else False

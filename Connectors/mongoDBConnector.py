@@ -41,12 +41,16 @@ class mongoDBConnector():
         
         model_name = model['name'] if model else input_data['header']['model_name']
         model = model if model else input_data['header']['model']
+        target_schema = input_data['header']['schema']
+        api_name = model['API'] if 'API' in model.keys() else None
         dataset = input_data['data']
 
         if len(dataset) == 0:
             logger.info("Provided dataset is empty.")
 
-        collection_name = collection if collection else model_name
+        short_namespace = "%s.%s" %( target_schema, model_name)
+        namespace = "%s.%s.%s" %( target_schema, api_name, model_name) if api_name else short_namespace
+        collection_name = collection if collection else namespace
         dbcollection = self.db[collection_name]
         logger.info("Upserting dataset to Mongo Collection: {}\nModel:\n{}".format(collection_name,model))
 

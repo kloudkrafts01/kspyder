@@ -1,14 +1,16 @@
 Connector:
     schema: Aliyun
+    default_rate_limit: 0.2
 
 APIs:
 
     RAM:
         name: alibabacloud_ram20150501
         update_field: UpdateDate
-        is_truncated_key: IsTruncated
-        next_token_key: Marker
-        last_request_key: RequestId
+        is_truncated_key: is_truncated
+        next_token_key: marker
+        last_request_key: request_id
+        convert_response_case: true
     
     CS:
         name: alibabacloud_cs20151215
@@ -38,7 +40,6 @@ APIs:
     
 Models:
 
-
 # ================ RAM Models ==================
 
     RAMUsers:
@@ -46,6 +47,26 @@ Models:
         request_builder: ListUsersRequest
         query_name: list_users_with_options
         datapath: Users.User[]
+        index_keys:
+            - UserId
+            - UserName
+
+    RAMGroups:
+        API: RAM
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        datapath: Groups.Group[]
+        index_keys:
+            - GroupId
+            - GroupName
+
+    RAMGroupMembers:
+        API: RAM
+        request_builder: ListUsersForGroupRequest
+        query_name: list_users_for_group_with_options
+        datapath: Users.User[]
+        accepted_inputs:
+            - group_name
         index_keys:
             - UserId
             - UserName
@@ -65,7 +86,19 @@ Models:
         query_name: list_policies_with_options
         datapath: Policies.Policy[]
         index_keys:
-            - PolicyId
+            - PolicyName
+
+    RAMPolicyVersions:
+        API: RAM
+        request_builder: ListPolicyVersionsRequest
+        query_name: list_policy_versions_with_options
+        datapath: PolicyVersions.PolicyVersion[]
+        accepted_inputs:
+            - policy_name
+            - policy_type
+        index_keys:
+            - policy_name
+            - VersionId
 
     AccessKeys:
         API: RAM
@@ -76,6 +109,52 @@ Models:
             - user_name
         index_keys:
             - AccessKeyId
+            
+    PolicyForGroups:
+        API: RAM
+        request_builder: ListPoliciesForGroupRequest
+        query_name: list_policies_for_group_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - group_name
+        index_keys:
+            - group_name
+            - PolicyName
+
+                
+    PolicyForRoles:
+        API: RAM
+        request_builder: ListPoliciesForRoleRequest
+        query_name: list_policies_for_role_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - role_name
+        index_keys:
+            - role_name
+            - PolicyName
+    
+    PolicyForUsers:
+        API: RAM
+        request_builder: ListPoliciesForUserRequest
+        query_name: list_policies_for_user_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - user_name
+        index_keys:
+            - user_name
+            - PolicyName
+    
+    # # To be adapted : returns multiple useful data paths (Users, Groups and Roles)
+    # PolicyGrants:
+    #     API: RAM
+    #     request_builder: ListEntitiesForPolicyRequest
+    #     query_name: list_entities_for_policy_with_options
+    #     datapath: Policies.Policy[]
+    #     accepted_inputs:
+    #         - PolicyName
+    #         - PolicyType
+    #     index_keys:
+    #         - PolicyName
 
 
 # ================ CloudSSO Models ==================
