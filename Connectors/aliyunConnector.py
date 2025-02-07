@@ -68,7 +68,6 @@ class aliyunConnector(RESTExtractor):
         self.client = None
         self.source_models = None
         self.runtime_options = None
-        self.rate_limit = None
 
     def convert_to_camelcase(self,string):
         

@@ -6,7 +6,6 @@ from urllib.parse import urljoin
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
-from common.baseModels import Dataset
 
 class ElementGraph():
 
@@ -193,57 +192,78 @@ class RESTExtractor():
         # logger.debug("Extractor object: {}".format(self.__dict__))
 
         if last_days:
-            now = datetime.datetime.now()
+            now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=last_days)
             yesterday = now - delta
 
             logger.info("UTC start datetime is {}".format(yesterday))
             search_domains += [self.update_field,'>=',yesterday],
 
+        count = 0
+        dataset = []
+        failed_items = []
         model = self.models[model_name]
-
-        dataset = Dataset(
-            self.schema,
-            model_name,
-            model,
-            params = params
-        )
 
         for input_item in input_data:
             
             logger.debug("Input item: {}".format(input_item))
 
+            item_params = {**params, **input_item}
+            logger.debug("Using this as input params for this round: {}".format(item_params))
+
             try:
-                self.fetch_dataset(dataset,search_domains=search_domains,input=input_item,**params)
+                result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
                 
+                count += result_count
+                # Only add the result dataset if not empty
+                if result_count > 0:
+                    result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
+                    dataset.extend(result_dataset)
+            
             except Exception as e:
                 logger.exception(e)
-                dataset.failed_items.append(input_item)
+                failed_items += {
+                    'item': input_item
+                    # 'reason': e
+                },
                 continue
+        
+        full_dataset = {
+                'header': {
+                    'schema': self.schema,
+                    'model_name': model_name,
+                    'model': model,
+                    'count': count,
+                    'json_dump': None,
+                    'csv_dump': None,
+                    'scopes': self.scopes,
+                    'params': params
+                },
+                'failed_items': failed_items,
+                'data': dataset
+            }
             
-        if dataset.data == []:
+        if dataset == []:
             logger.info('no results were found.')
         else: 
             if DUMP_JSON:
-                fh.dump_json(dataset)
+                full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
-        return dataset
+        return full_dataset
 
-    def fetch_dataset(self,dataset: Dataset,search_domains=[],input={},**params):
+    def fetch_dataset(self,model,search_domains=[],**params):
 
+        output_docs = []
         total_count = 0
-        params = {**params, **input}
-        logger.debug("Using this as input params for this round: {}".format(params))
-        
-        ex_iter = self.paginated_fetch(dataset.model,search_domains=search_domains,**params)
+
+        ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
 
         for results_count, results in ex_iter:
+            
             total_count += results_count
-            if results_count > 0:
-                results_full = [{**input, **item} for item in results]
-                dataset.update(results_count,results_full)
+            output_docs.extend(results)
         
-        # return total_count,dataset
+        return total_count,output_docs
 
     def paginated_fetch(self,model,search_domains=[],start_token=None,**params):
 
@@ -305,6 +325,6 @@ class RESTExtractor():
         full_dataset['header']['model'] = model
 
         if DUMP_JSON:
-            fh.dump_json(full_dataset)
+            full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
         return full_dataset
