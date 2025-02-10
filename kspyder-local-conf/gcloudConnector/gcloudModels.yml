@@ -2,7 +2,7 @@ Connector:
     schema: googleCloud
 
 APIs:
-    compute_v1:
+    Compute:
         name: compute_v1
         update_field: UpdateDate
 
@@ -38,8 +38,8 @@ Models:
 
 # =================== Compute Models =========================
 
-    GCloudComputeInstances:
-        API: compute_v1
+    ComputeInstances:
+        API: Compute
         client_name: InstancesClient
         request_builder: ListInstancesRequest
         query_name: list
@@ -50,8 +50,8 @@ Models:
             - id
             - name
     
-    GCloudComputeInstanceGroups:
-        API: compute_v1
+    ComputeInstanceGroups:
+        API: Compute
         client_name: InstanceGroupsClient
         request_builder: ListInstanceGroupsRequest
         query_name: list
@@ -63,7 +63,7 @@ Models:
             - name
 
     ComputeOSImages:
-        API: compute_v1
+        API: Compute
         client_name: ImagesClient
         request_builder: ListImagesRequest
         query_name: list
@@ -73,7 +73,7 @@ Models:
             - id
 
     ComputeMachineTypes:
-        API: compute_v1
+        API: Compute
         client_name: MachineTypesClient
         request_builder: ListMachineTypesRequest
         query_name: list
@@ -105,7 +105,7 @@ Models:
 
 # =================== Resource Management Models ======================
     
-    GCloudOrganizations:
+    Organizations:
         API: resourcemanager
         client_name: OrganizationsClient
         request_builder: SearchOrganizationsRequest
@@ -116,7 +116,7 @@ Models:
             - name
             - display_name
 
-    GCloudFolders:
+    Folders:
         API: resourcemanager
         client_name: FoldersClient
         request_builder: ListFoldersRequest
@@ -128,7 +128,7 @@ Models:
         index_keys:
             - name
 
-    GCloudProjects:
+    Projects:
         API: resourcemanager
         client_name: ProjectsClient
         request_builder: ListProjectsRequest
@@ -162,8 +162,8 @@ Models:
 
 # =================== Cloud Network Models ======================
 
-    GCloudVPCs:
-        API: compute_v1
+    VPCs:
+        API: Compute
         client_name: NetworksClient
         request_builder: ListNetworksRequest
         query_name: list
@@ -172,8 +172,8 @@ Models:
         index_keys:
             - name
     
-    GCloudSubnets:
-        API: compute_v1
+    Subnets:
+        API: Compute
         client_name: SubnetworksClient
         request_builder: ListSubnetworksRequest
         query_name: list
@@ -183,8 +183,8 @@ Models:
         index_keys:
             - name
     
-    GCloudAddresses:
-        API: compute_v1
+    Addresses:
+        API: Compute
         client_name: AddressesClient
         request_builder: ListAddressesRequest
         query_name: list
@@ -194,8 +194,8 @@ Models:
         index_keys:
             - id
 
-    GCloudForwardingRules:
-        API: compute_v1
+    LBForwardingRules:
+        API: Compute
         client_name: ForwardingRulesClient
         request_builder: ListForwardingRulesRequest
         query_name: list
@@ -205,8 +205,8 @@ Models:
         index_keys:
             - id
 
-    GCloudBackendBuckets:
-        API: compute_v1
+    LBBackendBuckets:
+        API: Compute
         client_name: BackendBucketsClient
         request_builder: ListBackendBucketsRequest
         query_name: list
@@ -215,7 +215,7 @@ Models:
         index_keys:
             - id
 
-    GCloudVPCAccess:
+    VPCAccess:
         API: VPC
         client_name: VpcAccessServiceClient
         request_builder: ListConnectorsRequest
@@ -227,7 +227,7 @@ Models:
 
 # =================== Data Stores Models ======================
 
-    GCSBuckets:
+    Buckets:
         API: GCS
         client_name: Client
         query_name: list_buckets
@@ -245,7 +245,7 @@ Models:
         index_keys:
             - project_id
 
-    BigQueryDatasets:
+    Datasets:
         API: BigQuery
         client_name: Client
         # request_builder: ListModelsRequest

@@ -101,6 +101,7 @@ class RESTExtractor():
         self.scopes = "Empty scope from the RESTExtractor interface"
         self.update_field = "Empty update_field from the RESTExtractor interface"
         self.models = [{"default": "Empty schema from the RESTExtractor interface"}]
+        self.apis = [{"default": "Empty schema from the RESTExtractor interface"}]
         self.iterate_output = True
         self.rate_limit = None
 
@@ -251,10 +252,25 @@ class RESTExtractor():
 
         return full_dataset
 
+    def set_api_from_model(self,model):
+        
+        self.api_name = model['API']
+        api_def = self.apis[self.api_name]
+        self.base_url = api_def['base_url']
+        self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
+        self.is_truncated_key = api_def['is_truncated_key'] if 'is_truncated_key' in api_def.keys() else None
+        self.next_token_key = api_def['next_token_key'] if 'next_token_key' in api_def.keys() else None
+        self.pagination_style = api_def['pagination_style'] if 'pagination_style' in api_def.keys() else None
+        self.batch_size_key = api_def['batch_size_key'] if 'batch_size_key' in api_def.keys() else None
+        
+        self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
+
     def fetch_dataset(self,model,search_domains=[],**params):
 
         output_docs = []
         total_count = 0
+
+        self.set_api_from_model(model)
 
         ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
 

@@ -16,6 +16,7 @@ SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
 MODELS = CONF['Models']
+APIS = CONF['APIs']
 
 class akamaiClient():
 
@@ -31,10 +32,11 @@ class akamaiClient():
 
 class akamaiConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME, **params):
+    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, **params):
 
         self.schema = schema
         self.models = models
+        self.apis = apis
         self.update_field = update_field
         self.scopes = scopes
 

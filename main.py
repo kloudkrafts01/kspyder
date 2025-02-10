@@ -152,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('-x','--action',action='store',type=str,dest=action)
     parser.add_argument('-d','--searchdomain',action='store',type=str,nargs=3,dest=search_domain)
     # parser.add_argument('-q','--querydomain',action='store',type=str,nargs=1,dest=query_domain)
-    parser.add_argument('-i', '--inputs', action=KwargsParse, nargs='*')
+    parser.add_argument('-i', '--inputs', action=KwargsParse, nargs='*', default={})
 
     args = parser.parse_args()
 

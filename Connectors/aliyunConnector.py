@@ -85,7 +85,7 @@ class aliyunConnector(RESTExtractor):
 
         return string
 
-    def set_current_client_from_model(self, model):
+    def set_api_from_model(self, model):
 
         # Get the API config from the chosen Model
         api_id = model['API']
@@ -158,10 +158,7 @@ class aliyunConnector(RESTExtractor):
 
     def read_query(self,model,search_domains=[],start_token=None,query_args=[],**params):
 
-        # First, set the current client to the model's API
-        self.set_current_client_from_model(model)
-
-        # Second, build a request context for the current client API
+        # Build a request context for the current client API
         request_context = self.build_request( model, start_token = start_token, **params )
         
         # Send a query with the request context built before

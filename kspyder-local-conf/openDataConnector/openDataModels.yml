@@ -7,6 +7,9 @@ APIs:
     DiDo:
         name: dido
         base_url: https://data.statistiques.developpement-durable.gouv.fr
+        pagination_style: pages
+        next_token_key: page
+        batch_size_key: pageSize
         default_headers:
             accept: application/json
 
@@ -22,6 +25,7 @@ Models:
     DiDoDatasetCatalogue:
         API: DiDo
         path: /dido/api/v1/datasets
+        count_key: total
         datapath: data
         accepted_inputs:
             - page

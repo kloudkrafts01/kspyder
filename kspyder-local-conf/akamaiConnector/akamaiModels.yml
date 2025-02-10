@@ -2,9 +2,19 @@ Connector:
     schema: Akamai
     update_field: modifiedSince
 
+APIs:
+    PropertyManager:
+        base_url: __EDGERC_BASE_URL__
+        pagination_style: pages
+        next_token_key: page
+        batch_size_key: pageSize
+        default_headers:
+            accept: application/json
+
 Models:
 
-    AkamaiPropertyGroups:
+    PropertyGroups:
+        API: PropertyManager
         path: /papi/v1/groups
         datapath: groups.items
         headers:
@@ -13,7 +23,8 @@ Models:
         index_keys:
             - groupId
 
-    AkamaiEdgeHostnames:
+    EdgeHostnames:
+        API: PropertyManager
         path: /papi/v1/edgehostnames
         datapath: edgeHostname.items
         accepted_inputs: 
@@ -25,7 +36,8 @@ Models:
             accept: application/json
             PAPI-Use-Prefixes: "true"
 
-    AkamaiProperties:
+    Properties:
+        API: PropertyManager
         path: /papi/v1/properties
         datapath: properties.items
         accepted_inputs: 
@@ -38,7 +50,8 @@ Models:
             accept: application/json
             PAPI-Use-Prefixes: "true"
 
-    AkamaiPropertyActivations:
+    PropertyActivations:
+        API: PropertyManager
         path: /papi/v1/properties/{$propertyId}/activations
         datapath: activations.items
         accepted_inputs:
@@ -49,7 +62,8 @@ Models:
             accept: application/json
             PAPI-Use-Prefixes: "true"
 
-    AkamaiPropertyRules:
+    PropertyRules:
+        API: PropertyManager
         path: /papi/v1/properties/{$propertyId}/versions/{$version}/rules
         datapath: rules.children
         accepted_inputs:
@@ -63,7 +77,8 @@ Models:
             accept: application/json
             PAPI-Use-Prefixes: "true"
 
-    AkamaiPropertyIncludes:
+    PropertyIncludes:
+        API: PropertyManager
         path: /papi/v1/properties/{$propertyId}/versions/{$version}/includes
         datapath: includes.items
         accepted_inputs:

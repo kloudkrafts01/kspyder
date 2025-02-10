@@ -4,13 +4,13 @@ Steps:
 
   - Name: Get.SAPComputeInstancesData
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeInstances
     Params:
       query_name: Get.SAPComputeInstancesData
       query_conf:
-        collection: ComputeInstances
-        operations:
+        collection_name: ComputeInstances
+        pipeline:
           $match:
             project:
               $regex: "(s4h)|(sap)|(spc)"
@@ -30,15 +30,15 @@ Steps:
 
   # - Name: Extract.SAPComputeInstancesData
   #   Worker: mongoDBConnector
-  #   Job: execute_query
+  #   Job: aggregate_data
   #   Output: SAPComputeInstancesData
   #   Params:
   #     query_name: Extract.SAPComputeInstancesData
   #     query_conf:
   #       dump_csv: true
   #       dump_json: true
-  #       collection: SAPComputeInstances
-  #       operations:
+  #       collection_name: SAPComputeInstances
+  #       pipeline:
   #         $project:
   #           project: 1
   #           id: 1
@@ -56,15 +56,13 @@ Steps:
 
   - Name: Extend.SAPComputeInstancesData.Nics
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeExtendedNics
     Params:
-      query_name: Extend.SAPComputeInstancesData.Nics
-      query_conf:
-        collection: SAPComputeInstances
-        operations:
-          $unwind: $network_interfaces
-          $unset:
+      collection_name: SAPComputeInstances
+      pipeline:
+        - $unwind: $network_interfaces
+        - $unset:
             - _id
 
   - Name: Save.ExtendedSAPData.Nics
@@ -81,14 +79,14 @@ Steps:
 
   - Name: Extend.SAPComputeInstancesData.NicAliases
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeExtendedNicAliases
     Params:
       query_name: Extend.SAPComputeInstancesData.NicAliases
       query_conf:
-        collection: SAPComputeNetworkData
+        collection_name: SAPComputeNetworkData
         dump_json: true
-        operations:
+        pipeline:
           $unwind: $network_interfaces.alias_ip_ranges
           $unset:
             - _id
@@ -109,15 +107,15 @@ Steps:
 
   - Name: Extract.SAPComputeInstancesData
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeExtendedNicAliases
     Params:
       query_name: Extract.SAPComputeInstancesData
       query_conf:
         dump_csv: true
         dump_json: false
-        collection: SAPComputeInstances
-        operations:
+        collection_name: SAPComputeInstances
+        pipeline:
           $project:
             project: 1
             id: 1
@@ -147,15 +145,15 @@ Steps:
 
   - Name: Extract.SAPComputeInstancesData.Network
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeExtendedNicAliases
     Params:
       query_name: Extract.SAPComputeInstancesData.Network
       query_conf:
         dump_csv: true
         dump_json: false
-        collection: SAPComputeNetworkData
-        operations:
+        collection_name: SAPComputeNetworkData
+        pipeline:
           $project:
             project: 1
             id: 1
@@ -188,13 +186,13 @@ Steps:
 
   - Name: Extend.SAPComputeInstancesData.Disks
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeExtendedDisks
     Params:
       query_name: Extend.SAPComputeInstancesData.Disks
       query_conf:
-        collection: SAPComputeInstances
-        operations:
+        collection_name: SAPComputeInstances
+        pipeline:
           $unwind: $disks
           $unset:
             - _id
@@ -213,15 +211,15 @@ Steps:
 
   - Name: Extract.SAPComputeInstancesData.Disks
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPComputeInstancesDiskData
     Params:
       query_name: Extract.SAPComputeInstancesData.Disks
       query_conf:
         dump_csv: true
         dump_json: true
-        collection: SAPComputeDiskData
-        operations:
+        collection_name: SAPComputeDiskData
+        pipeline:
           $project:
             project: 1
             id: 1

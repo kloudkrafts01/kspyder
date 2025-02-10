@@ -2,57 +2,51 @@ Steps:
 
   - Name: GetSAPProjectIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectIds
     Params:
-      query_name: GetSAPProjectIds
-      query_conf:
-        collection: GCPProjects
-        operations:
-          $match:
+      collection_name: GCPProjects
+      pipeline:
+        - $match:
             display_name:
               # $regex: "sap"
               $regex: "(s4h)|(sap)|(spc)"
-          $project:
+        - $project:
             project: $display_name
-          $unset:
+        - $unset:
             - _id
   
   - Name: GetSAPProjectRegions
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectRegions
     Params:
-      query_name: GetSAPProjectIds
-      query_conf:
-        collection: GCPProjects
-        operations:
-          $match:
+      collection_name: GCPProjects
+      pipeline:
+        - $match:
             display_name:
               # $regex: "sap"
               $regex: "(s4h)|(sap)|(spc)"
-          $set:
+        - $set:
             region: europe-west4
-          $project:
+        - $project:
             project: $project_id
             region: 1
-          $unset:
+        - $unset:
             - _id
 
   - Name: GetSAPProjectZones
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: SAPProjectZones
     Params:
-      query_name: GetSAPProjectZones
-      query_conf:
-        collection: GCPProjectZones
-        operations:
-          $match:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $match:
             project:
               # $regex: "sap"
               $regex: "(s4h)|(sap)|(spc)"
-          $unset:
+        - $unset:
             - _id
   
   - Name: GetToMongo.ComputeInstances
@@ -69,7 +63,7 @@ Steps:
     Output: SAP_VPCs
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudVPCs
+      model_name: VPCs
 
   - Name: GetToMongo.GCloudSubnets
     Job: get_data_to_mongo
@@ -77,4 +71,4 @@ Steps:
     Output: SAP_Subnets
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudSubnets
+      model_name: Subnets
