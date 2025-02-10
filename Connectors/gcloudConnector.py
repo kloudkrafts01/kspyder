@@ -2,6 +2,7 @@ from importlib import import_module
 # Essential to serialize Google API types to dict
 import proto
 import time
+import datetime
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 
 from common.config import BASE_FILE_HANDLER as fh
@@ -68,8 +69,17 @@ class gcloudConnector(RESTExtractor):
                 'labels': item.labels
             }
         else:
-            logger.error("postprocess_item: item {} is not of an accepted type. Item type = {}".format(item,type(item)))
+            logger.info("postprocess_item: item {} is not of a standard type. Item type = {}".format(item,type(item)))
             data = {}
+            if 'fields' in model.keys():
+                for key,value in model['fields'].items():
+                    item_value = getattr(item,key)
+                    if isinstance(item_value, datetime.datetime):
+                        item_value = item_value.strftime("%Y%m%d-%H%M%S")
+                    data[value] = item_value
+            else:
+                logger.error("Item {} not parsable and no field modeling found.")
+            
         return data
 
     
@@ -128,7 +138,7 @@ class gcloudConnector(RESTExtractor):
 
             for item in response:
 
-                data = self.postprocess_item(item)
+                data = self.postprocess_item(item, model)
                 logger.debug("post-processed item: {}".format(data))
                 total_count += 1
                 output_docs += data,
@@ -136,7 +146,7 @@ class gcloudConnector(RESTExtractor):
                 time.sleep(1.5)
         
         else:
-            data = self.postprocess_item(response)
+            data = self.postprocess_item(response, model)
             total_count +=1
             output_docs += data,
 

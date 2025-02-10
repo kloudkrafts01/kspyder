@@ -1,73 +1,66 @@
 Steps:
 
-  # - Name: GetToMongo.CloudSSODirectories
-  #   Job: get_data_to_mongo
-  #   Output: CloudSSODirectories
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: CloudSSODirectories
+  - Name: GetToMongo.CloudSSODirectories
+    Job: get_data_to_mongo
+    Output: CloudSSODirectories
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: CloudSSODirectories
 
-  # - Name: GetDirectoryList
-  #   Job: get_unique_key_list
-  #   Input: CloudSSODirectories
+  - Name: GetDirectoryList
+    Job: get_unique_key_list
+    Input: CloudSSODirectories
+    Output: DirectoryIds
+    Params:
+      key: directory_id
+      datapath: data[].DirectoryId
+
+  # - Name: Extract.DirectoryIds
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
   #   Output: DirectoryIds
   #   Params:
-  #     key: directory_id
-  #     datapath: data[].DirectoryId
+  #     collection_name: Aliyun.CloudSSO.CloudSSODirectories
+  #     pipeline:
+  #       - $project:
+  #         directory_id: $DirectoryId
+  #       - $unset:
+  #         - _id
 
   - Name: GetUsers
-    Worker: aliyunConnector
-    Job: get_data
+    Job: get_data_to_mongo
     Input: DirectoryIds
     Output: CloudSSOUsers
     Params:
+      from_worker: aliyunConnector
       model_name: CloudSSOUsers
-  
-  - Name: StoreUsersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOUsers
-    Output: CloudSSOUsersInsertionResult
-  
+
   - Name: GetGroups
-    Worker: aliyunConnector
-    Job: get_data
+    Job: get_data_to_mongo
     Input: DirectoryIds
     Output: CloudSSOGroups
     Params:
+      from_worker: aliyunConnector
       model_name: CloudSSOGroups
-  
-  - Name: StoreGroupsToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroups
-    Output: CloudSSOGroupsInsertionResult
 
   - Name: GetDirectoryGroupIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: DirectoryGroupIds
     Params:
-      query_name: GetDirectoryGroupIds
-      query_conf:
-        collection: CloudSSOGroups
-        operations:
-          $project:
+      collection_name: Aliyun.CloudSSO.CloudSSOGroups
+      pipeline:
+        - $project:
             directory_id: $directory_id
             group_id: $GroupId
-          $unset:
-            - _id
+        - $unset:
+          - _id
 
   - Name: GetGroupMembers
-    Worker: aliyunConnector
-    Job: get_data
+    Job: get_data_to_mongo
     Input: DirectoryGroupIds.data
     Output: CloudSSOGroupMembers
     Params:
+      from_worker: aliyunConnector
       model_name: CloudSSOGroupMembers
-  
-  - Name: StoreGroupMembersToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: CloudSSOGroupMembers
-    Output: CloudSSOGroupMembersInsertionResult
+

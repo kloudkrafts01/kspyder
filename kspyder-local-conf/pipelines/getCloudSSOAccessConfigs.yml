@@ -8,28 +8,26 @@ Steps:
   #     model_name: CloudSSODirectories
   #     last_days: null
 
-  - Name: GetDirectoryList
-    Job: get_unique_key_list
-    Input: CloudSSODirectories
-    Output: DirectoryIds
-    Params:
-      key: directory_id
-      datapath: data[].DirectoryId
+  # - Name: GetDirectoryList
+  #   Job: get_unique_key_list
+  #   Input: CloudSSODirectories
+  #   Output: DirectoryIds
+  #   Params:
+  #     key: directory_id
+  #     datapath: data[].DirectoryId
   
-  - Name: ExtractDirectoryIds
+  - Name: Extract.DirectoryIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: DirectoryIds
     Params:
-      query_name: ExtractDirectoryIds
-      query_conf:
-        collection: CloudSSODirectories
-        operations:
-          $project: 
-            directory_id: $DirectoryId
-          $unset:
-            - _id
-  
+      collection_name: Aliyun.CloudSSO.CloudSSODirectories
+      pipeline:
+        - $project:
+          directory_id: $DirectoryId
+        - $unset:
+          - _id
+
   - Name: GetToMongo.CloudSSOAccessConfigurations
     Job: get_data_to_mongo
     Input: DirectoryIds.data

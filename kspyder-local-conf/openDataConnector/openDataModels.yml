@@ -27,6 +27,11 @@ Models:
         path: /dido/api/v1/datasets
         count_key: total
         datapath: data
+        fields:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
         accepted_inputs:
             - page
             - pageSize
