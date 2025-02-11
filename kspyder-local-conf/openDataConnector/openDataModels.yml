@@ -26,7 +26,7 @@ Models:
         API: DiDo
         path: /dido/api/v1/datasets
         count_key: total
-        datapath: data
+        # datapath: data
         fields:
             total_count: total
             data: data
@@ -42,25 +42,36 @@ Models:
 
     DiDoDatafiles:
         API: DiDo
-        path: /dido/api/v1/datafiles/{$rid}/json
-        datapath: "[]"
+        path: /dido/api/v1/datafiles/{$rid}/rows
+        # datapath: "[]"
+        fields:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
         accepted_inputs:
             - rid
             - millesime
+            - page
+            - pageSize
         index_keys:
             - PERIODE
 
     MelodiDatasetCatalogue:
         API: INSEE
         path: /melodi/catalog/ids
-        datapath: "[]"
+        # datapath: "[]"
+        fields:
+            data: "[]"
         index_keys:
             - identifier
 
     MelodiDatasets:
         API: INSEE
         path: /melodi/catalog/{$identifier}
-        datapath: "*"
+        # datapath: "*"
+        fields:
+            data: "*"
         iterable: False
         accepted_inputs:
             - identifier

@@ -5,17 +5,17 @@ Steps:
     Job: aggregate_data
     Output: CloudSSOUserGroupsData
     Params:
-      save_to: CloudSSOUserGroupsData
-      collection_name: CloudSSOGroupMembers
+      save_to: Aliyun.CloudSSO.UserGroupsData
+      collection_name: Aliyun.CloudSSO.CloudSSOGroupMembers
       pipeline:
         - $lookup:
-            from: CloudSSOGroups
+            from: Aliyun.CloudSSO.CloudSSOGroups
             localField: GroupId
             foreignField: GroupId
             as: GroupInfo
         - $unwind: $GroupInfo
         - $lookup:
-            from: CloudSSOUsers
+            from: Aliyun.CloudSSO.CloudSSOUsers
             localField: UserId
             foreignField: UserId
             as: UserInfo
@@ -41,7 +41,7 @@ Steps:
     DumpJSON: false
     DumpCSV: true
     Params:
-      collection_name: CloudSSOUserGroupsData
+      collection_name: Aliyun.CloudSSO.UserGroupsData
       pipeline:
         - $match:
             GroupName:

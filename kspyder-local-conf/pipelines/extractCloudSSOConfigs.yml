@@ -5,11 +5,11 @@ Steps:
     Job: aggregate_data
     Output: CloudSSOPoliciesByAccessConfig
     Params:
-        save_to: CloudSSOAccessConfigData
-        collection_name: CloudSSOAccessConfigurations
+        save_to: Aliyun.CloudSSO.AccessConfigData
+        collection_name: Aliyun.CloudSSO.CloudSSOAccessConfigurations
         pipeline:
           - $lookup:
-              from: CloudSSOPolicies
+              from: Aliyun.CloudSSO.CloudSSOPolicies
               localField: AccessConfigurationId
               foreignField: access_configuration_id
               as: Policies
@@ -29,11 +29,11 @@ Steps:
     Job: aggregate_data
     Output: CloudSSOPolicyGrants
     Params:
-      save_to: CloudSSOPolicyGrants
-      collection_name: CloudSSOAssignments
+      save_to: Aliyun.CloudSSO.PolicyGrants
+      collection_name: Aliyun.CloudSSO.CloudSSOAssignments
       pipeline:
         - $lookup:
-            from: CloudSSOAccessConfigData
+            from: Aliyun.CloudSSO.AccessConfigData
             localField: AccessConfigurationId
             foreignField: AccessConfigurationId
             as: Policies

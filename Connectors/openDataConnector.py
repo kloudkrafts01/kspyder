@@ -33,9 +33,8 @@ class openDataConnector(RESTExtractor):
 
     def postprocess_item(self, item, model=None, status_code=None, **params):
 
-        count_key = model['count_key'] if 'count_key' in model.keys() else None
         is_truncated = False
-        next_token = 0
+        next_token = None
         raw_response_data = item.json()
 
         metadata = {}
@@ -56,7 +55,7 @@ class openDataConnector(RESTExtractor):
 
             logger.debug("Item metadata: {}".format(metadata))
 
-            count = int(response_data['total_count']) if 'total_count' in response_data. keys() else len(data)
+            count = int(response_data['total_count']) if 'total_count' in response_data.keys() else len(data)
             total_count = int(response_data['total_count']) if 'total_count' in response_data.keys() else None
             next_token = response_data['next_token'] if 'next_token' in response_data.keys() else None
             
@@ -72,23 +71,23 @@ class openDataConnector(RESTExtractor):
                     is_truncated = False
 
         else:
-            logger.exception("Encountered error in response: {}".format(response_data))
+            logger.exception("Encountered error in response: {}".format(raw_response_data))
 
         return data, metadata, is_truncated, next_token
 
 
-    def read_query(self, model, start_token=None, batch_size:int = 10, **params):
+    def read_query(self, model, start_token=None, batch_size:int = 100, **params):
 
         if start_token is None:
             start_token = 1
 
         if self.next_token_key:
             start_param = { self.next_token_key : start_token }
-            params = { **params, **start_param }
+            params = { **start_param, **params }
 
         if self.batch_size_key:
             size_param = { self.batch_size_key : batch_size }
-            params = { **params, **size_param }
+            params = { **size_param, **params }
 
         logger.debug("Params: {}".format(params))
 

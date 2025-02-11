@@ -1,5 +1,5 @@
 Connector:
-    schema: googleCloud
+    schema: GCloud
 
 APIs:
     Compute:

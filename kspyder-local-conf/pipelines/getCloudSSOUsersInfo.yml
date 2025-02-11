@@ -6,6 +6,7 @@ Steps:
     Params:
       from_worker: aliyunCLIConnector
       model_name: CloudSSODirectories
+      last_days: null
 
   - Name: GetDirectoryList
     Job: get_unique_key_list
@@ -29,7 +30,7 @@ Steps:
 
   - Name: GetUsers
     Job: get_data_to_mongo
-    Input: DirectoryIds
+    Input: DirectoryIds.data
     Output: CloudSSOUsers
     Params:
       from_worker: aliyunConnector
@@ -37,7 +38,7 @@ Steps:
 
   - Name: GetGroups
     Job: get_data_to_mongo
-    Input: DirectoryIds
+    Input: DirectoryIds.data
     Output: CloudSSOGroups
     Params:
       from_worker: aliyunConnector
