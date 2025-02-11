@@ -1,5 +1,5 @@
 Connector:
-    schema: googleCloud
+    schema: GCloud
 
 APIs:
     Compute:
@@ -20,7 +20,7 @@ APIs:
 
     GCS:
         name: storage
-        update_field: update_time
+        update_field: updated
 
     BigQuery:
         name: bigquery
@@ -233,6 +233,18 @@ Models:
         query_name: list_buckets
         accepted_inputs:
             - project
+        fields:
+            id: id
+            name: name
+            user_project: user_project
+            generation: generation
+            labels: labels
+            location_type: location_type
+            location: location
+            storage_class: storage_class
+            time_created: time_created
+            updated: updated
+            versioning_enabled: versioning_enabled
         index_keys:
             - id
             - name
@@ -254,6 +266,7 @@ Models:
             - project
         index_keys:
             - id
+
 
 
 

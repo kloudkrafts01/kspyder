@@ -1,0 +1,71 @@
+Steps:
+
+  - Name: GetDIOProjectIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DIOProjectIds
+    Params:
+      collection_name: GCloudProjects
+      pipeline:
+        - $match:
+            display_name:
+              $regex: "ai-factory"
+        - $project:
+            project: $display_name
+        - $unset:
+            - _id
+  
+  - Name: GetDIOProjectRegions
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DIOProjectRegions
+    Params:
+      collection_name: GCloudProjects
+      pipeline:
+        - $match:
+            display_name:
+              $regex: "ai-factory"
+        - $set:
+            region: europe-west4
+        - $project:
+            project: $project_id
+            region: 1
+        - $unset:
+            - _id
+
+  - Name: GetDIOProjectZones
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DIOProjectZones
+    Params:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $match:
+            project:
+              $regex: "ai-factory"
+        - $unset:
+            - _id
+  
+  # - Name: GetToMongo.DIOComputeInstances
+  #   Job: get_data_to_mongo
+  #   Input: DIOProjectZones.data
+  #   Output: DIOComputeInstances
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: ComputeInstances
+  
+  - Name: GetToMongo.GCloudVPCs
+    Job: get_data_to_mongo
+    Input: DIOProjectIds.data
+    Output: DIO_VPCs
+    Params:
+      from_worker: gcloudConnector
+      model_name: VPCs
+
+  - Name: GetToMongo.GCloudSubnets
+    Job: get_data_to_mongo
+    Input: DIOProjectRegions.data
+    Output: DIO_Subnets
+    Params:
+      from_worker: gcloudConnector
+      model_name: Subnets

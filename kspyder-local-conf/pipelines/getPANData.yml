@@ -52,7 +52,7 @@ Steps:
           $unset:
             - _id
   
-  - Name: GetToMongo.CPANomputeInstances
+  - Name: GetToMongo.PANComputeInstances
     Job: get_data_to_mongo
     Input: PANProjectZones.data
     Output: PANComputeInstances
