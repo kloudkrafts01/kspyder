@@ -13,6 +13,12 @@ APIs:
         batch_size_key: pageSize
         default_headers:
             accept: application/json
+        response_map:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
+
 
     INSEE:
         name: insee
@@ -44,12 +50,6 @@ Models:
     DiDoDatafiles:
         API: DiDo
         path: /dido/api/v1/datafiles/{$rid}/rows
-        # datapath: "[]"
-        fields:
-            total_count: total
-            data: data
-            next_token: nextPage
-            request_id: page
         accepted_inputs:
             - rid
             - millesime
@@ -61,8 +61,7 @@ Models:
     MelodiDatasetCatalogue:
         API: INSEE
         path: /melodi/catalog/ids
-        # datapath: "[]"
-        fields:
+        response_map:
             data: "[]"
         index_keys:
             - identifier
@@ -70,11 +69,10 @@ Models:
     MelodiDatasets:
         API: INSEE
         path: /melodi/catalog/{$identifier}
-        # datapath: "*"
-        fields:
-            data: "*"
         iterable: False
         accepted_inputs:
             - identifier
+        response_map:
+            data: "*"
         index_keys:
             - identifier

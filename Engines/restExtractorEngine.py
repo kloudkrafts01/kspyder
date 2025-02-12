@@ -1,6 +1,7 @@
 import datetime
 import time
 import re
+import requests
 import jmespath
 from urllib.parse import urljoin
 
@@ -26,10 +27,34 @@ class RESTExtractor():
         self.apis = [{"default": "Empty schema from the RESTExtractor interface"}]
         self.iterate_output = True
         self.rate_limit = None
+        self.response_map = {}
 
-    def read_query(self,**kwargs):
-        ValueError("This method was called from the RESTExtractor interface. Please instantiate an actual Class over it")
+    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
 
+        data = []
+        metadata = {}
+        is_truncated = False
+        next_token = None
+
+        params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
+
+        url, headers, valid_params = self.build_request(model, baseurl = self.api.base_url, **params)
+        
+        # pass the request, get http status and response payload
+        response = requests.get(url, headers = headers, params = valid_params)
+        raw_response_data = response.json()
+        status_code = response.status_code
+        logger.debug("Response Status code: {}".format(status_code))
+        # logger.debug("Raw response data: {}".format(raw_response_data))
+
+        if status_code == 200:
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
+
+        else:
+            logger.exception("Encountered error in response: {}".format(raw_response_data))
+
+        return data, is_truncated, next_token, start_token
+    
     def build_url_path(self,path_expression,valid_params={}):
         
         url_path = path_expression
@@ -186,6 +211,18 @@ class RESTExtractor():
         # self.pagination_style = api_def['pagination_style'] if 'pagination_style' in api_def.keys() else None
         # self.batch_size_key = api_def['batch_size_key'] if 'batch_size_key' in api_def.keys() else None
         
+        base_response_map = self.api.response_map if hasattr(self.api, 'response_map') else {}
+        response_map = model['response_map'] if 'response_map' in model.keys() else {}
+        include_base_map = model['include_base_response_map'] if 'include_base_response_map' in model.keys() else True
+        if include_base_map:
+            # if include API base mapping is true, merge both dicts
+            model['response_map'] = { **base_response_map, **response_map }
+        
+        self.response_map = model['response_map']
+        
+        if 'data' not in model['response_map'].keys():
+            logger.exception("Model does not specify a 'data' path. No payload will be returned.")
+
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
     def fetch_dataset(self,model,search_domains=[],**params):
@@ -243,32 +280,32 @@ class RESTExtractor():
 
         return params, start_token, actual_batch_size
 
-    def postprocess_item(self, item, model=None, start_token=None, **params):
+    def postprocess_response(self, response_data, model=None, start_token=None, **params):
 
-        is_truncated = False
-        next_token = None
+        translated_data = {}
         metadata = {}
         data = []
-        response_data = {}
+        is_truncated = False
+        next_token = None
 
-        for key, value in model['fields'].items():
-            response_data[key] = jmespath.search(value, item)
+        for key, value in self.response_map.items():
+            translated_data[key] = jmespath.search(value, response_data)
 
-        # response_data = jmespath.search(model['datapath'], raw_response_data) if self.iterate_output else [raw_response_data]
-        # logger.debug("Successful response data: {}".format(response_data))
+        # logger.debug("Translated response data: {}".format(translated_data))
 
-        data = response_data.pop('data')
-        metadata = response_data
+        # pop out the dataset and keep the rest as metadata
+        data = translated_data.pop('data')
+        metadata = translated_data
 
         logger.debug("Item metadata: {}".format(metadata))
 
-        count = int(response_data['total_count']) if 'total_count' in response_data.keys() else len(data)
-        total_count = int(response_data['total_count']) if 'total_count' in response_data.keys() else None
-        next_token = response_data['next_token'] if 'next_token' in response_data.keys() else None
+        count = int(translated_data['count']) if 'count' in translated_data.keys() else len(data)
+        total_count = int(translated_data['total_count']) if 'total_count' in translated_data.keys() else None
+        next_token = translated_data['next_token'] if 'next_token' in translated_data.keys() else None
         
         # Determine if the current results are truncated or not, based on explicit fields if present, or on number counts
-        if 'is_truncated' in response_data.keys():
-            is_truncated = response_data['is_truncated']
+        if 'is_truncated' in translated_data.keys():
+            is_truncated = translated_data['is_truncated']
         else:
             if next_token is not None:
                 is_truncated = (next_token != "")

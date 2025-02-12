@@ -39,31 +39,35 @@ class akamaiConnector(RESTExtractor):
         self.apis = apis
         self.update_field = update_field
         self.scopes = scopes
+        self.iterate_output = True
+        self.rate_limit = None
+        self.response_map = {}
 
         self.client = akamaiClient()
 
 
-    def read_query(self,model,start_token=None,**params):
+    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
+
+        data = []
+        metadata = {}
+        is_truncated = False
+        next_token = None
+
+        params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
         url, headers, valid_params = self.build_request(model, baseurl = self.client.baseurl, **params)
+        
+        # pass the request, get http status and response payload
         response = self.client.session.get(url, headers = headers, params = valid_params)
-
-        next_token = 'toto'
-        # infer if is truncated from this, cause the natural field result_truncated ain't worth shit
-        is_truncated = False
-
-        result = response.status_code
-        logger.debug("Result: {}".format(result))
         raw_response_data = response.json()
+        status_code = response.status_code
+        logger.debug("Response Status code: {}".format(status_code))
         # logger.debug("Raw response data: {}".format(raw_response_data))
 
-        response_data = []
-
-        if result == 200:
-            response_data = jmespath.search(model['datapath'], raw_response_data)
-            # logger.debug("Successful response data: {}".format(response_data))
+        if status_code == 200:
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
 
         else:
-            logger.error("Encountered error in response: {}".format(response_data))
+            logger.exception("Encountered error in response: {}".format(raw_response_data))
 
-        return response_data, is_truncated, next_token
+        return data, is_truncated, next_token, start_token

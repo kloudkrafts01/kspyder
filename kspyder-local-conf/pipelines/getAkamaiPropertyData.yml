@@ -1,35 +1,24 @@
 Steps:
 
-  # - Name: GetPropertyGroups
-  #   Worker: akamaiConnector
-  #   Job: get_data
-  #   Output: PropertyGroups
-  #   Params:
-  #     model_name: PropertyGroups
-
-  # - Name: StorePropertyGroupsToMongo
-  #   Worker: mongoDBConnector
-  #   Job: insert_dataset
-  #   Input: PropertyGroups.data
-  #   Output: PapiGroupsInsertionResult
-  #   Params:
-  #     collection: AkamaiPropertyGroups
+  - Name: GetToMongo.PropertyGroups
+    Job: get_data_to_mongo
+    Output: PropertyGroups
+    Params:
+      from_worker: akamaiConnector
+      model_name: PropertyGroups
 
   - Name: ExtractContractGroupList
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: ContractAndGroupIds
     Params:
-      query_name: ExtractAkamaiGroups
-      query_conf:
-        collection: AkamaiPropertyGroups
-        dump_json: true
-        operations:
-          $unwind: $contractIds
-          $project:
+      collection_name: Akamai.Property.PropertyGroups
+      pipeline:
+        - $unwind: $contractIds
+        - $project:
             contractId: $contractIds
             groupId: $groupId
-          $unset:
+        - $unset:
             - _id
 
   - Name: GetToMongo.AkamaiEdgeHostnames
@@ -38,7 +27,7 @@ Steps:
     Output: AkamaiEdgeHostnames
     Params:
       from_worker: akamaiConnector
-      model_name: AkamaiEdgeHostnames
+      model_name: EdgeHostnames
 
   - Name: GetToMongo.AkamaiProperties
     Job: get_data_to_mongo
@@ -46,7 +35,7 @@ Steps:
     Output: AkamaiProperties
     Params:
       from_worker: akamaiConnector
-      model_name: AkamaiProperties
+      model_name: Properties
 
   - Name: GetIndex.AkamaiProperties.propertyId
     Job: get_unique_key_list
@@ -61,22 +50,19 @@ Steps:
     Output: AkamaiPropertyActivations
     Params:
       from_worker: akamaiConnector
-      model_name: AkamaiPropertyActivations
+      model_name: PropertyActivations
 
   - Name: ExtractLatestAkamaiProperties
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: AkamaiPropertyVersionIds
     Params:
-      query_name: ExtractAkamaiProperties
-      query_conf:
-        collection: AkamaiProperties
-        dump_json: true
-        operations:
-          $project:
+      collection_name: Akamai.Property.Properties
+      pipeline:
+        - $project:
             propertyId: $propertyId
             version: $latestVersion
-          $unset:
+        - $unset:
             - _id
 
   - Name: GetToMongo.AkamaiPropertyRules
@@ -85,7 +71,7 @@ Steps:
     Output: AkamaiPropertyRules
     Params:
       from_worker: akamaiConnector
-      model_name: AkamaiPropertyRules
+      model_name: PropertyRules
 
   # - Name: GetToMongo.AkamaiPropertyIncludes
   #   Job: get_data_to_mongo

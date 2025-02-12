@@ -47,17 +47,9 @@ class openDataConnector(RESTExtractor):
         # logger.debug("Raw response data: {}".format(raw_response_data))
 
         if status_code == 200:
-            data, metadata, is_truncated, next_token = self.postprocess_item(raw_response_data, model = model, start_token = start_token)
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
 
         else:
             logger.exception("Encountered error in response: {}".format(raw_response_data))
-        
-        # # If page-based pagination, replace whatever next_token value with pagenumber + 1
-        # if (self.api.pagination_style == "pages") and is_truncated:
-        #     next_token = start_token + 1
-        
-        # # If offset-based pagination, replace whatever next_token value with offset + results size
-        # if (self.api.pagination_style == "offsets") and is_truncated:
-        #     next_token = start_token + len(data)
 
         return data, is_truncated, next_token, start_token
