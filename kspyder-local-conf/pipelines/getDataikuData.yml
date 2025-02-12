@@ -46,13 +46,13 @@ Steps:
         - $unset:
             - _id
   
-  # - Name: GetToMongo.DIOComputeInstances
-  #   Job: get_data_to_mongo
-  #   Input: DIOProjectZones.data
-  #   Output: DIOComputeInstances
-  #   Params:
-  #     from_worker: gcloudConnector
-  #     model_name: ComputeInstances
+  - Name: GetToMongo.DIOComputeInstances
+    Job: get_data_to_mongo
+    Input: DIOProjectZones.data
+    Output: DIOComputeInstances
+    Params:
+      from_worker: gcloudConnector
+      model_name: ComputeInstances
   
   - Name: GetToMongo.GCloudVPCs
     Job: get_data_to_mongo

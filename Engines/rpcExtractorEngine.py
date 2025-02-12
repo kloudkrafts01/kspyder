@@ -84,7 +84,7 @@ class GenericRPCExtractor():
                         output_rows += new_row,
 
                     except Exception as ie:
-                        logger.error(traceback.format_exc())
+                        logger.exception(traceback.format_exc())
                         continue
         
         return total_count,output_rows

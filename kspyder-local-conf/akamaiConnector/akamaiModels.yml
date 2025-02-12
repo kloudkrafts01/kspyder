@@ -3,7 +3,7 @@ Connector:
     update_field: modifiedSince
 
 APIs:
-    PropertyManager:
+    Property:
         base_url: __EDGERC_BASE_URL__
         pagination_style: pages
         next_token_key: page
@@ -14,9 +14,10 @@ APIs:
 Models:
 
     PropertyGroups:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/groups
-        datapath: groups.items
+        response_map: 
+            data: groups.items
         headers:
             accept: application/json
             PAPI-Use-Prefixes: "true"
@@ -24,9 +25,10 @@ Models:
             - groupId
 
     EdgeHostnames:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/edgehostnames
-        datapath: edgeHostname.items
+        response_map: 
+            data: edgeHostname.items
         accepted_inputs: 
             - contractId
             - groupId
@@ -37,9 +39,10 @@ Models:
             PAPI-Use-Prefixes: "true"
 
     Properties:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/properties
-        datapath: properties.items
+        response_map: 
+            data: properties.items
         accepted_inputs: 
             - contractId
             - groupId
@@ -51,9 +54,10 @@ Models:
             PAPI-Use-Prefixes: "true"
 
     PropertyActivations:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/properties/{$propertyId}/activations
-        datapath: activations.items
+        response_map: 
+            data: activations.items
         accepted_inputs:
             - propertyId
         index_keys:
@@ -63,9 +67,10 @@ Models:
             PAPI-Use-Prefixes: "true"
 
     PropertyRules:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/properties/{$propertyId}/versions/{$version}/rules
-        datapath: rules.children
+        response_map: 
+            data: rules.children
         accepted_inputs:
             - propertyId
             - version
@@ -78,9 +83,10 @@ Models:
             PAPI-Use-Prefixes: "true"
 
     PropertyIncludes:
-        API: PropertyManager
+        API: Property
         path: /papi/v1/properties/{$propertyId}/versions/{$version}/includes
-        datapath: includes.items
+        response_map: 
+            data: includes.items
         accepted_inputs:
             - propertyId
             - version

@@ -72,3 +72,20 @@ Steps:
     Params:
       from_worker: gcloudConnector
       model_name: Subnets
+
+  - Name: GetToMongo.LBForwardingRules
+    Job: get_data_to_mongo
+    Input: SAPProjectRegions.data
+    Output: SAP_LBForwardingRules
+    Params:
+      from_worker: gcloudConnector
+      model_name: LBForwardingRules
+
+  - Name: GetToMongo.LBBackendBuckets
+    Job: get_data_to_mongo
+    Input: SAPProjectIds.data
+    Output: SAP_LBBackendBuckets
+    Params:
+      from_worker: gcloudConnector
+      model_name: LBBackendBuckets
+  

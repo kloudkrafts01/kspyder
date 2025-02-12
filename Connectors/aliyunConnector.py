@@ -139,19 +139,19 @@ class aliyunConnector(RESTExtractor):
             logger.debug("request builder params: {}".format(request_params))
             request = request_builder(**request_params)
             
-            # Add the request to request context
+            # Add the request to request context (mandatory)
             request_context.append(request)
-
-            # Add RuntimeOptions (mandatory)
-            request_context.append(self.runtime_options)
 
         else:
             # if no request builder class is provided, just pass on the valid key-value params
             request_context.append(request_params)
-
+        
         # If the API requires a header (e.g. ContainerServices API), add it
         if 'header' in self.api_conf.keys():
             request_context.append(self.api_conf['header'])
+        
+        # Add RuntimeOptions (mandatory)
+        request_context.append(self.runtime_options)
 
         logger.debug("Request context: {}".format(request_context))
         return request_context
@@ -180,16 +180,16 @@ class aliyunConnector(RESTExtractor):
         response_next_token_key = self.next_token_key
         response_max_results = self.max_results_key
         response_is_truncated_key = self.is_truncated_key
-        response_page_size_key = self.page_size_key
-        response_page_number_key = self.page_number_key
+        # response_page_size_key = self.page_size_key
+        # response_page_number_key = self.page_number_key
 
         # If specified in the API conf, convert field name to CamelCase to look for the needed fields in the response dict
         if self.convert_case:
             response_next_token_key = self.convert_to_camelcase(response_next_token_key)
             response_max_results = self.convert_to_camelcase(response_max_results)
             response_is_truncated_key = self.convert_to_camelcase(response_is_truncated_key)
-            response_page_size_key = self.convert_to_camelcase(response_page_size_key)
-            response_page_number_key = self.convert_to_camelcase(response_page_number_key)
+            # response_page_size_key = self.convert_to_camelcase(response_page_size_key)
+            # response_page_number_key = self.convert_to_camelcase(response_page_number_key)
 
         next_token = response_dict[response_next_token_key] if response_next_token_key in response_dict.keys() else ''
         # logger.debug("Next Token: {}".format(next_token))
@@ -201,4 +201,4 @@ class aliyunConnector(RESTExtractor):
         is_truncated = response_dict[response_is_truncated_key] if is_truncated_key else is_next_token
         logger.debug("Is response truncated ? {}".format(is_truncated))
 
-        return results, is_truncated, next_token
+        return results, is_truncated, next_token, start_token

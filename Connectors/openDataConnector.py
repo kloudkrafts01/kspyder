@@ -11,6 +11,7 @@ CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+PAGE_SIZE = CONNECTOR_CONF['default_batch_size']
 
 APIS = CONF['APIs']
 MODELS = CONF['Models']
@@ -19,7 +20,7 @@ MODELS = CONF['Models']
 
 class openDataConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, **params):
+    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, batch_size=PAGE_SIZE, **params):
 
         self.schema = schema
         self.models = models
@@ -30,78 +31,25 @@ class openDataConnector(RESTExtractor):
         self.base_url = None
         self.iterate_output = True
         self.rate_limit = None
+        self.batch_size = batch_size
 
-    def postprocess_item(self, item, model=None, status_code=None, **params):
+    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
 
-        is_truncated = False
-        next_token = None
-        raw_response_data = item.json()
+        params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
-        metadata = {}
-        data = []
-
-        if status_code == 200:
-
-            response_data = {}
-
-            for key, value in model['fields'].items():
-                response_data[key] = jmespath.search(value, raw_response_data)
-
-            # response_data = jmespath.search(model['datapath'], raw_response_data) if self.iterate_output else [raw_response_data]
-            # logger.debug("Successful response data: {}".format(response_data))
-
-            data = response_data.pop('data')
-            metadata = response_data
-
-            logger.debug("Item metadata: {}".format(metadata))
-
-            count = int(response_data['total_count']) if 'total_count' in response_data.keys() else len(data)
-            total_count = int(response_data['total_count']) if 'total_count' in response_data.keys() else None
-            next_token = response_data['next_token'] if 'next_token' in response_data.keys() else None
-            
-            # Determine if the current results are truncated or not, based on explicit fields if present, or on number counts
-            if 'is_truncated' in response_data.keys():
-                is_truncated = response_data['is_truncated']
-            else:
-                if next_token is not None:
-                    is_truncated = (next_token != "")
-                elif total_count is not None:
-                    is_truncated = (count < total_count) and (count > 0)
-                else: 
-                    is_truncated = False
-
-        else:
-            logger.exception("Encountered error in response: {}".format(raw_response_data))
-
-        return data, metadata, is_truncated, next_token
-
-
-    def read_query(self, model, start_token=None, batch_size:int = 100, **params):
-
-        if start_token is None:
-            start_token = 1
-
-        if self.next_token_key:
-            start_param = { self.next_token_key : start_token }
-            params = { **start_param, **params }
-
-        if self.batch_size_key:
-            size_param = { self.batch_size_key : batch_size }
-            params = { **size_param, **params }
-
-        logger.debug("Params: {}".format(params))
-
-        url, headers, valid_params = self.build_request(model, baseurl = self.base_url, **params)
+        url, headers, valid_params = self.build_request(model, baseurl = self.api.base_url, **params)
+        
+        # pass the request, get http status and response payload
         response = requests.get(url, headers = headers, params = valid_params)
-
+        raw_response_data = response.json()
         status_code = response.status_code
         logger.debug("Response Status code: {}".format(status_code))
         # logger.debug("Raw response data: {}".format(raw_response_data))
 
-        data, metadata, is_truncated, next_token = self.postprocess_item(response, model = model, status_code = status_code)
+        if status_code == 200:
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
 
-        # If page-based pagination, replace whatever next_token value with pagenumber +1
-        if (self.pagination_style == "pages") and is_truncated:
-            next_token = start_token + 1
+        else:
+            logger.exception("Encountered error in response: {}".format(raw_response_data))
 
-        return data, is_truncated, next_token
+        return data, is_truncated, next_token, start_token

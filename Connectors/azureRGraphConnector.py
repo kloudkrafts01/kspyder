@@ -66,7 +66,6 @@ class azureRGraphConnector(RESTExtractor):
     def set_scopes_and_subscription_ids(self,scopes=None):
         
         subscription_ids = []
-        print(scopes)
 
         if scopes:
             logger.debug("setting subscription Ids from names: {}".format(scopes))
@@ -94,7 +93,7 @@ class azureRGraphConnector(RESTExtractor):
         is_truncated = (next_token is not None)
         result = query_response.data
 
-        return result, is_truncated, next_token
+        return result, is_truncated, next_token, start_token
 
 
     def build_request(self, model, start_token=None, page_size=PAGE_SIZE, **params):
