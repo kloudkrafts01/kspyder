@@ -8,7 +8,7 @@ from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from common.baseModels import DataGraph
 
-class ApiDefinition():
+class GenericMap():
 
     def __init__(self, payload={}):
         for key,value in payload.items():
@@ -177,7 +177,7 @@ class RESTExtractor():
     def set_api_from_model(self,model):
         
         self.api_name = model['API']
-        self.api = ApiDefinition(payload = self.apis[self.api_name])
+        self.api = GenericMap(payload = self.apis[self.api_name])
         # api_def = self.apis[self.api_name]
         # self.base_url = api_def['base_url']
         # self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
@@ -223,8 +223,27 @@ class RESTExtractor():
 
             if self.rate_limit:
                 time.sleep(self.rate_limit)
-            
-    def postprocess_item(self, item, model=None, status_code=None, **params):
+
+    def preprocess_params(self,params,start_token=None,batch_size=None):
+        """Process and add up query parameters for pagination, according to the API's pagination style"""
+
+        if self.api.pagination_style == "pages":
+            start_token = int(start_token) if start_token else 1
+
+        if self.api.pagination_style == "offsets":
+            start_token = int(start_token) if start_token else 0
+        
+        # mandatory: put start and batch size into query parameters entry
+        start_param = { self.api.next_token_key : start_token }
+        actual_batch_size = batch_size if batch_size else self.batch_size
+        size_param = { self.api.batch_size_key : actual_batch_size }
+        params = { **start_param, **size_param, **params }
+
+        logger.debug("Params: {}".format(params))
+
+        return params, start_token, actual_batch_size
+
+    def postprocess_item(self, item, model=None, start_token=None, **params):
 
         is_truncated = False
         next_token = None
@@ -257,6 +276,14 @@ class RESTExtractor():
                 is_truncated = (count < total_count) and (count > 0)
             else: 
                 is_truncated = False
+
+        # If page-based pagination, replace whatever next_token value with pagenumber + 1
+        if (self.api.pagination_style == "pages") and is_truncated:
+            next_token = start_token + 1
+        
+        # If offset-based pagination, replace whatever next_token value with offset + results size
+        if (self.api.pagination_style == "offsets") and is_truncated:
+            next_token = start_token + len(data)
 
         return data, metadata, is_truncated, next_token
         
