@@ -1,11 +1,19 @@
 import datetime
 import time
 import re
+import jmespath
 from urllib.parse import urljoin
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from common.baseModels import DataGraph
+
+class ApiDefinition():
+
+    def __init__(self, payload={}):
+        for key,value in payload.items():
+            setattr(self,key,value)
+
 
 class RESTExtractor():
 
@@ -169,13 +177,14 @@ class RESTExtractor():
     def set_api_from_model(self,model):
         
         self.api_name = model['API']
-        api_def = self.apis[self.api_name]
-        self.base_url = api_def['base_url']
-        self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
-        self.is_truncated_key = api_def['is_truncated_key'] if 'is_truncated_key' in api_def.keys() else None
-        self.next_token_key = api_def['next_token_key'] if 'next_token_key' in api_def.keys() else None
-        self.pagination_style = api_def['pagination_style'] if 'pagination_style' in api_def.keys() else None
-        self.batch_size_key = api_def['batch_size_key'] if 'batch_size_key' in api_def.keys() else None
+        self.api = ApiDefinition(payload = self.apis[self.api_name])
+        # api_def = self.apis[self.api_name]
+        # self.base_url = api_def['base_url']
+        # self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
+        # self.is_truncated_key = api_def['is_truncated_key'] if 'is_truncated_key' in api_def.keys() else None
+        # self.next_token_key = api_def['next_token_key'] if 'next_token_key' in api_def.keys() else None
+        # self.pagination_style = api_def['pagination_style'] if 'pagination_style' in api_def.keys() else None
+        # self.batch_size_key = api_def['batch_size_key'] if 'batch_size_key' in api_def.keys() else None
         
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
@@ -202,10 +211,10 @@ class RESTExtractor():
 
         while is_truncated:
 
-            results, is_truncated, next_token = self.read_query(model,search_domains=search_domains,start_token=start_token,**params)
+            results, is_truncated, next_token, current_token = self.read_query(model,search_domains=search_domains,start_token=start_token,**params)
             
             results_count = len(results)
-            logger.debug("caught {} items starting from token {}".format(results_count,start_token))
+            logger.debug("caught {} items starting from token {}".format(results_count,current_token))
 
             yield results_count, results
 
@@ -215,14 +224,41 @@ class RESTExtractor():
             if self.rate_limit:
                 time.sleep(self.rate_limit)
             
-    def postprocess_item(self,item,model=None,**params):
-        """Placeholder method ; if the API returns elements that need postprocessing
-        (e.g. if return payload is not directly serializable), run the item through this.
-        
-        Child classes inheriting from the REST Extractor interface can supercharge this method if necessary.
-        By default, just returns the item unchanged."""
+    def postprocess_item(self, item, model=None, status_code=None, **params):
 
-        return item
+        is_truncated = False
+        next_token = None
+        metadata = {}
+        data = []
+        response_data = {}
+
+        for key, value in model['fields'].items():
+            response_data[key] = jmespath.search(value, item)
+
+        # response_data = jmespath.search(model['datapath'], raw_response_data) if self.iterate_output else [raw_response_data]
+        # logger.debug("Successful response data: {}".format(response_data))
+
+        data = response_data.pop('data')
+        metadata = response_data
+
+        logger.debug("Item metadata: {}".format(metadata))
+
+        count = int(response_data['total_count']) if 'total_count' in response_data.keys() else len(data)
+        total_count = int(response_data['total_count']) if 'total_count' in response_data.keys() else None
+        next_token = response_data['next_token'] if 'next_token' in response_data.keys() else None
+        
+        # Determine if the current results are truncated or not, based on explicit fields if present, or on number counts
+        if 'is_truncated' in response_data.keys():
+            is_truncated = response_data['is_truncated']
+        else:
+            if next_token is not None:
+                is_truncated = (next_token != "")
+            elif total_count is not None:
+                is_truncated = (count < total_count) and (count > 0)
+            else: 
+                is_truncated = False
+
+        return data, metadata, is_truncated, next_token
         
 
     def discover_data(self,model_name=None,input_data=[{}],**params):

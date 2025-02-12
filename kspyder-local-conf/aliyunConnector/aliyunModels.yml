@@ -241,14 +241,22 @@ Models:
         request_builder: DescribeClustersV1Request
         query_name: describe_clusters_v1with_options
         datapath: clusters[]
-
-    ACKClusterDetails:
-        API: CS
-        request_builder: DescribeClusterDetailsRequest
-        query_name: describe_cluster_details_with_options
-        datapath: cluster_details[]
-        accepted_inputs:
+        index_keys:
             - cluster_id
+
+    # To be reworked : maybe better fit for basic REST extract
+    # ACKClusterResources:
+    #     API: CS
+    #     request_builder: DescribeClusterResourcesRequest
+    #     query_name: describe_cluster_resources_with_options
+    #     datapath: "[]"
+    #     positional_inputs:
+    #         - cluster_id
+    #     accepted_inputs:
+    #         - with_addon_resources
+    #     index_keys:
+    #         - cluster_id
+    #         - instance_id
 
 
 # ================ Elastic Compute Service Models ==================
@@ -278,7 +286,7 @@ Models:
             - ImageName
             - ImageOwnerAlias
 
-    AliyunNSGs:
+    NetworkSecurityGroups:
         API: ECS
         request_builder: DescribeSecurityGroupsRequest
         query_name: describe_security_groups_with_options
@@ -288,7 +296,7 @@ Models:
         index_keys:
             - SecurityGroupId
 
-    AliyunNSGRules:
+    NSGRules:
         API: ECS
         request_builder: DescribeSecurityGroupAttributeRequest
         query_name: describe_security_group_attribute_with_options

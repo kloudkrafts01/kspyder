@@ -1,6 +1,7 @@
 Connector:
     schema: opendata-fr
     update_field: modifiedSince
+    default_batch_size: 100
 
 APIs:
 
