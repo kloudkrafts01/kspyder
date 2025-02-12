@@ -113,7 +113,6 @@ class aliyunCLIClient:
                 count = output[total_count_key]
             else:
                 count = len(output)
-                # logger.error("Model is not RPC-based. Switch this config to a REST-based connector instead.") 
 
         return count
 
