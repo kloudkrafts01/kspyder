@@ -2,31 +2,24 @@ Steps:
 
   - Name: ExportProjectIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: GCPProjectIds
     Params:
-      query_name: ExtractProjectIds
-      query_conf:
-        collection: GCPProjects
-        dump_json: true
-        operations:
-          $project:
-            resource: $project_id
-          $unset:
+      collection_name: GCPProjects
+      pipeline:
+        - $project:
+            resource: 
+              $replaceOne:
+                input: "projects/{project_id}"
+                find: "{project_id}"
+                replacement: $project_id
+        - $unset:
             - _id
   
   - Name: GetProjectIAMPolicies
-    Worker: gcloudConnector
-    Job: get_data
+    Job: get_data_to_mongo
     Input: GCPProjectIds.data
     Output: GCPProjectIAMPolicies
     Params:
+      from_worker: gcloudConnector
       model_name: ProjectIAMPolicies
-
-  - Name: StorePoliciesToMongo
-    Worker: mongoDBConnector
-    Job: upsert_dataset
-    Input: GCPProjectIAMPolicies
-    Output: GCPProjectIAMPoliciesInsertionResult
-    Params:
-      collection: GCPProjectIAMPolicies

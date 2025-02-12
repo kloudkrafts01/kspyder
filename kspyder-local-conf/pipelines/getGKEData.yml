@@ -25,7 +25,7 @@ Steps:
         - $set:
             parent:
                 $replaceOne:
-                  input: "/projects/{{project}}/locations/europe-west4"
+                  input: "projects/{{project}}/locations/europe-west4"
                   find: "{{project}}"
                   replacement: $project
         - $project:

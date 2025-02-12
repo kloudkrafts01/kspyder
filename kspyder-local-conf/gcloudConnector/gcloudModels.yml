@@ -6,7 +6,7 @@ APIs:
         name: compute_v1
         update_field: UpdateDate
 
-    resourcemanager:
+    RM:
         name: resourcemanager_v3
         update_field: update_time
 
@@ -106,7 +106,7 @@ Models:
 # =================== Resource Management Models ======================
     
     Organizations:
-        API: resourcemanager
+        API: RM
         client_name: OrganizationsClient
         request_builder: SearchOrganizationsRequest
         query_name: search_organizations
@@ -117,7 +117,7 @@ Models:
             - display_name
 
     Folders:
-        API: resourcemanager
+        API: RM
         client_name: FoldersClient
         request_builder: ListFoldersRequest
         query_name: list_folders
@@ -129,7 +129,7 @@ Models:
             - name
 
     Projects:
-        API: resourcemanager
+        API: RM
         client_name: ProjectsClient
         request_builder: ListProjectsRequest
         query_name: list_projects
@@ -140,7 +140,7 @@ Models:
             - project_id
 
     ProjectIAMPolicies:
-        API : resourcemanager
+        API : RM
         client_name: ProjectsClient
         # request_builder: GetIamPolicyRequest
         query_name: get_iam_policy

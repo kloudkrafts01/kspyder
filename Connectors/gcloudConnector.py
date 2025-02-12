@@ -4,6 +4,7 @@ import proto
 import time
 import datetime
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
+from google.iam.v1.policy_pb2 import Policy
 
 from common.config import BASE_FILE_HANDLER as fh
 
@@ -68,6 +69,29 @@ class gcloudConnector(RESTExtractor):
                 'reference': item.reference,
                 'labels': item.labels
             }
+        elif isinstance(item, Policy):
+            data = {
+                'version': item.version
+            }
+            bindings = []
+            for binding in item.bindings:
+
+                members = []
+                while len(binding.members) > 0:
+                    member = binding.members.pop()
+                    members.append(member)
+                
+                bindings += {
+                    'role': binding.role,
+                    'members': members,
+                    'condition': {
+                        'title': binding.condition.title,
+                        'expr': binding.condition.expression,
+                        'description': binding.condition.description
+                    }
+                },
+            data['bindings'] = bindings
+
         else:
             logger.info("postprocess_item: item {} is not of a standard type. Item type = {}".format(item,type(item)))
             data = {}
