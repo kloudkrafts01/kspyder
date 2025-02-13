@@ -1,0 +1,39 @@
+TargetFile: entries_processed.xlsx
+
+Source: inputs
+
+Tables:
+  - input.xlsx
+  - genres_list.xlsx
+
+Steps:
+
+  - Step: ProcessRawEntries
+    type: apply_func_on_axis
+    input: input
+    output: user_entries_list
+    params:
+      import_from: compute_stats
+      func_name: process_entry_row
+      axis: 1 
+
+  - Step: CompactifyEntriesDF
+    type: reduce_df_axis
+    input: user_entries_list
+    output: user_entries
+    save: true
+
+  - Step: ExportEntriesSet
+    type: series_from_set
+    input: input
+    output: entries_deduplicated
+    save: true
+    params:
+      import_from: compute_stats
+      import_value: GLOBAL_ENTRIES_SET
+
+  - Step: MergeGenreList
+    type: passthrough
+    input: genres_list
+    output: genres_list
+    save: true

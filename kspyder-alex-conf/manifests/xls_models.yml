@@ -1,0 +1,532 @@
+Connector:
+    schema: sopremaXLS
+    update_field: blah
+
+
+Models:
+    WebOrders:
+        base_name: sale.order
+        fields: 
+            id: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            partner_id: 
+                dbname: ClientId
+                type: Integer
+            name: 
+                dbname: OrderRef
+                type: String(25)
+            date_order: 
+                dbname: DateOrder
+                type: DateTime
+            amount_untaxed: 
+                dbname: AmountHT
+                type: Numeric
+            amount_tax:
+                dbname: AmountTax
+                type: Numeric
+            presta_ref:
+                dbname: PrestaShopRef
+                type: String(25)
+            web_id: 
+                dbname: PrestaShopId
+                type: String(25)
+            state:
+                dbname: OrderState
+                type: String(25)
+            invoice_status: 
+                dbname: InvoiceStatus
+                type: String(25)
+            is_low_packaging:
+                dbname: IsLowPackaging
+                type: Boolean
+
+    WebOrderLines:
+        odoo_name: sale.order.line
+        fields:
+            id: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            order_id: 
+                dbname: WebOrderId
+                type: Integer
+            product_id: 
+                dbname: ProductId
+                type: Integer
+            product_qty: 
+                dbname: ProductQty
+                type: Integer
+            display_name: 
+                dbname: DisplayName
+                type: String(255)
+            price_unit: 
+                dbname: UnitPriceTTC
+                type: Numeric
+
+    PosOrders:
+        odoo_name: pos.order
+        fields: 
+            id: 
+                dbname: Id
+                type: Integer
+                primary_key: true
+            pos_reference: 
+                dbname: ReceiptId
+                type: String(25)
+            name: 
+                dbname: OrderRef
+                type: String(100)
+            date_order: 
+                dbname: DateOrder
+                type: DateTime
+            amount_paid: 
+                dbname: AmountPaid
+                type: Numeric
+            amount_return: 
+                dbname: AmountReturned
+                type: Numeric
+            amount_total: 
+                dbname: AmountTTC
+                type: Numeric
+            amount_tax: 
+                dbname: AmountTax
+                type: Numeric
+            state: 
+                dbname: OrderState
+                type: String(25)
+            is_invoiced: 
+                dbname: InvoiceStatus
+                type: String(25)
+            return_ref: 
+                dbname: ReturnRef
+                type: String(25)
+            return_status: 
+                dbname: ReturnStatus
+                type: String(25)
+
+    PosOrderLines:
+        odoo_name: pos.order.line
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            order_id:
+                dbname: PosOrderId
+                type: Integer
+            product_id:
+                dbname: ProductId
+                type: Integer
+            price_unit:
+                dbname: UnitPriceTTC
+                type: Numeric
+            qty:
+                dbname: ProductQty
+                type: Integer
+            returned_qty:
+                dbname: ReturnedQty
+                type: Integer
+            price_subtotal:
+                dbname: AmountHT
+                type: Numeric
+
+    AccountingPieces:
+        odoo_name: account.move
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            order_id:
+                dbname: OrderId
+                type: Integer
+            ref:
+                dbname: Ref
+                type: String(255)
+            name: 
+                dbname: PcNumber
+                type: String(255)
+            journal_id:
+                dbname: JournalId
+                type: Integer
+            state: 
+                dbname: PcState
+                type: String(50)
+            type: 
+                dbname: PcType
+                type: String(50)
+            amount_untaxed:
+                dbname: AmountHT
+                type: Numeric
+            amount_tax: 
+                dbname: Taxes
+                type: Numeric
+            amount_total:
+                dbname: AmountTTC
+                type: Numeric
+            partner_id:
+                dbname: ClientId
+                type: Integer
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            invoice_date:
+                dbname: InvoiceDate
+                type: DateTime
+            date:
+                dbname: PcDate
+                type: DateTime
+
+    AccountingLines:
+        odoo_name: account.move.line
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            move_id:
+                dbname: AcctPieceId
+                type: Integer
+            name:
+                dbname: AcctLineName
+                type: String(255)
+            date:
+                dbname: LineDate
+                type: DateTime
+            display_name:
+                dbname: DisplayName
+                type: String(255)
+            account_id:
+                dbname: AccountId
+                type: Integer
+            account_internal_type: 
+                dbname: AccountType
+                type: String(50)
+            exclude_from_invoice_tab: 
+                dbname: ExcludeFromInvoice
+                type: Boolean
+            partner_id:
+                dbname: ClientId
+                type: Integer
+            ref:
+                dbname: InvoiceRef
+                type: String(255)
+            product_id:
+                dbname: ProductId
+                type: Integer
+            quantity:
+                dbname: ProductQty
+                type: Integer
+            price_unit:
+                dbname: UnitPriceTTC
+                type: Numeric
+            price_subtotal:
+                dbname: AmountHT
+                type: Numeric
+            tax_base_amount: 
+                dbname: Taxes
+                type: Numeric
+            price_total:
+                dbname: AmountTTC
+                type: Numeric
+
+    AcctJournals:
+        odoo_name: account.journal
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            display_name:
+                dbname: DisplayName
+                type: String(255)
+
+    WebReturns:
+        odoo_name: presta.return
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            order_id:
+                dbname: OrderId
+                type: Integer
+            state: 
+                dbname: ReturnState
+                type: String(50)
+
+    WebReturnLines:
+        odoo_name: presta.return.line
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            presta_return_id:
+                dbname: ReturnId
+                type: Integer
+            reason_id:
+                dbname: ReasonId
+                type: Integer
+            product_id:
+                dbname: ProductId
+                type: Integer
+            qty_returned:
+                dbname: ReturnedQty
+                type: Integer
+
+    ProductDefect:
+        odoo_name: product.defect
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            name:
+                dbname: DefectName
+                type: String(255)
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            write_date: 
+                dbname: LastModified
+                type: DateTime
+
+    Transfers:
+        odoo_name: stock.picking
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            name:
+                dbname: Ref
+                type: String(100)
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            create_uid:
+                dbname: CreatedById
+                type: Integer
+            date:
+                dbname: TransferDate
+                type: DateTime
+            date_done:
+                dbname: CompletedDate
+                type: DateTime
+            origin:
+                dbname: OrderRef
+                type: String(100)
+            location_id:
+                dbname: OriginId
+                type: Integer
+            location_dest_id:
+                dbname: DestinationId
+                type: Integer
+            picking_type_id:
+                dbname: PickingTypeId
+                type: Integer
+            picking_type_code: 
+                dbname: PickingTypeCode
+                type: String(50)
+            is_presale:
+                dbname: IsPresale
+                type: Boolean
+            carrier_id:
+                dbname: CarrierId
+                type: Integer
+
+    StockMove:
+        odoo_name: stock.move
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            reference:
+                dbname: Ref
+                type: String(100)
+            display_name:
+                dbname: Descrpition
+                type: DateTime
+            picking_id:
+                dbname: PickingId
+                type: Integer
+            picking_partner_id:
+                dbname: PartnerId
+                type: Integer
+            inventory_id:
+                dbname: InventaireId
+                type: Integer
+            origin:
+                dbname: Origin
+                type: String(100)
+            date:
+                dbname: DateDone
+                type: DateTime
+            location_id:
+                dbname: OriginLocId
+                type: Integer
+            location_dest_id:
+                dbname: DestLocId
+                type: Integer
+            picking_type_id:
+                dbname: PickingTypeId
+                type: Integer
+            state: 
+                dbname: State
+                type: String(50)
+            product_id:
+                dbname: ProductId
+                type: Boolean
+            product_qty:
+                dbname: DoneQty
+                type: Numeric
+            product_uom_qty:
+                dbname: InitialQty
+                type: Numeric
+            reserved_availability:
+                dbname: ReservedQty
+                type: Numeric
+
+    Clients:
+        odoo_name: res.partner
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            web_id:
+                dbname: PrestaShopId
+                type: Integer
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            create_uid: 
+                dbname: CreatedById
+                type: Integer
+            total_invoiced:
+                dbname: TotalInvoiced
+                type: Integer
+            sale_order_count:
+                dbname: TotalWebOrders
+                type: Integer
+            pos_order_count:
+                dbname: TotalPosOrders
+                type: Integer
+            purchase_order_count:
+                dbname: TotalOrders
+                type: Integer
+            zip: 
+                dbname: Zipcode
+                type: String(100)
+            city: 
+                dbname: City
+                type: String(100)
+            country_id:
+                dbname: CountryId
+                type: Integer
+            loyalty_points: 
+                dbname: LoyaltyPoints
+                type: Integer
+            gender: 
+                dbname: Gender
+                type: Integer
+            first_order_date:
+                dbname: FirstOrderDate
+                type: DateTime
+            last_order_date:
+                dbname: LastOrderDate
+                type: DateTime
+
+    Products:
+        odoo_name: product.product
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            product_tmpl_id:
+                dbname: ProductTemplateId
+                type: Integer
+            display_name:
+                dbname: ProductName
+                type: String(255)
+            barcode: 
+                dbname: EAN
+                type: String(13)
+            sales_count: 
+                dbname: SalesCount
+                type: Integer
+            list_price:
+                dbname: ListPrice
+                type: Numeric
+            is_product_variant: 
+                dbname: IsVariant
+                type: Boolean
+            is_presale:
+                dbname: IsPresale
+                type: Boolean
+            size: 
+                dbname: Size
+                type: String(10)
+            create_date:
+                dbname: CreatedAt
+                type: DateTime
+            write_date: 
+                dbname: LastModified
+                type: DateTime
+            release_date:
+                dbname: OriginalReleaseDate
+                type: DateTime
+            categ_id:
+                dbname: ProductCategoryId
+                type: Integer
+            logistic_categ_id:
+                dbname: LogisticCategoryId
+                type: Integer
+            season: 
+                dbname: Season
+                type: String(100)
+            color:
+                dbname: Color
+                type: String(100)
+
+    ProductsPurchase:
+        odoo_name: product.supplierinfo
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            product_tmpl_id:
+                dbname: ProductTemplateId
+                type: Integer
+            display_name: 
+                dbname: Supplier
+                type: String(100)
+            price:
+                dbname: PurchasePrice
+                type: Numeric
+            
+    Countries:
+        odoo_name: res.country
+        fields:
+            id:
+                dbname: Id
+                type: Integer
+                primary_key: true
+            name:
+                dbname: CountryName
+                type: String(255)
+            code: 
+                dbname: CountryCode
+                type: String(2)

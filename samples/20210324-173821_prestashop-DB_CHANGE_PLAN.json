@@ -1,0 +1,17 @@
+{
+    "schema": "prestashop",
+    "connector": "prestashop_sql.prestashopSQL",
+    "delete": [],
+    "create": [
+        "Countries",
+        "Addresses",
+        "Carriers",
+        "Clients",
+        "WebReturnLines",
+        "WebOrders",
+        "WebOrderLines",
+        "WebReturns",
+        "CustomerGroups"
+    ],
+    "changes_detail": {}
+}

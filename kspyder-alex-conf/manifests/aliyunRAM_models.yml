@@ -1,0 +1,11 @@
+Connector:
+    schema: aliyunRAM
+    update_field: write_date
+
+UnpackingFields:
+    default: null
+
+Models:
+    ListUsersRequest:    
+        class: ListUsersRequest
+        base_name: list_users_with_options

@@ -1,0 +1,25 @@
+AzureRG_EA:
+    dbtype: azure_api
+    username: azure_client
+    config: azure_subs
+
+AZURE_SQL_PROD:
+    dbtype: mssql
+    url: wearelog-kspyder-ger.database.windows.net
+    dbname: kspyder-prod
+    username: serveradmin
+    secretkey: kspyder-ger-serveradmin
+
+Azure_Pricing:
+    name: Azure Pricing API
+    dbtype: rest_api
+    url: https://prices.azure.com/api/retail/prices
+
+PLACEHOLDER_PROFILE:
+    name: Stub Profile
+    dbtype: stub
+    url: http://localhost
+    dbname: default
+    username: default
+    secretkey: default
+    
