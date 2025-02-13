@@ -1,0 +1,37 @@
+{
+    "schema": "odoo",
+    "delete": [
+        "Products"
+    ],
+    "create": [
+        "Products"
+    ],
+    "changes_detail": {
+        "Products": {
+            "has_changed": true,
+            "new_fields": [
+                "IsPresale",
+                "Color"
+            ],
+            "deleted_fields": [],
+            "intersect_fields": [
+                "LastModified",
+                "LogisticCategoryId",
+                "EAN",
+                "OriginalReleaseDate",
+                "IsVariant",
+                "ProductCategory",
+                "Size",
+                "ProductCategoryId",
+                "LogisticCategory",
+                "ProductName",
+                "SalesCount",
+                "Season",
+                "CreatedAt",
+                "ListPrice",
+                "Id",
+                "ProductTemplateId"
+            ]
+        }
+    }
+}
