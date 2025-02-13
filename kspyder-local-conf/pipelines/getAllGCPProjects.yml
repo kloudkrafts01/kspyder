@@ -44,16 +44,4 @@ Steps:
       from_worker: gcloudConnector
       model_name: GCloudProjects
 
-  # - Name: ExportProjects
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
-  #   Output: GCPProjectsExtract
-  #   Params:
-  #     query_name: ExtractProjects
-  #     query_conf:
-  #       collection: GCPProjects
-  #       dump_json: true
-  #       operations:
-  #         $unset:
-  #           - _id
 
