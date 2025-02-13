@@ -1,0 +1,120 @@
+Steps:
+
+  - Name: SetAliyunRegionId
+    Job: set_static_data
+    Output: RegionData
+    Params:
+      data:
+        - region_id: cn-shanghai
+
+  - Name: GetToMongo.RAMUsers
+    Job: get_data_to_mongo
+    Output: RAMUsers
+    Params:
+      from_worker: aliyunConnector 
+      model_name: RAMUsers
+  
+  - Name: GetToMongo.RAMRoles
+    Job: get_data_to_mongo
+    Output: RAMRoles
+    Params:
+      from_worker: aliyunConnector 
+      model_name: RAMRoles
+  
+  - Name: GetToMongo.RAMGroups
+    Job: get_data_to_mongo
+    Output: RAMGroups
+    Params:
+      from_worker: aliyunConnector 
+      model_name: RAMGroups
+
+  - Name: GetToMongo.RAMPolicies
+    Job: get_data_to_mongo
+    Output: RAMPolicies
+    Params:
+      from_worker: aliyunConnector 
+      model_name: RAMPolicies
+
+  - Name: GetUserNamesList
+    Job: get_unique_key_list
+    Input: RAMUsers
+    Output: RAMUserNamesList
+    Params:
+      key: user_name
+      datapath: data[].UserName
+
+  - Name: GetGroupNamesList
+    Job: get_unique_key_list
+    Input: RAMGroups
+    Output: RAMGroupNamesList
+    Params:
+      key: group_name
+      datapath: data[].GroupName
+  
+  - Name: GetRoleNamesList
+    Job: get_unique_key_list
+    Input: RAMRoles
+    Output: RAMRoleNamesList
+    Params:
+      key: role_name
+      datapath: data[].RoleName
+
+  - Name: GetToMongo.GroupMembers
+    Job: get_data_to_mongo
+    Output: RAMGroupMembers
+    Input: RAMGroupNamesList.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: RAMGroupMembers
+
+  
+  - Name: GetToMongo.PolicyForGroups
+    Job: get_data_to_mongo
+    Output: PolicyForGroups
+    Input: RAMGroupNamesList.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: PolicyForGroups
+
+  
+  - Name: GetToMongo.PolicyForRoles
+    Job: get_data_to_mongo
+    Output: PolicyForRoles
+    Input: RAMRoleNamesList.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: PolicyForRoles
+
+  
+  - Name: GetToMongo.PolicyForUsers
+    Job: get_data_to_mongo
+    Output: PolicyForUsers
+    Input: RAMUserNamesList.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: PolicyForUsers
+
+  - Name: Extract.CustomPolicyNames
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: RAMCustomPolicyNames
+    Params:
+      collection_name: Aliyun.RAM.RAMPolicies
+      pipeline:
+        - $match:
+            PolicyType: Custom
+        - $project:
+            policy_name: $PolicyName
+            policy_type: $PolicyType
+        - $unset:
+          - _id
+  
+  - Name: Get.RAMCustomPolicyVersions
+    Job: get_data_to_mongo
+    Input: RAMCustomPolicyNames.data
+    Output: RAMCustomPolicyVersions
+    Params:
+      from_worker: aliyunConnector
+      model_name: RAMPolicyVersions
+      collection: Aliyun.RAM.CustomPolicyDocuments
+

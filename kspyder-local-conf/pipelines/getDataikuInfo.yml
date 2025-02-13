@@ -1,0 +1,104 @@
+Steps:
+
+  - Name: ExtractDSSInstanceData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: DataikuInstances
+    Params:
+      query_name: ExtractDSSInstanceData
+      query_conf:
+        collection: ComputeInstances
+        dump_csv: true
+        dump_json: true
+        operations:
+          $match:
+            project: 
+              $regex: "ai-factory"
+          $unwind: $disks
+          $project:
+            project: 1
+            zone: 
+              $arrayElemAt:
+                - $split:
+                  - $zone
+                  - "/"
+                - -1
+            kind: 1
+            name: 1
+            status: 1
+            creation_timestamp: 1
+            machine_type: 
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            disk_type:
+              $cond:
+                if: $disks.boot
+                then: 'os_disk'
+                else: 'data_disk'
+            disk_size: 
+              $convert:
+                input: $disks.disk_size_gb
+                to: double
+            env: $labels.lvmh_environment
+            gke_cluster: $labels.goog-k8s-cluster-name
+            gke_nodepool: $labels.goog-k8s-node-pool-name
+            gke_location: $labels.goog-k8s-cluster-location
+          $unset:
+            - _id
+
+
+
+  # - Name: GetComputeInstances
+  #   Worker: gcloudComputeConnector
+  #   Job: get_data
+  #   Output: ComputeInstances
+  #   Input: GCPProjectZones.data
+  #   Params:
+  #     model_name: ComputeInstances
+
+  # - Name: StoreInstancesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ComputeInstances
+  #   Output: ComputeInstancesInsertionResult
+  #   Params:
+  #     collection: GCPComputeInstances
+
+  # - Name: BuildParentURIs
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCRParentURIs
+  #   Params:
+  #     query_name: BuildParentURIs
+  #     query_conf:
+  #       collection: GCPProjects
+  #       operations:
+  #         $set:
+  #           parent: 
+  #             $replaceOne:
+  #               input: "/projects/{project_id}/location/europe-west-4"
+  #               find: "{project_id}"
+  #               replacement: $project_id
+  #         $project:
+  #           parent: 1
+  #         $unset:
+  #           - _id
+    
+  # - Name: GetCloudRunServices
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Input: GCRParentURIs.data
+  #   Output: CloudRunServices
+  #   Params:
+  #     model_name: CloudRunServices
+
+  # - Name: StoreGCRServices
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudRunServices
+  #   Output: GCRServicesInsertionResult
+  #   Params:
+  #     collection: CloudRunServices

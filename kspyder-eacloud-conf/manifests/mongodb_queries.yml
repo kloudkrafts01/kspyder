@@ -12,25 +12,25 @@ VM_list:
         OS: $properties.storageProfile.imageReference.offer
         OSversion: $properties.storageProfile.imageReference.version
         SKU: $properties.hardwareProfile.vmSize
+        support_tier: $tags.SupportTier
+        backup_tier: $tags.BackupTier
+        update_ring: $tags.UpdateRing
+        update_wave: $tags.UpdateWave
 
-# VM_Sizings:
-#   collection: VirtualMachines
-#   operations:
-#     # $sortByCount: $properties.hardwareProfile.vmSize
-#     # $unwind:
-#     #   path: $properties.hardwareProfile
-#     $group:
-#       _id: $propertes.hardwareProfile.vmSize
-#       env:
-#         $first: $tags.Environment
-#       app:
-#         $first: $tags.Application
-#     $sortByCount: 
-#       $mergeObjects: 
-#         - $env
-#         - $app
-#         - $properties.hardwareProfile.vmSize
-
+VM_Sizings:
+  collection: VM_list
+  dump_csv: true
+  operations:
+    $group:
+      _id: $SKU
+      location:
+        $first: $location
+      env:
+        $first: $env
+      app:
+        $first: $app
+      totalCount:
+        $sum: 1
       
 VM_OSDisk_Sizing:
   collection: VirtualMachines
@@ -42,8 +42,7 @@ VM_OSDisk_Sizing:
       location: $location
       app: $tags.Application
       app_details: $tags.Application_details
-      workload: $tags.Workload
-      osdisk_size: $properties.storageProfile.osDisk.diskSizeGB
+      disk_size: $properties.storageProfile.osDisk.diskSizeGB
     # $set:
     #   osdisk_size: $os_disk.diskSizeGB
     # $unset:
@@ -62,6 +61,27 @@ VM_OSDisk_Sizing:
     #   vm_name: $_id
     # $unset:
     #   - _id
+
+VM_by_SupportTier:
+  collection: VirtualMachines
+  dump_csv: true
+  operations:
+    $project:
+      vm_name: $name
+      location: $location
+      tier: $tags.SupportTier
+    $unwind:
+      path: $tier
+    $group:
+      _id: $tier
+      location:
+        $first: $location
+      total_count:
+        $sum: 1
+    $set:
+      support_tier: $_id
+    $unset:
+      - _id
 
 VM_DataDisk_Sizing:
   collection: VirtualMachines
@@ -85,17 +105,31 @@ VM_DataDisk_Sizing:
         $first: $app
       app_details:
         $first: $app_details
-      data_disk_size:
+      location:
+        $first: $location
+      disk_size:
         $sum: $data_disks.diskSizeGB
     $set:
       vm_name: $_id
     $unset:
       - _id
     
+Subnets:
+  collection: VirtualNetworks
+  dump_csv: true
+  operations:
+    $unwind:
+      path: $properties.subnets
+    $project:
+      vnet: $name
+      subnet_name: $properties.subnets.name
+      id: $properties.subnets.id
+      address_prefix: $properties.subnets.properties.addressPrefix
+      NSG: $properties.subnets.properties.networkSecurityGroup.id
 
 NSG_Rules:
   collection: NetworkSecurityGroups
-  dump_csv: false 
+  dump_csv: true 
   operations:
     $unwind:
       path: $properties.securityRules
@@ -104,10 +138,13 @@ NSG_Rules:
       rule_id: $properties.securityRules.id
       rule: $properties.securityRules.name
       protocol: $properties.securityRules.properties.protocol
+      subnets: $properties.subnets.id
       source_prefix: $properties.securityRules.properties.sourceAddressPrefix
+      source_prefixes: $properties.securityRules.properties.sourceAddressPrefixes
       source_ports: $properties.securityRules.properties.sourcePortRange
-      source_ASG: $properties.securityRules.sourceApplicationSecurityGroups.id
+      source_ASG: $properties.securityRules.sourceApplicationSecurityGroups
       dest_prefix: $properties.securityRules.properties.destinationAddressPrefix
+      dest_prefixes: $properties.securityRules.properties.destinationAddressPrefixes
       dest_ports: $properties.securityRules.properties.destinationPortRange
       dest_ASG: $properties.securityRules.properties.destinationApplicationSecurityGroups.id
       direction: $properties.securityRules.properties.direction
@@ -117,4 +154,45 @@ NSG_Rules:
       rule: 1
     # $unwind:
     #   path: $dest_ASG
- 
+
+NIC_List:
+  collection: NetworkInterfaces
+  dump_csv: true 
+  operations:
+    $unwind:
+      path: $properties.ipConfigurations
+    $project:
+      NIC: $name
+      guid: $properties.resourceGuid
+      app: $tags.Application
+      workload: $tags.Workload
+      virtual_machine: $properties.virtualMachine
+      private_ip: $properties.ipConfigurations.properties.privateIPAddress
+      private_ip_allocation: $properties.ipConfigurations.properties.privateIPAllocationMethod
+      subnet: $properties.ipConfigurations.properties.subnet
+      ASGs: $properties.ipConfigurations.properties.applicationSecurityGroups
+    $sort:
+      name: 1
+
+
+vHub_list:
+  collection: VirtualHubs
+  dump_csv: true
+  operations:
+    $project:
+      Name: $name
+      Location: $location
+      SKU: $properties.sku
+      IP_range: $properties.addressPrefix
+      Router_IPs: $properties.virtualRouterIps
+
+# VM_ASG_mapping:
+#   collection: VirtualMachines
+#   dump_csv: false
+#   operations:
+
+
+# ASG:
+#   collection: ApplicationSecurityGroups
+#   dump_csv: false
+#   operations:

@@ -1,0 +1,273 @@
+Connector:
+    schema: GCloud
+
+APIs:
+    Compute:
+        name: compute_v1
+        update_field: UpdateDate
+
+    RM:
+        name: resourcemanager_v3
+        update_field: update_time
+
+    ServiceUsage:
+        name: service_usage_v1 
+        update_field: update_time
+
+    GKE:
+        name: container
+        update_field: update_time
+
+    GCS:
+        name: storage
+        update_field: updated
+
+    BigQuery:
+        name: bigquery
+        update_field: last_modified_time
+    
+    CloudRun:
+        name: run_v2
+        update_field: update_time
+
+    VPC:
+        name: vpcaccess_v1
+        update_field: null
+
+Models:
+
+# =================== Compute Models =========================
+
+    ComputeInstances:
+        API: Compute
+        client_name: InstancesClient
+        request_builder: ListInstancesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
+            - name
+    
+    ComputeInstanceGroups:
+        API: Compute
+        client_name: InstanceGroupsClient
+        request_builder: ListInstanceGroupsRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
+            - name
+
+    ComputeOSImages:
+        API: Compute
+        client_name: ImagesClient
+        request_builder: ListImagesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+
+    ComputeMachineTypes:
+        API: Compute
+        client_name: MachineTypesClient
+        request_builder: ListMachineTypesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - zone
+        index_keys:
+            - id
+
+    GKEClusters:
+        API: GKE
+        client_name: ClusterManagerClient
+        request_builder: ListClustersRequest
+        query_name: list_clusters
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+    CloudRunServices:
+        API: CloudRun
+        client_name: ServicesClient
+        request_builder: ListServicesRequest
+        query_name: list_services
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+# =================== Resource Management Models ======================
+    
+    Organizations:
+        API: RM
+        client_name: OrganizationsClient
+        request_builder: SearchOrganizationsRequest
+        query_name: search_organizations
+        accepted_inputs:
+            - domain
+        index_keys:
+            - name
+            - display_name
+
+    Folders:
+        API: RM
+        client_name: FoldersClient
+        request_builder: ListFoldersRequest
+        query_name: list_folders
+        node_key: name
+        parent_key: parent
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+    Projects:
+        API: RM
+        client_name: ProjectsClient
+        request_builder: ListProjectsRequest
+        query_name: list_projects
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+            - project_id
+
+    ProjectIAMPolicies:
+        API : RM
+        client_name: ProjectsClient
+        # request_builder: GetIamPolicyRequest
+        query_name: get_iam_policy
+        accepted_inputs:
+            - resource
+        index_keys:
+            - resource
+        iterable: false
+
+    GCPServices:
+        API: ServiceUsage
+        client_name: ServiceUsageClient
+        request_builder: ListServicesRequest
+        query_name: list_services
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+# =================== Cloud Network Models ======================
+
+    VPCs:
+        API: Compute
+        client_name: NetworksClient
+        request_builder: ListNetworksRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - name
+    
+    Subnets:
+        API: Compute
+        client_name: SubnetworksClient
+        request_builder: ListSubnetworksRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - name
+    
+    Addresses:
+        API: Compute
+        client_name: AddressesClient
+        request_builder: ListAddressesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - id
+
+    LBForwardingRules:
+        API: Compute
+        client_name: ForwardingRulesClient
+        request_builder: ListForwardingRulesRequest
+        query_name: list
+        accepted_inputs:
+            - project
+            - region
+        index_keys:
+            - id
+
+    LBBackendBuckets:
+        API: Compute
+        client_name: BackendBucketsClient
+        request_builder: ListBackendBucketsRequest
+        query_name: list
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+
+    VPCAccess:
+        API: VPC
+        client_name: VpcAccessServiceClient
+        request_builder: ListConnectorsRequest
+        query_name: list_connectors
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+# =================== Data Stores Models ======================
+
+    Buckets:
+        API: GCS
+        client_name: Client
+        query_name: list_buckets
+        accepted_inputs:
+            - project
+        fields:
+            id: id
+            name: name
+            user_project: user_project
+            generation: generation
+            labels: labels
+            location_type: location_type
+            location: location
+            storage_class: storage_class
+            time_created: time_created
+            updated: updated
+            versioning_enabled: versioning_enabled
+        index_keys:
+            - id
+            - name
+
+    BigQueryProjects:
+        API: BigQuery
+        client_name: Client
+        # request_builder: ListProjectsRequest
+        query_name: list_projects
+        index_keys:
+            - project_id
+
+    Datasets:
+        API: BigQuery
+        client_name: Client
+        # request_builder: ListModelsRequest
+        query_name: list_datasets
+        accepted_inputs:
+            - project
+        index_keys:
+            - id
+
+
+
+
+    

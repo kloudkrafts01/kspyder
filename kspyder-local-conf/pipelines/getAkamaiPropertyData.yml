@@ -1,0 +1,83 @@
+Steps:
+
+  - Name: GetToMongo.PropertyGroups
+    Job: get_data_to_mongo
+    Output: PropertyGroups
+    Params:
+      from_worker: akamaiConnector
+      model_name: PropertyGroups
+
+  - Name: ExtractContractGroupList
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: ContractAndGroupIds
+    Params:
+      collection_name: Akamai.Property.PropertyGroups
+      pipeline:
+        - $unwind: $contractIds
+        - $project:
+            contractId: $contractIds
+            groupId: $groupId
+        - $unset:
+            - _id
+
+  - Name: GetToMongo.AkamaiEdgeHostnames
+    Job: get_data_to_mongo
+    Input: ContractAndGroupIds.data
+    Output: AkamaiEdgeHostnames
+    Params:
+      from_worker: akamaiConnector
+      model_name: EdgeHostnames
+
+  - Name: GetToMongo.AkamaiProperties
+    Job: get_data_to_mongo
+    Input: ContractAndGroupIds.data
+    Output: AkamaiProperties
+    Params:
+      from_worker: akamaiConnector
+      model_name: Properties
+
+  - Name: GetIndex.AkamaiProperties.propertyId
+    Job: get_unique_key_list
+    Input: AkamaiProperties
+    Output: AkamaiPropertyIds
+    Params:
+      datapath: data[].propertyId
+
+  - Name: GetToMongo.AkamaiPropertyActivations
+    Job: get_data_to_mongo
+    Input: AkamaiPropertyIds.data
+    Output: AkamaiPropertyActivations
+    Params:
+      from_worker: akamaiConnector
+      model_name: PropertyActivations
+
+  - Name: ExtractLatestAkamaiProperties
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AkamaiPropertyVersionIds
+    Params:
+      collection_name: Akamai.Property.Properties
+      pipeline:
+        - $project:
+            propertyId: $propertyId
+            version: $latestVersion
+        - $unset:
+            - _id
+
+  - Name: GetToMongo.AkamaiPropertyRules
+    Job: get_data_to_mongo
+    Input: AkamaiPropertyVersionIds.data
+    Output: AkamaiPropertyRules
+    Params:
+      from_worker: akamaiConnector
+      model_name: PropertyRules
+
+  # - Name: GetToMongo.AkamaiPropertyIncludes
+  #   Job: get_data_to_mongo
+  #   Input: AkamaiPropertyVersionIds.data
+  #   Output: AkamaiPropertyIncludes
+  #   Params:
+  #     from_worker: akamaiConnector
+  #     model_name: AkamaiPropertyIncludes
+

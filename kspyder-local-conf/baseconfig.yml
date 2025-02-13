@@ -1,0 +1,21 @@
+DEFAULT_TIMESPAN: 1
+PAGE_SIZE: 300
+APP_NAME: kspyder
+DUMP_JSON: true
+# Challenge the dependency b/w logging handler and config.py
+LOG_CONFIG: logging_verbose
+
+Modules:
+  odooRPCConnector : odooRPCModels
+  prestashopSQLConnector : prestashopSQLModels
+  azureSQLConnector : null
+  azureRGraphConnector : azureRGraphModels
+  pandaPipelinesEngine : null
+  pandaXLSConnector : null
+  pandaSQLConnector : null
+  mongoDBConnector : mongoDBQueries
+  aliyunCLIConnector : aliyunCLImodels
+  aliyunConnector: aliyunModels
+  akamaiConnector : akamaiModels
+  gcloudConnector: gcloudModels
+  openDataConnector: openDataModels

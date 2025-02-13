@@ -1,0 +1,10 @@
+common:
+  - name: CloudName
+    type: string
+    value: AzureCloud
+  - name: vault
+    type: string
+    value: cdc_azure_subscriptions
+  - name: subscriptions
+    type: secret
+    value: subscriptions

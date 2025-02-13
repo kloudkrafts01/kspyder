@@ -1,0 +1,131 @@
+Connector:
+    schema: azureRG
+    update_field: write_date
+    default_class: resources
+    default_fields: name,type,location,zones,subscriptionId,resourceGroup,tags,properties
+
+Models:
+
+# ================== Management & Governance Services Models =================
+
+    AzureResourceGroups:    
+        class: resourcecontainers
+        base_name: microsoft.resources/subscriptions/resourcegroups
+        index_keys:
+            - resourceGroup
+            - subscriptionId
+
+    AzurePolicyInsights:
+        base_name: Microsoft.PolicyInsights/attestations
+        fields: name,properties
+
+# ================== Compute / IaaS Models =================
+
+    AzureVirtualMachines:
+        base_name: Microsoft.Compute/VirtualMachines
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== Container / Kubernetes Models ==================
+
+    AzureContainerServices:
+        base_name: Microsoft.ContainerService/containerServices
+
+    AzureAKSClusters:
+        base_name: Microsoft.ContainerService/managedClusters
+        index_keys:
+            - name
+            - resourceGroup
+    
+    AzureAKSNodePools:
+        base_name: Microsoft.ContainerService/managedClusters/agentPools
+        index_keys:
+            - name
+
+    AzureCSTrustedAccessRoleBindings:
+        base_name: Microsoft.ContainerService/managedClusters/trustedAccessRoleBindings
+        index_keys:
+            - name
+
+    AzureContainerRegistries:
+        base_name: Microsoft.ContainerRegistry/registries
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== Networking Models ==================
+
+    AzureVirtualNetworks:
+        base_name: Microsoft.Network/VirtualNetworks
+        index_keys:
+            - name
+            - properties.resourceGuid
+
+    AzurePublicIPs:
+        base_name: Microsoft.Network/publicIPAddresses
+        index_keys:
+            - name
+            - resourceGroup
+
+    AzureNetworkInterfaces:
+        base_name: Microsoft.Network/networkInterfaces
+        fields: name,location,extendedLocation,tags,properties
+        index_keys:
+            - name
+            - resourceGroup
+
+    AzureNetworkSecurityGroups:
+        base_name: Microsoft.Network/networkSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
+            
+    AzureApplicationSecurityGroups:
+        base_name: Microsoft.Network/ApplicationSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
+       
+    AzureAppGateways:
+        base_name: Microsoft.Network/applicationGateways
+        index_keys:
+            - name
+            - resourceGroup
+
+    AzureVirtualWAN:
+        base_name: Microsoft.Network/virtualWans
+        index_keys:
+            - name
+            - resourceGroup
+
+    AzureVirtualHubs:
+        base_name: Microsoft.Network/virtualHubs
+        index_keys:
+            - name
+            - resourceGroup
+
+    AzureVirtualHubRouteTables:
+        base_name: Microsoft.Network/virtualHubs/hubRouteTables
+        index_keys:
+            - name
+            - resourceGroup
+        
+    AzureVirtualHubConnections:
+        base_name: Microsoft.Network/virtualHubs/hubVirtualNetworkConnections
+        index_keys:
+            - name
+            - resourceGroup
+        
+
+# ================== IAM / Auth Services Models ==================
+
+    AzureKeyVaults:
+        base_name: Microsoft.KeyVault/vaults
+
+
+# ================== Other Models ==================
+
+    AzureAutomationJobs:
+        base_name: Microsoft.Automation/automationAccounts/jobs
+        fields: name,properties

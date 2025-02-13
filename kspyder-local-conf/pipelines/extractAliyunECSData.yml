@@ -1,0 +1,79 @@
+Steps:
+
+  - Name: ExtractRHELImages
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunRHELImages
+    Params:
+      save_to: Aliyun.ECS.RHELImagesData
+      collection_name: ECSImages
+      pipeline:
+        - $match:
+            ImageOwnerAlias: marketplace
+            Platform:
+              $regex: "^(Red Hat)"
+        - $project:
+            ImageId: $ImageId
+            Name: $ImageName
+            Description: $Description
+            Version: $ImageVersion
+            ProductCode: $ProductCode
+            Family: $ImageFamily
+            OSType: $OSType
+            OSName: $OSName
+            OSNameEn: $OSNameEn
+            Platform: $Platform
+            Arch: $Architecture
+            BootMode: $BootMode
+            IsPublic: $IsPublic
+            cloudInit: $IsSupportCloudInit
+            IsSupportIoOptimized: $IsSupportIoOptimized
+            LoginAsNonRootSupported: $LoginAsNonRootSupported
+
+  - Name: ExtractNSGData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunNSGData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.NSGData
+      collection_name: AliyunNSGRules
+      pipeline:
+        - $lookup:
+            from: AliyunNSGs
+            localField: security_group_id
+            foreignField: SecurityGroupId
+            as: NsgInfo
+        - $unwind: $NsgInfo
+        - $set:
+            VpcId: $NsgInfo.VpcId
+        - $lookup:
+            from: AliyunVPCs
+            localField: VpcId
+            foreignField: VpcId
+            as: VpcInfo
+        - $unwind: $VpcInfo
+        - $project: 
+            VpcId: 1
+            VpcName: $VpcInfo.VpcName
+            SecurityGroupId: 1
+            SecurityGroupName: $NsgInfo.SecurityGroupName
+            SecurityGroupRuleId: 1
+            Description: 1
+            SourcePortRange: 1
+            SourceCidrIp: 1
+            SourceGroupId: 1
+            SourceGroupName: 1
+            DestCidrIp: 1
+            DestGroupId: 1
+            DestGropuName: 1
+            Direction: 1
+            IpProtocol: 1
+            PortRange: 1
+            Policy: 1
+            Priority: 1
+
+
+
+
+

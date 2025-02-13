@@ -1,0 +1,50 @@
+Steps:
+
+  - Name: ExtractVnetTabularData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AzureVnetData
+    Params:
+      save_to: AzureVnetData
+      collection_name: AzureVirtualNetworks
+      pipeline:
+        - $unwind: $properties.addressSpace.addressPrefixes
+        - $project:
+            environment: $tags.environment
+            name: 1
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            CIDR: $properties.addressSpace.addressPrefixes
+            dnsServers: $properties.dhcpOptions.dnsServers
+
+  - Name: ExtractSubnetTabularData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AzureSubnetData
+    Params:
+      save_to: AzureSubnetData
+      collection_name: AzureVirtualNetworks
+      pipeline:
+        - $unwind: $properties.subnets
+        - $set:
+            ipConfigs: $properties.subnets.properties.ipConfigurations
+        - $match:
+            ipConfigs:
+              $exists: true
+        - $project:
+            environment: $tags.environment
+            vnetName: $name
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            vnetDnsServers: $properties.dhcpOptions.dnsServers
+            subnetName: $properties.subnets.name
+            subnetCIDR: $properties.subnets.properties.addressPrefix
+            subnetPurpose: $properties.subnets.purpose
+            # ipConfigs: 1
+            usedIpAddresses: 
+              $size: $ipConfigs
+            hasPrivateEndpoints: $properties.subnets.properties.privateEndpointNetworkPolicies
+            hasPrivateLinks: $properties.subnets.properties.privateLinkServiceNetworkPolicies
+

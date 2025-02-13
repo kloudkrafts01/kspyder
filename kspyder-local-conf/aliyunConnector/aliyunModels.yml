@@ -1,0 +1,308 @@
+Connector:
+    schema: Aliyun
+    default_rate_limit: 0.2
+
+APIs:
+
+    RAM:
+        name: alibabacloud_ram20150501
+        update_field: UpdateDate
+        is_truncated_key: is_truncated
+        next_token_key: marker
+        last_request_key: request_id
+        convert_response_case: true
+    
+    CS:
+        name: alibabacloud_cs20151215
+        update_field: updated
+        is_truncated_key: is_truncated
+        next_token_key: marker
+        last_request_key: request_id
+        header:
+            accept: application/json
+
+    ECS:
+        name: alibabacloud_ecs20140526
+        update_field: update_date
+        next_token_key: next_token
+        last_request_key: request_id
+        max_results_key: max_results
+        convert_response_case: true
+
+    CloudSSO:
+        name: alibabacloud_cloudsso20210515
+        update_field: update_time
+        is_truncated_key: is_truncated
+        next_token_key: next_token
+        last_request_key: request_id
+        max_results_key: max_results
+        convert_response_case: true
+    
+Models:
+
+# ================ RAM Models ==================
+
+    RAMUsers:
+        API: RAM
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        datapath: Users.User[]
+        index_keys:
+            - UserId
+            - UserName
+
+    RAMGroups:
+        API: RAM
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        datapath: Groups.Group[]
+        index_keys:
+            - GroupId
+            - GroupName
+
+    RAMGroupMembers:
+        API: RAM
+        request_builder: ListUsersForGroupRequest
+        query_name: list_users_for_group_with_options
+        datapath: Users.User[]
+        accepted_inputs:
+            - group_name
+        index_keys:
+            - UserId
+            - UserName
+        
+    RAMRoles:
+        API: RAM
+        request_builder: ListRolesRequest
+        query_name: list_roles_with_options
+        datapath: Roles.Role[]
+        index_keys:
+            - RoleId
+            - RoleName
+
+    RAMPolicies:
+        API: RAM
+        request_builder: ListPoliciesRequest
+        query_name: list_policies_with_options
+        datapath: Policies.Policy[]
+        index_keys:
+            - PolicyName
+
+    RAMPolicyVersions:
+        API: RAM
+        request_builder: ListPolicyVersionsRequest
+        query_name: list_policy_versions_with_options
+        datapath: PolicyVersions.PolicyVersion[]
+        accepted_inputs:
+            - policy_name
+            - policy_type
+        index_keys:
+            - policy_name
+            - VersionId
+
+    AccessKeys:
+        API: RAM
+        request_builder: ListAccessKeysRequest
+        query_name: list_access_keys_with_options
+        datapath: AccessKeys.AccessKey[]
+        accepted_inputs:
+            - user_name
+        index_keys:
+            - AccessKeyId
+            
+    PolicyForGroups:
+        API: RAM
+        request_builder: ListPoliciesForGroupRequest
+        query_name: list_policies_for_group_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - group_name
+        index_keys:
+            - group_name
+            - PolicyName
+
+                
+    PolicyForRoles:
+        API: RAM
+        request_builder: ListPoliciesForRoleRequest
+        query_name: list_policies_for_role_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - role_name
+        index_keys:
+            - role_name
+            - PolicyName
+    
+    PolicyForUsers:
+        API: RAM
+        request_builder: ListPoliciesForUserRequest
+        query_name: list_policies_for_user_with_options
+        datapath: Policies.Policy[]
+        accepted_inputs:
+            - user_name
+        index_keys:
+            - user_name
+            - PolicyName
+    
+    # # To be adapted : returns multiple useful data paths (Users, Groups and Roles)
+    # PolicyGrants:
+    #     API: RAM
+    #     request_builder: ListEntitiesForPolicyRequest
+    #     query_name: list_entities_for_policy_with_options
+    #     datapath: Policies.Policy[]
+    #     accepted_inputs:
+    #         - PolicyName
+    #         - PolicyType
+    #     index_keys:
+    #         - PolicyName
+
+
+# ================ CloudSSO Models ==================
+
+    # To be reworked : not iterable result (see the aliyunCLIModel equivalent)
+    # CloudSSODirectories:
+    #     API: CloudSSO
+    #     query_name: list_directories
+    #     datapath: Directories.Directory[]
+    #     index_keys:
+    #         - DirectoryId
+
+    CloudSSOUsers:
+        API: CloudSSO
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        datapath: Users[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - UserId
+            - UserName
+
+    CloudSSOGroups:
+        API: CloudSSO
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        datapath: Groups[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - GroupId
+            - GroupName
+
+    CloudSSOGroupMembers:
+        API: CloudSSO
+        request_builder: ListGroupMembersRequest
+        query_name: list_group_members_with_options
+        datapath: GroupMembers[]
+        accepted_inputs:
+            - directory_id
+            - group_id
+        index_keys:
+            - UserId
+            - GroupId
+
+    CloudSSOAccessConfigurations:
+        API: CloudSSO
+        request_builder: ListAccessConfigurationsRequest
+        query_name: list_access_configurations_with_options
+        datapath: AccessConfigurations[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+    
+    CloudSSOPolicies:
+        API: CloudSSO
+        request_builder: ListPermissionPoliciesInAccessConfigurationRequest
+        query_name: list_permission_policies_in_access_configuration_with_options
+        datapath: PermissionPolicies[]
+        accepted_inputs:
+            - directory_id
+            - access_configuration_id
+        index_keys:
+            - PermissionPolicyName
+
+    CloudSSOAssignments:
+        API: CloudSSO
+        request_builder: ListAccessAssignmentsRequest
+        query_name: list_access_assignments_with_options
+        datapath: AccessAssignments[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+            - PrincipalId
+            - TargetId
+
+# ================ ACK Kubernetes Models ==================
+
+    ACKClusters:
+        API: CS
+        request_builder: DescribeClustersV1Request
+        query_name: describe_clusters_v1with_options
+        datapath: clusters[]
+        index_keys:
+            - cluster_id
+
+    # To be reworked : maybe better fit for basic REST extract
+    # ACKClusterResources:
+    #     API: CS
+    #     request_builder: DescribeClusterResourcesRequest
+    #     query_name: describe_cluster_resources_with_options
+    #     datapath: "[]"
+    #     positional_inputs:
+    #         - cluster_id
+    #     accepted_inputs:
+    #         - with_addon_resources
+    #     index_keys:
+    #         - cluster_id
+    #         - instance_id
+
+
+# ================ Elastic Compute Service Models ==================
+
+    ECSInstances:
+        API: ECS
+        request_builder: DescribeInstancesRequest
+        query_name: describe_instances_with_options
+        datapath: Instances.Instance[]
+        accepted_inputs:
+            - region_id
+            - max_results
+        index_keys:
+            - InstanceId
+            - InstanceName
+
+    ECSImages:
+        API: ECS
+        request_builder: DescribeImagesRequest
+        query_name: describe_images_with_options
+        datapath: Images.Image[]
+        accepted_inputs:
+            - region_id
+            - image_owner_alias
+        index_keys:
+            - ImageId
+            - ImageName
+            - ImageOwnerAlias
+
+    NetworkSecurityGroups:
+        API: ECS
+        request_builder: DescribeSecurityGroupsRequest
+        query_name: describe_security_groups_with_options
+        datapath: SecurityGroups.SecurityGroup[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - SecurityGroupId
+
+    NSGRules:
+        API: ECS
+        request_builder: DescribeSecurityGroupAttributeRequest
+        query_name: describe_security_group_attribute_with_options
+        datapath: Permissions.Permission[]
+        accepted_inputs:
+            - region_id
+            - security_group_id
+        index_keys:
+            - SecurityGroupRuleId

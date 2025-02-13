@@ -1,0 +1,22 @@
+Steps:
+
+  - Name: GCP.ComputeMachineTypes
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: ComputeMachineTypes
+    Params:
+      save_to: GCloudMachineTypeData
+        collection: ComputeMachineTypes
+        pipeline:
+          - $project:
+              id: 1
+              name: 1
+              zone: 1
+              architecture: 1
+              guest_cpus: 1
+              # memory_mb: 1
+              memory_gb: 
+                $multiply:
+                  - $memory_mb
+                  - 1024
+              maximum_persistent_disks: 1

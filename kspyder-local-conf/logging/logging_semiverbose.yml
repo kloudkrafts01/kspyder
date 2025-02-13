@@ -1,0 +1,31 @@
+version: 1
+
+loggers:
+  kspyder:
+    handlers: [console,file]
+    level: INFO
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: base
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: base
+    level: DEBUG
+    filename: log/kspyder.log
+    when: W0
+    backupCount: 8
+  error:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: base
+    level: ERROR
+    filename: log/kspyder_error.log
+    when: W0
+    backupCount: 8
+
+formatters:
+  base:
+    format: '%(asctime)s - %(name)s - %(levelname)s :: %(filename)s :: %(message)s''
+

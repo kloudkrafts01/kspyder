@@ -1,0 +1,148 @@
+Steps:
+
+  # ============= Expand, save and export Instance Network data ================
+
+#   - Name: Extend.ComputeInstancesData.Nics
+#     Worker: mongoDBConnector
+#     Job: aggregate_data
+#     Output: SAPComputeNetworkData
+#     DumpCSV: true
+#     Params:
+#       save_to: GCloud.SAP.ComputeNetworkData
+#       collection_name: GCloud.Compute.ComputeInstances
+#       pipeline:
+#         - $match:
+#             project:
+#               $regex: "(sap)|(s4h)|(spc)"
+#         - $unwind: $network_interfaces
+#         - $set:
+#             ip_address: $network_interfaces.network_i_p
+#             ip_address_type: primary
+#         - $unionWith:
+#             coll: GCloudComputeInstances
+#             pipeline:
+#               - $unwind: $network_interfaces
+#               - $unwind: $network_interfaces.alias_ip_ranges
+#               - $set:
+#                   ip_address:
+#                     $arrayElemAt:
+#                       - $split:
+#                         - $network_interfaces.alias_ip_ranges.ip_cidr_range
+#                         - "/"
+#                       - 0
+#                   ip_address_type: alias
+#         - $project:
+#             project: 1
+#             id: 1
+#             name: 1
+#             status: 1
+#             created: $creation_timestamp
+#             machine_type:
+#               $arrayElemAt:
+#                 - $split:
+#                   - $machine_type
+#                   - "/"
+#                 - -1
+#             nic: $network_interfaces.name
+#             vpc: 
+#               $arrayElemAt:
+#                 - $split:
+#                   - $network_interfaces.network
+#                   - "/"
+#                 - -1
+#             subnet: 
+#               $arrayElemAt:
+#                 - $split:
+#                   - $network_interfaces.subnetwork
+#                   - "/"
+#                 - -1
+#             ip_address: 1
+#             ip_address_type: 1
+#         - $sort:
+#             name: 1
+#             nic: 1
+#             ip_address_type: -1
+
+# # ============= Expand, save and export Instance Disk data ================
+
+#   - Name: Extract.ComputeInstancesDisksData
+#     Worker: mongoDBConnector
+#     Job: aggregate_data
+#     Output: SAPComputeDiskData
+#     DumpCSV: true
+#     Params:
+#       save_to: GCloud.SAP.ComputeInstancesDisks
+#       collection_name: GCloud.Compute.ComputeInstances
+#       pipeline:
+#         - $match:
+#             project:
+#               $regex: "(sap)|(s4h)|(spc)"
+#         - $unwind: $disks
+#         - $project:
+#             project: 1
+#             id: 1
+#             name: 1
+#             status: 1
+#             created: $creation_timestamp
+#             machine_type:
+#               $arrayElemAt:
+#                 - $split:
+#                   - $machine_type
+#                   - "/"
+#                 - -1
+#             disk_name: $disks.device_name
+#             boot_disk: $disks.boot
+#             disk_number: $disks.index
+#             disk_arch: $disks.architecture
+#             disk_size: $disks.disk_size_gb
+
+  # ============= Expand, save and export Load Balancing Rule data ================
+
+  - Name: Extract.LoadBalancingRulesData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SAPLoadBalancingRulesData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.SAP.LoadBalancingRules
+      collection_name: GCloud.Compute.LBForwardingRules
+      pipeline:
+        - $match:
+            project:
+              $regex: "(sap)|(s4h)|(spc)"
+        - $unwind: $ports
+        - $project:
+            id: 1
+            project: 1
+            name: 1
+            ip_address: $I_p_address
+            vpc:
+              $arrayElemAt:
+                - $split:
+                  - $network
+                  - "/"
+                - -1
+            subnet:
+              $arrayElemAt:
+                - $split:
+                  - $subnetwork
+                  - "/"
+                - -1
+            lb_type: $load_balancing_scheme
+            protocol: $I_p_protocol
+            all_ports: 1
+            port: $ports
+
+ # ============= Expand, save and export IAM Policies data ================
+
+  - Name: Extract.SAPIAMBindings
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: SAPIAMBindings
+    DumpCSV: true
+    Params:
+      collection_name: googleCloud.RM.IAMBindingsData
+      pipeline:
+        - $match:
+            project_id:
+              $regex: "(sap)|(s4h)|(spc)"

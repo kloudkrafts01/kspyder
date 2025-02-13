@@ -1,0 +1,33 @@
+Steps:
+
+  - Name: Expand.IAMPolicyBindings
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: IAMBindings
+    Params:
+      save_to: googleCloud.RM.IAMBindingsData
+      collection_name: googleCloud.RM.ProjectIAMPolicies
+      pipeline:
+        - $unwind: $bindings
+        - $unwind: $bindings.members
+        - $project:
+            project_id:
+              $arrayElemAt:
+                - $split:
+                  - $resource
+                  - "/"
+                - -1
+            role: $bindings.role
+            principal_type: 
+              $arrayElemAt:
+                - $split:
+                  - $bindings.members
+                  - ":"
+                - 0
+            principal: 
+              $arrayElemAt:
+                - $split:
+                  - $bindings.members
+                  - ":"
+                - 1
+  

@@ -1,0 +1,50 @@
+Steps:
+
+  - Name: BuildGKEParentIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GKEParentIds
+    Params:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $match:
+            project:
+              $regex: "(ai-factory)|(shared-data)"
+        # - $set:
+        #     parent_first_step:
+        #         $replaceOne:
+        #           input: "/projects/{{project}}/locations/{{zone}}"
+        #           find: "{{project}}"
+        #           replacement: $project
+        # - $set:
+        #     parent:
+        #         $replaceOne:
+        #           input: $parent_first_step
+        #           find: "{{zone}}"
+        #           replacement: $zone
+        - $set:
+            parent:
+                $replaceOne:
+                  input: "projects/{{project}}/locations/europe-west4"
+                  find: "{{project}}"
+                  replacement: $project
+        - $project:
+            parent: 1
+        - $unset:
+            - _id
+
+  - Name: GetToMongo.GKEClusters
+    Job: get_data_to_mongo
+    Input: GKEParentIds.data
+    Output: GKEClusters
+    Params:
+      from_worker: gcloudConnector
+      model_name: GKEClusters
+
+  # - Name: GetClusters
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Input: ClusterParentIds.data
+  #   Output: GKEClusters
+  #   Params:
+  #     model_name: GKEClusters

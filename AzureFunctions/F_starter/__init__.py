@@ -5,11 +5,10 @@
 # - add azure-functions-durable to requirements.txt
 # - run pip install -r requirements.txt
 
-import json
 import azure.functions as func
 import azure.durable_functions as df
 
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     

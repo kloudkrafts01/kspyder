@@ -1,0 +1,78 @@
+Connector:
+    schema: opendata-fr
+    update_field: modifiedSince
+    default_batch_size: 100
+
+APIs:
+
+    DiDo:
+        name: dido
+        base_url: https://data.statistiques.developpement-durable.gouv.fr
+        pagination_style: pages
+        next_token_key: page
+        batch_size_key: pageSize
+        default_headers:
+            accept: application/json
+        response_map:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
+
+
+    INSEE:
+        name: insee
+        base_url: https://api.insee.fr
+        rate_limit: 2.2
+        default_headers:
+            accept: application/json
+
+Models:
+
+    DiDoDatasetCatalogue:
+        API: DiDo
+        path: /dido/api/v1/datasets
+        count_key: total
+        # datapath: data
+        fields:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
+        accepted_inputs:
+            - page
+            - pageSize
+            - text
+            - topics
+        index_keys:
+            - id
+
+    DiDoDatafiles:
+        API: DiDo
+        path: /dido/api/v1/datafiles/{$rid}/rows
+        accepted_inputs:
+            - rid
+            - millesime
+            - page
+            - pageSize
+        index_keys:
+            - PERIODE
+
+    MelodiDatasetCatalogue:
+        API: INSEE
+        path: /melodi/catalog/ids
+        response_map:
+            data: "[]"
+        index_keys:
+            - identifier
+
+    MelodiDatasets:
+        API: INSEE
+        path: /melodi/catalog/{$identifier}
+        iterable: False
+        accepted_inputs:
+            - identifier
+        response_map:
+            data: "*"
+        index_keys:
+            - identifier

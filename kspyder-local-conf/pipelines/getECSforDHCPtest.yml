@@ -1,0 +1,50 @@
+Steps:
+
+  # - Name: SetAliyunRegionId
+  #   Job: set_static_data
+  #   Output: RegionData
+  #   Params:
+  #     data:
+  #       - region_id: cn-shanghai
+
+  # - Name: GetVMs
+  #   Worker: aliyunConnector
+  #   Job: get_data
+  #   Input: RegionData.data
+  #   Output: ECSInstances
+  #   Params:
+  #     model_name: ECSInstances
+
+  # - Name: StoreInstancesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ECSInstances
+  #   Output: ECSInstancesInsertionResult
+
+  - Name: GetVMforDHCPtest
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: ECS_Instances_DHCPOptest
+    Params:
+      query_name: GetVMforDHCPtest
+      query_conf:
+        collection: ECSInstances
+        dump_csv: true
+        dump_json: true
+        operations:
+          $match:
+            InstanceName: 
+              $in:
+                - SVLSH-CY2HAP201
+                - SVLSH-LIOAPP201
+                - SVLSH-LIOAPP401
+                - SVLSH-TLDAPP101
+                - SVLSH-CY2SQL281
+                - SVLSH-CY2BO101
+          $project:
+            InstanceName: 1
+            InstanceId: 1
+            OSType: 1
+            OSNameEn: 1    
+          $unset:
+            - _id

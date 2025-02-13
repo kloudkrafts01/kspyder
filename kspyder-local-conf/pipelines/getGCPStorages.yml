@@ -1,0 +1,60 @@
+Steps:
+
+  - Name: GetProjectIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GCPProjectIds
+    Params:
+      collection_name: GCPProjects
+      pipeline:
+        - $project:
+            project: $project_id
+        - $unset:
+          - _id
+
+  # - Name: GetBigQueryProjects
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Output: BigQueryProjects
+  #   Params:
+  #     model_name: BigQueryProjects
+
+  # - Name: StoreBigQProjects
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: BigQueryProjects
+  #   Output: BigQueryProjectsInsertionResult
+  #   Params:
+  #     collection: BigQueryProjects
+
+  # - Name: ListBigQueryDatasets
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Output: BigQueryDatasets
+  #   Input: GCPProjectIds.data
+  #   Params:
+  #     model_name: BigQueryDatasets
+
+  # - Name: StoreBigQDatasets
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: BigQueryDatasets
+  #   Output: BigQueryDatasetsInsertionResult
+  #   Params:
+  #     collection: BigQueryDatasets
+
+  - Name: GetGCSBuckets
+    Job: get_data_to_mongo
+    Input: GCPProjectIds.data
+    Output: GCSBuckets
+    Params:
+      from_worker: gcloudConnector
+      model_name: Buckets
+
+  # - Name: StoreBucketsToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: GCSBuckets
+  #   Output: GCSBucketsInsertionResult
+  #   Params:
+  #     collection: GCSBuckets

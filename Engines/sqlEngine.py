@@ -1,5 +1,3 @@
-import json
-import traceback
 # import pyodbc
 import re
 import urllib
@@ -16,17 +14,16 @@ from sqlalchemy.orm import sessionmaker
 # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
 AutoBase = automap_base()
 
-from common.spLogging import logger
-from common.config import DUMP_JSON, CONNECTOR_MAP
-from common.utils import json_dump
+from common.loggingHandler import logger
+from common.config import DUMP_JSON, BASE_FILE_HANDLER as fh
 
 STR_PATTERN = re.compile('(String)\((\d+)\)')
 
-class GenericSQLConnector():
+class GenericSQLEngine():
 
-    def __init__(self,sqltype,url,dbname,username,password):
+    def __init__(self,dbtype,url,dbname,username,password):
 
-        self.type = sqltype
+        self.type = dbtype
         self.url = url
         self.dbname = dbname
         __username = username
@@ -51,7 +48,7 @@ class GenericSQLConnector():
                     db = self.dbname
                 )
 
-        elif self.type == 'mssql':
+        if self.type == 'mssql':
             self.protocol = 'mssql+pyodbc'
             self.port = '1433'
             __driver= '{ODBC Driver 17 for SQL Server}'
@@ -68,14 +65,15 @@ class GenericSQLConnector():
             __cstring_safe = urllib.parse.quote_plus(__cstring)
             conn_url = "{}:///?odbc_connect={}".format(self.protocol,__cstring_safe)
 
-        else:
-            raise Exception
+        # else:
+        #     raise Exception
 
         self.engine = sqlalchemy.create_engine(conn_url)
         self.SessionFactory = sessionmaker(bind=self.engine)
               
     @classmethod
     def from_profile(cls,profile):
+        
         return cls(
             profile['dbtype'],
             profile['url'],
@@ -157,7 +155,7 @@ class GenericSQLConnector():
             - deleted_fields: list of field names present in the db table but absent from the model manifest
         """
 
-        connector = import_module(CONNECTOR_MAP[schema])
+        connector = import_module(schema)
         logger.info("Comparing DB schema {} with connector models: {}".format(schema,connector.__name__))
         # for documentation on this : refer to https://docs.sqlalchemy.org/en/14/orm/extensions/automap.html
         # AutoBase = automap_base()
@@ -261,7 +259,7 @@ class GenericSQLConnector():
         logger.debug("CHANGE PLAN FOR SCHEMA {}: {}".format(schema, plan))
 
         if DUMP_JSON:
-            json_dump(plan, schema, 'DB_CHANGE_PLAN')
+            fh.dump_json(plan, schema, 'DB_CHANGE_PLAN')
 
         return plan
 
@@ -333,14 +331,14 @@ class GenericSQLConnector():
 
         return result
         
-    def delete_db(self,schemas=CONNECTOR_MAP.keys()):
+    def delete_db(self,schemas=[]):
         """ Drops all tables from the database within the specified schema. If no schema is specified, drops everything"""
 
         delete_tables = []
 
         # drops all tables at the SQL database level
         for schema in schemas:
-            connector = import_module(CONNECTOR_MAP[schema])
+            connector = import_module(schema)
             to_delete = connector.MODELS_LIST
             deleted = self.delete_tables(schema,to_delete)
             delete_tables.append(deleted)
@@ -355,7 +353,7 @@ class GenericSQLConnector():
 
         return result
 
-    def create_db(self,schemas=CONNECTOR_MAP.keys()):
+    def create_db(self,schemas=[]):
         """Creates all Table Metadata and db tables corresponding to the given connectors' models definitions"""
 
         for schema in schemas:
@@ -375,7 +373,7 @@ class GenericSQLConnector():
     def create_models(self, schema, models_list=None):
         """Creates Tabls Metadata and db tables corresponding to the given connectors' models definitions"""
 
-        connector = import_module(CONNECTOR_MAP[schema])
+        connector = import_module(schema)
 
         if models_list is None:
             models_list = connector.MODELS_LIST

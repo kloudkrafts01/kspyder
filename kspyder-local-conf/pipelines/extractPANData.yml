@@ -1,0 +1,139 @@
+Steps:
+
+  - Name: Extend.PANComputeInstancesData.Nics
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: PANComputeExtendedNics
+    Params:
+      query_name: Extend.PANComputeInstancesData.Nics
+      query_conf:
+        collection: ComputeInstances
+        dump_json: true
+        operations:
+          $match:
+            project:
+              $regex: "(products-analytics)|(shared-data)|(ai-factory)"
+          $unwind: $network_interfaces
+          $unset:
+            - _id
+
+  - Name: Save.ExtendedPANData.Nics
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: PANComputeExtendedNics
+    Output: PANComputeExtendedNicsInsertionResults
+    Params:
+      model:
+        name: PANComputeData 
+        index_keys:
+          - id
+          - network_interfaces.name
+
+  # - Name: Extend.PANComputeInstancesData.Disks
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: PANComputeExtendedDisks
+  #   Params:
+  #     query_name: Extend.PANComputeInstancesData.Disks
+  #     query_conf:
+  #       collection: PANComputeData
+  #       dump_json: true
+  #       operations:
+  #         $unwind: $disks
+  #         $unset:
+  #           - _id
+
+  # - Name: Save.ExtendedPANData.Disks
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: PANComputeExtendedDisks
+  #   Output: PANComputeExtendedDisksInsertionResults
+  #   Params:
+  #     model:
+  #       name: PANComputeData 
+  #       index_keys:
+  #         - id
+  #         - disks.device_name
+
+  - Name: Extract.PANComputeInstancesData
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: PAN.ComputeInstancesData
+    Params:
+      query_name: Extract.PANComputeInstancesData
+      query_conf:
+        dump_csv: true
+        dump_json: true
+        collection: PANComputeData
+        operations:
+          $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            nic: $network_interfaces.name
+            vpc: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.network
+                  - "/"
+                - -1
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.subnetwork
+                  - "/"
+                - -1
+            ip_address: $network_interfaces.network_i_p
+
+
+  # - Name: Extract.PANComputeInstancesData
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: PAN.ComputeInstancesData
+  #   Params:
+  #     query_name: Extract.PANComputeInstancesData
+  #     query_conf:
+  #       dump_csv: true
+  #       dump_json: true
+  #       collection: PANComputeData
+  #       operations:
+  #         $project:
+  #           project: 1
+  #           id: 1
+  #           name: 1
+  #           status: 1
+  #           created: $creation_timestamp
+  #           machine_type:
+  #             $arrayElemAt:
+  #               - $split:
+  #                 - $machine_type
+  #                 - "/"
+  #               - -1
+  #           disk_name: $disks.device_name
+  #           boot_disk: $disks.boot
+  #           disk_number: $disks.index
+  #           disk_arch: $disks.architecture
+  #           disk_size: $disks.disk_size_gb
+  #           nic: $network_interfaces.name
+  #           vpc: 
+  #             $arrayElemAt:
+  #               - $split:
+  #                 - $network_interfaces.network
+  #                 - "/"
+  #               - -1
+  #           subnet: 
+  #             $arrayElemAt:
+  #               - $split:
+  #                 - $network_interfaces.subnetwork
+  #                 - "/"
+  #               - -1
+  #           ip_address: $network_interfaces.network_i_p
+

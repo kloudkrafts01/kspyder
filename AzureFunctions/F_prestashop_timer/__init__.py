@@ -5,7 +5,7 @@ import traceback
 import azure
 import azure.durable_functions as df
 
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 
 async def main(mytimer: azure.functions.TimerRequest, starter: str):

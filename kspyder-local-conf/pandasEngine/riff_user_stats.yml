@@ -1,0 +1,146 @@
+Source: inputs
+
+TargetFile: full_user_stats.xlsx
+
+Tables:
+  - entries_processed.xlsx
+  - albums_processed.xlsx
+  - full_album_stats.xlsx
+
+Steps:
+
+  - Step: MergeEntriesAlbums
+    type: merge_fields
+    input: entries_processed
+    right_input: albums_processed
+    output: entries_albums
+    params:
+      left_key: entry
+      right_key: entry
+      right_fields:
+        - album
+
+  - Step: MergeEntriesAlbumsStats
+    type: merge_fields
+    input: entries_albums
+    right_input: full_album_stats
+    output: entries_01
+    params:
+      how: left
+      left_key: album
+      right_key: album
+      right_fields:
+        - family
+        - genre
+        - origin
+        - nb_votes
+        - total_score
+        - position
+        - rarity
+
+  - Step: ComputeEntryStats
+    type: apply_func_on_df
+    input: entries_01
+    output: entries_02    
+    params:
+      import_from: compute_stats
+      func_name: compute_entry_stats
+  
+  - Step: ComputeUserFamilyWeight
+    type: apply_func_on_df
+    input: entries_02
+    output: entries_final
+    save: true
+    params:
+      import_from: compute_stats
+      func_name: compute_score_weight
+      group_by: 
+        - username
+
+  - Step: ComputeUserStatsByFamily
+    type: group_compute
+    input: entries_final
+    output: user_stats_raw
+    params:
+      group_by:
+        - username
+        - family
+      map:
+        score:
+          - sum
+        score_weight:
+          - sum
+        position:
+          - count
+          - min
+          - max
+        pop_score:
+          - sum
+        edgyness:
+          - mean
+
+  - Step: RenameUserStats
+    type: rename_columns
+    input: user_stats_raw
+    output: user_stats
+    save: true
+    params:
+      flatten_columns: true
+      column_map:
+        score|sum: total_score
+        score_weight|sum: weight
+        position|count: nb_votes
+        position|min: highest_place
+        position|max: lowest_place
+        pop_score|sum: total_popularity
+        edgyness|mean: avg_edgyness
+  
+
+  - Step: ComputeEdgelordList
+    type: group_compute
+    input: entries_final
+    output: edgelord_ranking_raw
+    params:
+      group_by:
+        - username
+      map:
+        pop_score: 
+          - sum
+        edgyness:
+          - mean
+        rarity:
+          - sum
+          - mean
+
+  - Step: RenameEgelordList
+    type: rename_columns
+    input: edgelord_ranking_raw
+    output: edgelord_ranking_unsorted
+    params:
+      flatten_columns: true
+      column_map:
+        edgyness|mean: edgelord_score
+        pop_score|sum: oracle_score
+        rarity|sum: total_loot
+        rarity|mean: avg_loot
+    
+  - Step: SortEdgelordList
+    type: sort_values
+    input: edgelord_ranking_unsorted
+    output: edgelord_ranking
+    save: true
+    params:
+      sort_by: edgelord_score
+      ascending: False
+
+  - Step: UserPicksRanking
+    type: group_rank
+    input: entries_final
+    output: user_picks_ranking
+    save: true
+    params:
+      rank_by: rarity
+      name: rarity_rank
+
+
+

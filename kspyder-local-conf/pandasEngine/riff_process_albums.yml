@@ -1,0 +1,28 @@
+TargetFile: albums_processed.xlsx
+
+Source: inputs
+
+Tables:
+  - albums_list_complete.xlsx
+  - genres_list.xlsx
+
+Steps:
+
+  - Step: MergeAlbumFamilies
+    type: merge_fields
+    input: albums_list_complete
+    right_input: genres_list
+    output: albums_list_full
+    params:
+      how: inner
+      left_key: genre
+      right_key: genre
+
+  - Step: DedupEntriesAlbums
+    type: deduplicate
+    input: albums_list_full
+    output: albums_list_dedup
+    save: true
+    params:
+      by: 
+        - entry

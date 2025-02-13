@@ -1,0 +1,62 @@
+common:
+  - name: CloudName
+    type: string
+    value: AzureCloud
+  - name: tenantId
+    type: secret
+    value: ea-tenant-id
+  - name: homeTenantId
+    type: secret
+    value: ea-tenant-id
+  - name: user.name
+    type: secret
+    value: azure-ea-user
+  - name: user.type
+    type: string
+    value: user
+  - name: managedByTenants
+    type: list
+    value: []
+
+default:
+  - name: name
+    type: string
+    value: EA HUB Sandbox 1
+  - name: id
+    type: secret
+    value: ea-hub-sandbox-1-id
+  - name: state
+    type: string
+    value: Enabled
+  - name: isDefault
+    type: boolean
+    value: true
+
+EA Spoke Sandbox 1:
+  - name: name
+    type: string
+    value: EA Spoke Sandbox 1
+  - name: id
+    type: secret
+    value: ea-spoke-sandbox-1-id
+  - name: state
+    type: string
+    value: Enabled
+  - name: isDefault
+    type: boolean
+    value: false
+
+
+EAU1 GMMI Non-Production:
+  - name: name
+    type: string
+    value: EAU1 GMMI Non-Production
+  - name: id
+    type: secret
+    value: eau1-gmmi-non-prod-id
+  - name: state
+    type: string
+    value: Enabled
+  - name: isDefault
+    type: boolean
+    value: false

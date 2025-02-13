@@ -1,0 +1,67 @@
+Steps:
+
+  - Name: GetToMongo.CloudSSODirectories
+    Job: get_data_to_mongo
+    Output: CloudSSODirectories
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: CloudSSODirectories
+      last_days: null
+
+  - Name: GetDirectoryList
+    Job: get_unique_key_list
+    Input: CloudSSODirectories
+    Output: DirectoryIds
+    Params:
+      key: directory_id
+      datapath: data[].DirectoryId
+
+  # - Name: Extract.DirectoryIds
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: DirectoryIds
+  #   Params:
+  #     collection_name: Aliyun.CloudSSO.CloudSSODirectories
+  #     pipeline:
+  #       - $project:
+  #         directory_id: $DirectoryId
+  #       - $unset:
+  #         - _id
+
+  - Name: GetUsers
+    Job: get_data_to_mongo
+    Input: DirectoryIds.data
+    Output: CloudSSOUsers
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOUsers
+
+  - Name: GetGroups
+    Job: get_data_to_mongo
+    Input: DirectoryIds.data
+    Output: CloudSSOGroups
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOGroups
+
+  - Name: GetDirectoryGroupIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DirectoryGroupIds
+    Params:
+      collection_name: Aliyun.CloudSSO.CloudSSOGroups
+      pipeline:
+        - $project:
+            directory_id: $directory_id
+            group_id: $GroupId
+        - $unset:
+          - _id
+
+  - Name: GetGroupMembers
+    Job: get_data_to_mongo
+    Input: DirectoryGroupIds.data
+    Output: CloudSSOGroupMembers
+    Params:
+      from_worker: aliyunConnector
+      model_name: CloudSSOGroupMembers
+

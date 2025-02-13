@@ -2,8 +2,8 @@
 
 import os
 
-from common.config import load_conf, CONF_FOLDER
-from common.spLogging import logger
+from common.config import CONF_FOLDER, BASE_FILE_HANDLER as fh
+from common.loggingHandler import logger
 from Connectors.pandasSQL import PandasSQLConnector
 
 TRANSFORMS_DIR = os.path.join(CONF_FOLDER,'transforms')
@@ -25,7 +25,7 @@ def main(params: dict) -> dict:
 
         for filename in os.listdir(TRANSFORMS_DIR):
             
-            transform_def = load_conf(filename, subfolder='transforms')
+            transform_def = fh.load_yaml(filename, subpath='transforms')
             
             if transform_def['Source'] == schema:
                 logger.info("Applying pandas transforms from manifest: {}".format(filename))

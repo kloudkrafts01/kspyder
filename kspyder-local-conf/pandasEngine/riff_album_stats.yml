@@ -1,0 +1,305 @@
+TargetFile: full_album_stats.xlsx
+
+Source: inputs
+
+Tables:
+  - entries_processed.xlsx
+  - albums_processed.xlsx
+
+Steps:
+
+  - Step: MergeEntriesAlbums
+    type: merge_fields
+    input: entries_processed
+    right_input: albums_processed
+    output: entries_full
+    save: true
+    params:
+      how: left
+      left_key: entry
+      right_key: entry
+
+  - Step: ComputeAlbumStats
+    type: group_compute
+    input: entries_full
+    output: album_stats
+    params:
+      group_by:
+        - album
+        - family
+        - genre
+        - origin
+      map:
+        position:
+          - mean
+          - min
+          - max
+        score:
+          - sum
+          - count
+          - mean
+          - min
+          - max
+
+  - Step: FlattenAlbumsDF
+    type: rename_columns
+    input: album_stats
+    output: album_stats_flat
+    params:
+      flatten_columns: true
+      column_map:
+        score|sum: total_score
+        score|count: nb_votes
+        score|mean: avg_score
+        score|max: highest_score
+        score|min: lowest_score
+        position|mean: avg_position
+        position|min: best_position
+        position|max: worst_position
+
+  - Step: GeneralRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking
+    params:
+      rank_by: total_score
+      name: rank
+
+  - Step: MergeRanking
+    type: merge_fields
+    input: album_stats_flat
+    right_input: albums_ranking
+    output: album_stats_01
+    params:
+      left_index: true
+      right_index: true
+
+  - Step: GenreRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking_by_genre
+    params:
+      group_by: genre
+      rank_by: total_score
+      name: genre_rank
+
+  - Step: MergeGenreRanking
+    type: merge_fields
+    input: album_stats_01
+    right_input: albums_ranking_by_genre
+    output: album_stats_02
+    params:
+      left_index: true
+      right_index: true
+
+  - Step: FamilyRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking_by_family
+    params:
+      group_by: family
+      rank_by: total_score
+      name: family_rank
+
+  - Step: MergeFamilyRanking
+    type: merge_fields
+    input: album_stats_02
+    right_input: albums_ranking_by_family
+    output: album_stats_03
+    params:
+      left_index: true
+      right_index: true
+
+  - Step: OriginRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking_by_origin
+    params:
+      group_by: origin
+      rank_by: total_score
+      name: country_rank
+
+  - Step: MergeOriginRanking
+    type: merge_fields
+    input: album_stats_03
+    right_input: albums_ranking_by_origin
+    output: album_stats_04
+    params:
+      left_index: true
+      right_index: true
+
+  - Step: RearrangeColumns
+    type: reindex
+    input: album_stats_04
+    output: album_stats_05
+    params:
+      columns:
+        - rank
+        - family_rank
+        - genre_rank
+        - country_rank
+        - total_score
+        - nb_votes
+        - avg_score
+        - highest_score
+        - lowest_score
+        - avg_position
+        - best_position
+        - worst_position
+
+
+  - Step: SortAlbumStats
+    type: sort_values
+    input: album_stats_05
+    output: album_stats_06
+    params:
+      sort_by: rank
+
+  - Step: ComputeGenreStats
+    type: group_compute
+    input: album_stats_06
+    output: genre_stats_raw
+    params:
+      group_by:
+        - genre
+      map:
+        total_score:
+          - sum
+        nb_votes:
+          - sum
+
+  - Step: RenameGenreStats
+    type: rename_columns
+    input: genre_stats_raw
+    output: genre_stats_unsorted
+    params:
+      flatten_columns: true
+      column_map:
+        total_score|sum: total_score
+        nb_votes|sum: nb_votes
+
+  - Step: AddGenreWeight
+    type: apply_func_on_df
+    input: genre_stats_unsorted
+    output: genre_stats_unsorted
+    params:
+      import_from: compute_stats
+      func_name: compute_vote_weight
+
+  - Step: SortGenreStats
+    type: sort_values
+    input: genre_stats_unsorted
+    output: genre_stats
+    save: true
+    params:
+      sort_by: total_score
+      ascending: false
+
+  - Step: ComputeFamilyStats
+    type: group_compute
+    input: album_stats_06
+    output: family_stats_raw
+    params:
+      group_by:
+        - family
+      map:
+        total_score:
+          - sum
+        nb_votes:
+          - sum
+
+  - Step: RenameFamilyStats
+    type: rename_columns
+    input: family_stats_raw
+    output: family_stats_unsorted
+    params:
+      flatten_columns: true
+      column_map:
+        total_score|sum: total_score
+        nb_votes|sum: nb_votes
+
+  - Step: AddFamilyWeight
+    type: apply_func_on_df
+    input: family_stats_unsorted
+    output: family_stats_unsorted
+    params:
+      import_from: compute_stats
+      func_name: compute_vote_weight
+
+  - Step: SortFamilyStats
+    type: sort_values
+    input: family_stats_unsorted
+    output: family_stats
+    save: true
+    params:
+      sort_by: total_score
+      ascending: false
+  
+  - Step: ComputeCountryStats
+    type: group_compute
+    input: album_stats_06
+    output: country_stats_raw
+    params:
+      group_by:
+        - origin
+      map:
+        total_score:
+          - sum
+        nb_votes:
+          - sum
+
+  - Step: RenameCountryStats
+    type: rename_columns
+    input: country_stats_raw
+    output: country_stats_unsorted
+    params:
+      flatten_columns: true
+      column_map:
+        total_score|sum: total_score
+        nb_votes|sum: nb_votes
+
+  - Step: AddCountryWeight
+    type: apply_func_on_df
+    input: country_stats_unsorted
+    output: country_stats_unsorted
+    params:
+      import_from: compute_stats
+      func_name: compute_vote_weight
+
+  - Step: SortCountryStats
+    type: sort_values
+    input: country_stats_unsorted
+    output: country_stats
+    save: true
+    params:
+      sort_by: total_score
+      ascending: false
+
+  - Step: MergeFamilyWeight
+    type: merge_fields
+    input: album_stats_06
+    right_input: family_stats
+    output: album_stats_07
+    params:
+      left_key: family
+      right_key: family
+      right_fields: 
+        - vote_weight
+
+  - Step: ComputeAlbumRarity
+    type: apply_func_on_df
+    input: album_stats_07
+    output: album_stats_07
+    params:
+      import_from: compute_stats
+      func_name: compute_rarity
+
+  - Step: RenameFinalAlbumStats
+    type: rename_columns
+    input: album_stats_07
+    output: album_stats_final
+    save: true
+    params:
+      column_map:
+        vote_weight: family_weight
+  

@@ -1,10 +1,10 @@
 #!python3
 
-from common.extract import GenericExtractor
+from Engines.rpcExtractorEngine import GenericRPCExtractor
 import os, requests
 
 from common.config import load_conf, AZ_PRICING_PROFILE
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 MODELS = load_conf('azureRG_models', subfolder='manifests')
 MODELS_LIST = list(MODELS.keys())
@@ -13,7 +13,7 @@ MODELS_LIST = list(MODELS.keys())
 SCHEMA_NAME = 'azureRetailPrices'
 UPD_FIELD_NAME = 'write_date'
 
-class AzurePricingConnector(GenericExtractor):
+class AzurePricingConnector(GenericRPCExtractor):
 
     def __init__(self, endpoint, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 

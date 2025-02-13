@@ -1,0 +1,99 @@
+Connector:
+    schema: Akamai
+    update_field: modifiedSince
+
+APIs:
+    Property:
+        base_url: __EDGERC_BASE_URL__
+        pagination_style: pages
+        next_token_key: page
+        batch_size_key: pageSize
+        default_headers:
+            accept: application/json
+
+Models:
+
+    PropertyGroups:
+        API: Property
+        path: /papi/v1/groups
+        response_map: 
+            data: groups.items
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+        index_keys:
+            - groupId
+
+    EdgeHostnames:
+        API: Property
+        path: /papi/v1/edgehostnames
+        response_map: 
+            data: edgeHostname.items
+        accepted_inputs: 
+            - contractId
+            - groupId
+        index_keys:
+            - edgeHostnameId
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    Properties:
+        API: Property
+        path: /papi/v1/properties
+        response_map: 
+            data: properties.items
+        accepted_inputs: 
+            - contractId
+            - groupId
+        index_keys:
+            - propertyId
+            - version
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    PropertyActivations:
+        API: Property
+        path: /papi/v1/properties/{$propertyId}/activations
+        response_map: 
+            data: activations.items
+        accepted_inputs:
+            - propertyId
+        index_keys:
+            - activationId
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    PropertyRules:
+        API: Property
+        path: /papi/v1/properties/{$propertyId}/versions/{$version}/rules
+        response_map: 
+            data: rules.children
+        accepted_inputs:
+            - propertyId
+            - version
+        index_keys:
+            - propertyId
+            - version
+            - name
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"
+
+    PropertyIncludes:
+        API: Property
+        path: /papi/v1/properties/{$propertyId}/versions/{$version}/includes
+        response_map: 
+            data: includes.items
+        accepted_inputs:
+            - propertyId
+            - version
+        index_keys:
+            - propertyId
+            - version
+            - name
+        headers:
+            accept: application/json
+            PAPI-Use-Prefixes: "true"

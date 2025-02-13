@@ -1,0 +1,91 @@
+Steps:
+
+  - Name: ExtractFullRuleTrees
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiFullPropertyDescriptions
+    Params:
+      query_name: GetFullPropertyData
+      query_conf:
+        collection: AkamaiProperties
+        dump_json: true
+        operations:
+          $lookup:
+            from: AkamaiPropertyRules
+            localField: propertyId
+            foreignField: propertyId
+            as: rules
+          $unset:
+            - _id
+
+  - Name: Save.AkamaiFullPropertyDescriptions
+    Worker: mongoDBConnector
+    Job: upsert_dataset
+    Input: AkamaiFullPropertyDescriptions
+    Output: AkamaiFullPropertyDescriptions.InsertionResult
+    Params:
+      collection: AkamaiFullPropertyDescriptions
+      model:
+        name: AkamaiFullPropertyDescriptions
+        index_keys:
+          - propertyId
+
+  - Name: Extract.AkamaiPropertyCheck
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiPropertyCheck
+    Params:
+      query_name: CheckAkamaiOriginConfigs
+      query_conf:
+        collection: AkamaiFullPropertyDescriptions
+        dump_json: true
+        dump_csv: true
+        operations:
+          $match:
+            rules.behaviors.name: origin
+          $unwind: $rules
+          # $unwind: $behaviors
+          $project:
+            propertyId: 1
+            latestVersion: 1
+            propertyName: 1
+            productionVersion: 1
+            stagingVersion: 1
+            ruleName: $rules.name
+            # behaviors: $rules.behaviors
+            origin_hostname: $rules.behaviors.options.hostname
+            cache_key_hostname: $rules.behaviors.options.cacheKeyHostname
+            forward_host_header: $rules.behaviors.options.forwardHostHeader
+          $unset:
+            - _id
+
+  - Name: Extract.AkamaiAllowedMethodsCheck
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: AkamaiAllowedMethodsCheck
+    Params:
+      query_name: CheckAkamaiAllowedMethods
+      query_conf:
+        collection: AkamaiFullPropertyDescriptions
+        dump_json: true
+        # dump_csv: true
+        operations:
+          $match:
+            rules.children.name: "Allowed methods"
+          # $set:
+          #   allowed_methods: $rules.children.children
+          $unwind: $rules
+          $project:
+            propertyId: 1
+            latestVersion: 1
+            propertyName: 1
+            productionVersion: 1
+            stagingVersion: 1
+            ruleName: $rules.children.name
+            # behaviors: $rules.behaviors
+            method_name: $rules.children.children.name
+            is_enabled: $rules.children.children.options.enabled
+            allow_body: $rules.children.children.options.allow_body
+          $unset:
+            - _id
+        

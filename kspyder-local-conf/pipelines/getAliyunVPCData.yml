@@ -1,0 +1,46 @@
+Steps:
+
+  # - Name: GetVPCs
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVPCs
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VPCs
+  #     last_days: null
+  #     collection_name: Aliyun.VPC.VPCs
+
+  # - Name: GetVSwitches
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVSwitches
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VSwitches
+  #     collection_name: Aliyun.VPC.VSwitches
+  #     last_days: null
+
+  - Name: ExtractVSwitchInfo
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunVSwitchInfo
+    Params:
+      save_to: Aliyun.VPC.VSwitchData
+      collection_name: Aliyun.VPC.VSwitches
+      pipeline:
+        - $lookup:
+            from: AliyunVPCs
+            localField: VpcId
+            foreignField: VpcId
+            as: VpcInfo
+        # - $unwind: $VpcInfo
+        - $project:
+            VpcName: $VpcInfo.VpcName
+            VpcId: 1
+            VSwitchName: 1
+            VSwitchId: 1
+            ZoneId: 1
+            CreationTime: 1
+            CidrBlock: 1
+            AvailableIpAddressCount: 1
+
+   
+

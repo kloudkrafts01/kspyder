@@ -9,7 +9,7 @@
 import azure.functions as func
 import azure.durable_functions as df
 
-from common.spLogging import logger
+from common.loggingHandler import logger
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
     

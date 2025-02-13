@@ -1,0 +1,106 @@
+Steps:
+
+  # ============= Expand, save and export Instance Network data ================
+
+  - Name: Extend.SAPComputeInstancesData.Nics
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DataikuComputeNetworkData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.Dataiku.ComputeNetworkData
+      collection_name: GCloud.Compute.ComputeInstances
+      pipeline:
+        - $match:
+            project:
+              $regex: "ai-factory"
+        - $unwind: $network_interfaces
+        - $set:
+            ip_address: $network_interfaces.network_i_p
+            ip_address_type: primary
+        - $unionWith:
+            coll: GCloudComputeInstances
+            pipeline:
+              - $match:
+                  project:
+                    $regex: "ai-factory"
+              - $unwind: $network_interfaces
+              - $unwind: $network_interfaces.alias_ip_ranges
+              - $set:
+                  ip_address:
+                    $arrayElemAt:
+                      - $split:
+                        - $network_interfaces.alias_ip_ranges.ip_cidr_range
+                        - "/"
+                      - 0
+                  ip_address_type: alias
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            nic: $network_interfaces.name
+            vpc: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.network
+                  - "/"
+                - -1
+            subnet: 
+              $arrayElemAt:
+                - $split:
+                  - $network_interfaces.subnetwork
+                  - "/"
+                - -1
+            ip_address: 1
+            ip_address_type: 1
+            env: $labels.lvmh_environment
+            gke_cluster: $labels.goog-k8s-cluster-name
+            gke_node_pool: $labels.goog-k8s-node-pool-name
+        - $sort:
+            name: 1
+            nic: 1
+            ip_address_type: -1
+
+# ============= Expand, save and export Instance Disk data ================
+
+  - Name: Extract.ComputeInstancesDisksData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: DataikuComputeDiskData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.Dataiku.ComputeInstancesDisks
+      collection_name: GCloud.Compute.ComputeInstances
+      pipeline:
+        - $match:
+            project:
+              $regex: "ai-factory"
+        - $unwind: $disks
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            env: $labels.lvmh_environment
+            gke_cluster: $labels.goog-k8s-cluster-name
+            gke_node_pool: $labels.goog-k8s-node-pool-name
+            status: 1
+            created: $creation_timestamp
+            machine_type:
+              $arrayElemAt:
+                - $split:
+                  - $machine_type
+                  - "/"
+                - -1
+            disk_name: $disks.device_name
+            boot_disk: $disks.boot
+            disk_number: $disks.index
+            disk_arch: $disks.architecture
+            disk_size: $disks.disk_size_gb

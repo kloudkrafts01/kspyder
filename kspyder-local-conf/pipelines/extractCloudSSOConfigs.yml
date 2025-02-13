@@ -1,0 +1,55 @@
+Steps:
+
+  - Name: Aliyun.CloudSSOPoliciesByAccessConfig
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: CloudSSOPoliciesByAccessConfig
+    Params:
+        save_to: Aliyun.CloudSSO.AccessConfigData
+        collection_name: Aliyun.CloudSSO.CloudSSOAccessConfigurations
+        pipeline:
+          - $lookup:
+              from: Aliyun.CloudSSO.CloudSSOPolicies
+              localField: AccessConfigurationId
+              foreignField: access_configuration_id
+              as: Policies
+          - $unwind: $Policies
+          - $project: 
+              AccessConfigurationId: 1
+              AccessConfigurationName: 1
+              UpdateTime: 1
+              Description: 1
+              SessionDuration: 1
+              Permission: $Policies.PermissionPolicyName
+              PermissionType: $Policies.PermissionPolicyType
+              PermissionDocument: $Policies.PermissionPolicyDocument
+
+  - Name: Aliyun.CloudSSOPolicyGrants
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: CloudSSOPolicyGrants
+    Params:
+      save_to: Aliyun.CloudSSO.PolicyGrants
+      collection_name: Aliyun.CloudSSO.CloudSSOAssignments
+      pipeline:
+        - $lookup:
+            from: Aliyun.CloudSSO.AccessConfigData
+            localField: AccessConfigurationId
+            foreignField: AccessConfigurationId
+            as: Policies
+        - $unwind: $Policies
+        - $project: 
+            AccessConfigurationId: 1
+            AccessConfigurationName: 1
+            PrincipalId: 1
+            PrincipalName: 1
+            PrincipalType: 1
+            Description: $Policies.Description
+            Permission: $Policies.Permission
+            PermissionType: $Policies.PermissionType
+            PermissionDocument: $Policies.PermissionDocument
+            TargetId: 1
+            TargetName: 1
+            TargetPathName: 1
+            TargetType: 1
+            SessionDuration: $Policies.SessionDuration

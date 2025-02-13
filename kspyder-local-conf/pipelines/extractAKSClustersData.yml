@@ -1,0 +1,41 @@
+Steps:
+
+  # - Name: GetAKSClusters
+  #   Job: get_data_to_mongo
+  #   Output: AzureAKSClusters
+  #   Params:
+  #     from_worker: azureRGraphConnector
+  #     model_name: AzureAKSClusters
+
+  # - Name: GetAKSRoleBindings
+  #   Job: get_data_to_mongo
+  #   Output: AzureCSTrustedAccessRoleBindings
+  #   Params:
+  #     from_worker: azureRGraphConnector
+  #     model_name: AzureCSTrustedAccessRoleBindings
+
+  - Name: GetAKSNodePools
+    Job: get_data_to_mongo
+    Output: AzureAKSNodePools
+    Params:
+      from_worker: azureRGraphConnector
+      model_name: AzureAKSNodePools
+
+  # - Name: ExtractAKSTabularData
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: AzureAKSData
+  #   Params:
+  #     save_to: AzureAKSData
+  #     collection_name: AKSClusters
+  #     pipeline:
+  #       - $project:
+  #           environment: $tags.environment
+  #           name: $name
+  #           region: $location
+  #           subscriptionId: $subscriptionId
+  #           resourceGroup: $resourceGroup
+  #           dnsPrefix: $properties.dnsPrefix
+  #           endpoint: $properties.fqdn
+  #           kubeVersion: $properties.currentKubernetesVersion
+

@@ -1,0 +1,115 @@
+Connector:
+    schema: Aliyun
+    update_field: CreationStartTime
+
+UnpackingFields: null
+    
+Models:
+
+    RAMUsers:
+        base_name: User
+        nested: true
+        class: ram
+        query_domains:
+            - ListUsers
+        datapath: Users.User[]
+    
+    AliyunNSGs:
+        base_name: SecurityGroup
+        nested: true
+        class: ecs
+        query_domains:
+            - DescribeSecurityGroups
+        datapath: SecurityGroups.SecurityGroup[]
+        index_keys:
+            - SecurityGroupId
+            - SecurityGroupName
+            - VpcId
+
+    AliyunNSGRules:
+        base_name: SecurityGroupRule
+        class: ecs
+        query_domains:
+            - DescribeSecurityGroupAttribute
+        datapath: Permissions.Permission[]
+        accepted_inputs:
+            - SecurityGroupId
+        index_keys:
+            - SecurityGroupRuleId
+
+    ECSInstances:
+        base_name: Instance
+        nested: true
+        class: ecs
+        query_domains:
+            - DescribeInstances
+        datapath: Instances.Instance[]
+        index_keys:
+            - InstanceId
+            - InstanceName
+
+    ECSImages:
+        base_name: Image
+        class: ecs
+        query_domains:
+            - DescribeImages
+        datapath: Images.Image[]
+        index_keys:
+            - ImageId
+            - ImageName
+
+    VPCs:
+        base_name: VPC
+        class: vpc
+        paginated: false
+        query_domains:
+            - DescribeVpcs
+        datapath: Vpcs.Vpc[]
+        index_keys:
+            - VpcId
+            - VpcName
+
+    VSwitches:
+        base_name: VSwitch
+        class: vpc
+        query_domains:
+            - DescribeVSwitches
+        datapath: VSwitches.VSwitch[]
+        index_keys:
+            - VSwitchId
+            - VSwitchName
+
+    LoadBalancers:
+        base_name: LoadBalancer
+        nested: true
+        class: slb
+        query_domains:
+            - DescribeLoadBalancers
+
+    LoadBalancerListeners:
+        base_name: Listener
+        nested: false
+        class: slb
+        query_domains:
+            - DescribeLoadBalancerListeners
+
+    CloudSSODirectories:
+        base_name: CloudSSODirectories
+        class: cloudsso
+        paginated: false
+        total_count_key: TotalCounts
+        query_domains:
+            - ListDirectories
+        datapath: Directories[]
+        index_keys:
+            - DirectoryId
+    
+    CloudSSOUsers:
+        base_name: CloudSSOUsers
+        class: cloudsso
+        query_domains:
+            - ListUsers
+        datapath: Users.User[]
+        index_keys:
+            - UserId
+            - UserName

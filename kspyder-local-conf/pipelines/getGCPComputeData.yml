@@ -1,0 +1,81 @@
+Steps:
+
+  - Name: GetProjectZones
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GCPProjectZones
+    Params:
+      collection_name: GCPProjectZones
+      pipeline:
+        - $unset:
+            - _id
+  
+  - Name: GetToMongo.ComputeInstances
+    Job: get_data_to_mongo
+    Input: GCPProjectZones.data
+    Output: GCloudComputeInstances
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudComputeInstances
+
+  # # CAREFUL WITH THAT AXE, EUGENE : 
+  # # many requests will be sent with this one you might blow up your API quota
+  # - Name: GetToMongo.MachineTypes
+  #   Job: get_data_to_mongo
+  #   Input: GCPProjectZones.data
+  #   Output: ComputeMachineTypes
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: ComputeMachineTypes
+
+  # - Name: GetComputeInstances
+  #   Worker: gcloudComputeConnector
+  #   Job: get_data
+  #   Output: ComputeInstances
+  #   Input: GCPProjectZones.data
+  #   Params:
+  #     model_name: ComputeInstances
+
+  # - Name: StoreInstancesToMongo
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: ComputeInstances
+  #   Output: ComputeInstancesInsertionResult
+  #   Params:
+  #     collection: GCPComputeInstances
+
+  # - Name: BuildParentURIs
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCRParentURIs
+  #   Params:
+  #     query_name: BuildParentURIs
+  #     query_conf:
+  #       collection: GCPProjects
+  #       operations:
+  #         $set:
+  #           parent: 
+  #             $replaceOne:
+  #               input: "/projects/{project_id}/location/europe-west-4"
+  #               find: "{project_id}"
+  #               replacement: $project_id
+  #         $project:
+  #           parent: 1
+  #         $unset:
+  #           - _id
+    
+  # - Name: GetCloudRunServices
+  #   Worker: gcloudConnector
+  #   Job: get_data
+  #   Input: GCRParentURIs.data
+  #   Output: CloudRunServices
+  #   Params:
+  #     model_name: CloudRunServices
+
+  # - Name: StoreGCRServices
+  #   Worker: mongoDBConnector
+  #   Job: upsert_dataset
+  #   Input: CloudRunServices
+  #   Output: GCRServicesInsertionResult
+  #   Params:
+  #     collection: CloudRunServices

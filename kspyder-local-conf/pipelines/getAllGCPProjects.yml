@@ -1,0 +1,47 @@
+Steps:
+
+  - Name: GetFolderIdsFromMongo
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCloudFoldersIds
+    Params:
+      query_name: GetFolderIds
+      query_conf:
+        collection: GCloudFolders
+        dump_json: true
+        operations:
+          $match:
+            name:
+              $not:
+                $regex: organizations
+          $project:
+            parent: $name
+          $unset:
+            - _id
+
+  # - Name: GetFolderLeavesFromMongo
+  #   Worker: mongoDBConnector
+  #   Job: execute_query
+  #   Output: GCPFolderLeafIds
+  #   Params:
+  #     query_name: GetFolderLeafIds
+  #     query_conf:
+  #       dump_json: true
+  #       collection: GCPFolders
+  #       operations:
+  #         $match:
+  #           is_leaf: true
+  #         $project:
+  #           parent: $name
+  #         $unset:
+  #           - _id
+
+  - Name: GetToMongo.GCPProjects
+    Job: get_data_to_mongo
+    Input: GCloudFoldersIds.data
+    Output: GCloudProjects
+    Params:
+      from_worker: gcloudConnector
+      model_name: GCloudProjects
+
+

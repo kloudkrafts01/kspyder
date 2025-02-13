@@ -1,0 +1,32 @@
+Steps:
+
+  - Name: GetProjectsXZones
+    Worker: mongoDBConnector
+    Job: execute_query
+    Output: GCPProjectXZoneIds
+    Params:
+      query_name: GetProjectIds
+      query_conf:
+        collection: GCloudProjects
+        operations:
+          $set:
+            region: europe-west4
+          $lookup:
+            from: GCPComputeZones
+            localField: region
+            foreignField: region
+            as: computeZones
+          $unwind: $computeZones
+          $project:
+            project: $project_id
+            zone: $computeZones.zone
+          $unset:
+            - _id
+
+  - Name: StoreProjectXZones
+    Worker: mongoDBConnector
+    Job: insert_dataset
+    Input: GCPProjectXZoneIds.data
+    Output: ProjectXZonesInsertionResult
+    Params:
+      collection: GCPProjectZones
