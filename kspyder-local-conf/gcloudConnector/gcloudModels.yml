@@ -10,6 +10,10 @@ APIs:
         name: resourcemanager_v3
         update_field: update_time
 
+    IAM:
+        name: iam_admin_v1
+        update_field: update_time
+
     ServiceUsage:
         name: service_usage_v1 
         update_field: update_time
@@ -139,6 +143,29 @@ Models:
             - name
             - project_id
 
+    GCPServices:
+        API: ServiceUsage
+        client_name: ServiceUsageClient
+        request_builder: ListServicesRequest
+        query_name: list_services
+        accepted_inputs:
+            - parent
+        index_keys:
+            - name
+
+# =================== Cloud IAM Models ======================
+
+    ServiceAccounts:
+        API: IAM
+        client_name: IAMClient
+        request_builder: ListServiceAccountsRequest
+        query_name: list_service_accounts
+        accepted_inputs:
+            - name
+        index_keys:
+            - name
+            - unique_id
+
     ProjectIAMPolicies:
         API : RM
         client_name: ProjectsClient
@@ -149,16 +176,6 @@ Models:
         index_keys:
             - resource
         iterable: false
-
-    GCPServices:
-        API: ServiceUsage
-        client_name: ServiceUsageClient
-        request_builder: ListServicesRequest
-        query_name: list_services
-        accepted_inputs:
-            - parent
-        index_keys:
-            - name
 
 # =================== Cloud Network Models ======================
 

@@ -63,7 +63,7 @@ class RESTExtractor():
         for key,value in valid_params.items():
             
             # Compile and search for the parameter key in the URL path expression
-            pattern_string = '\{\$(%s)\}' % key
+            pattern_string = r'\{\$(%s)\}' % key
             var_pattern = re.compile(pattern_string,re.I)
             matches = re.search(var_pattern, path_expression)
             match_groups = matches.groups() if matches else []

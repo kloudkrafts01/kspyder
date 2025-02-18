@@ -30,7 +30,7 @@ class FileHandler():
         input_folder = (input if input else self.input_folder)
         folder = (os.path.join(input_folder,subpath) if subpath else input_folder)
     
-        json_ext = re.compile('(\.json)$')
+        json_ext = re.compile(r'(\.json)$')
         if re.search(json_ext, name) is None:
             name = '{}.json'.format(name)
         
@@ -50,7 +50,7 @@ class FileHandler():
         folder = (os.path.join(input_folder,subpath) if subpath else input_folder)
 
         # Add the .yml extension to the conf name if not already present
-        yml_ext = re.compile('(\.yml|\.yaml)$')
+        yml_ext = re.compile(r'(\.yml|\.yaml)$')
         if re.search(yml_ext, name) is None:
             name = '{}.yml'.format(name)
 
