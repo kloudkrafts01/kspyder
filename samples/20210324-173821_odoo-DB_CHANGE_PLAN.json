@@ -1,1 +1,0 @@
-{"schema": "odoo", "connector": "odoo_rpc.odooRPC", "delete": [], "create": ["Countries", "Products", "WebReturnLines", "Clients", "AccountingLines", "WebOrderLines", "WebOrders", "PosOrderLines", "Transfers", "WebReturns", "ProductsPurchase", "PosOrders", "AccountingPieces", "AcctJournals", "ProductDefect"], "changes_detail": {}}

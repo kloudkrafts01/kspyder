@@ -1,7 +1,0 @@
-{
-    "schema": "prestashop",
-    "connector": "prestashop_sql.prestashopSQL",
-    "delete": [],
-    "create": [],
-    "changes_detail": {}
-}
