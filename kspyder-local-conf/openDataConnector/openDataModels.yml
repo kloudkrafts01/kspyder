@@ -2,6 +2,7 @@ Connector:
     schema: opendata-fr
     update_field: modifiedSince
     default_batch_size: 100
+    default_rate_limit: 1
 
 APIs:
 
@@ -13,17 +14,15 @@ APIs:
         batch_size_key: pageSize
         default_headers:
             accept: application/json
-        response_map:
-            total_count: total
-            data: data
-            next_token: nextPage
-            request_id: page
 
 
     INSEE:
         name: insee
         base_url: https://api.insee.fr
         rate_limit: 2.2
+        pagination_style: pages
+        next_token_key: page
+        batch_size_key: maxResult
         default_headers:
             accept: application/json
 
@@ -33,8 +32,7 @@ Models:
         API: DiDo
         path: /dido/api/v1/datasets
         count_key: total
-        # datapath: data
-        fields:
+        response_map:
             total_count: total
             data: data
             next_token: nextPage
@@ -55,24 +53,54 @@ Models:
             - millesime
             - page
             - pageSize
+        response_map:
+            total_count: total
+            data: data
+            next_token: nextPage
+            request_id: page
         index_keys:
             - PERIODE
 
     MelodiDatasetCatalogue:
         API: INSEE
         path: /melodi/catalog/ids
+        iterable: false
         response_map:
             data: "[]"
         index_keys:
             - identifier
 
-    MelodiDatasets:
+    MelodiCatalogEntries:
         API: INSEE
-        path: /melodi/catalog/{$identifier}
-        iterable: False
+        path: /melodi/catalog/{$id}
+        iterable: false
         accepted_inputs:
-            - identifier
+            - id
         response_map:
             data: "*"
         index_keys:
-            - identifier
+            - id
+
+    MelodiDatasets:
+        API: INSEE
+        path: /melodi/data/{$id}
+        accepted_inputs:
+            - id
+            - page
+            - maxResult
+            - startPeriod
+            - endPeriod
+            - totalCount
+            - range
+        response_map:
+            total_count: paging.count
+            is_last: paging.isLast
+            first_url: paging.first
+            last_url: paging.last
+            page: paging.next
+            id: identifier
+            publisher: publisher
+            range: range
+            data: observations
+        index_keys:
+            - id

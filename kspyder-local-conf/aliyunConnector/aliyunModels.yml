@@ -24,10 +24,16 @@ APIs:
     ECS:
         name: alibabacloud_ecs20140526
         update_field: update_date
+        pagination_style: tokens
         next_token_key: next_token
         last_request_key: request_id
-        max_results_key: max_results
-        convert_response_case: true
+        batch_size_key: max_results
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            next_token: NextToken
+            request_id: RequestId
+            max_results: MaxResults
 
     CloudSSO:
         name: alibabacloud_cloudsso20210515
@@ -37,6 +43,19 @@ APIs:
         last_request_key: request_id
         max_results_key: max_results
         convert_response_case: true
+
+    Security:
+        name: alibabacloud_cloudfw20171207
+        update_field: ModifyTime
+        pagination_style: pages
+        next_token_key: current_page
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            current_page: PageNo
+            page_size: PageSize
+            request_id: RequestId
+            total_count: TotalCount
     
 Models:
 
@@ -265,10 +284,10 @@ Models:
         API: ECS
         request_builder: DescribeInstancesRequest
         query_name: describe_instances_with_options
-        datapath: Instances.Instance[]
+        response_map: 
+            data: Instances.Instance[]
         accepted_inputs:
             - region_id
-            - max_results
         index_keys:
             - InstanceId
             - InstanceName
@@ -306,3 +325,18 @@ Models:
             - security_group_id
         index_keys:
             - SecurityGroupRuleId
+
+  # ================ Yundun / Cloud Security Models ==================
+
+    FirewallPoliciesInternet:
+        API: Security
+        request_builder: DescribeControlPolicyRequest
+        query_name: describe_control_policy_with_options
+        accepted_inputs:
+            - current_page
+            - page_size
+            - direction
+        response_map:
+            data: Policys[]
+        index_keys:
+            - PolicyId

@@ -12,6 +12,7 @@ CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 PAGE_SIZE = CONNECTOR_CONF['default_batch_size']
+RATE_LIMIT = CONNECTOR_CONF['default_rate_limit']
 
 APIS = CONF['APIs']
 MODELS = CONF['Models']
@@ -20,7 +21,7 @@ MODELS = CONF['Models']
 
 class openDataConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, batch_size=PAGE_SIZE, **params):
+    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, batch_size=PAGE_SIZE, rate_limit=RATE_LIMIT, **params):
 
         self.schema = schema
         self.models = models
@@ -30,14 +31,14 @@ class openDataConnector(RESTExtractor):
         self.api_name = None
         self.base_url = None
         self.iterate_output = True
-        self.rate_limit = None
+        self.rate_limit = rate_limit
         self.batch_size = batch_size
 
-    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
+    def read_query(self, model, start_token=None, batch_size=None, **params):
 
-        params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
+        actual_start_token, preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
-        url, headers, valid_params = self.build_request(model, baseurl = self.api.base_url, **params)
+        url, headers, valid_params = self.build_request(model, baseurl = self.api.base_url, **preprocessed_params)
         
         # pass the request, get http status and response payload
         response = requests.get(url, headers = headers, params = valid_params)
@@ -47,9 +48,9 @@ class openDataConnector(RESTExtractor):
         # logger.debug("Raw response data: {}".format(raw_response_data))
 
         if status_code == 200:
-            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = actual_start_token)
 
         else:
             logger.exception("Encountered error in response: {}".format(raw_response_data))
 
-        return data, is_truncated, next_token, start_token
+        return data, is_truncated, next_token, actual_start_token
