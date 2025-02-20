@@ -30,7 +30,7 @@ class GenericRPCExtractor():
         model = self.models[model_name]
 
         if last_days:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(datetime.datetime.utc)
             delta = datetime.timedelta(days=last_days)
             yesterday = now - delta
 
@@ -52,7 +52,7 @@ class GenericRPCExtractor():
                 },
                 'data': dataset
             }
-        
+
         if dataset == []:
             logger.info('no results were found.')
         

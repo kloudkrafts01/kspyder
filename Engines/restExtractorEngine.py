@@ -300,7 +300,8 @@ class RESTExtractor():
         logger.debug("Item metadata: {}".format(metadata))
 
         count = int(translated_data['count']) if 'count' in translated_data.keys() else len(data)
-        total_count = int(translated_data['total_count']) if 'total_count' in translated_data.keys() else None
+        total_count = translated_data['total_count'] if 'total_count' in translated_data.keys() else None
+        total_count = int(total_count) if total_count else None
         next_token = translated_data['next_token'] if 'next_token' in translated_data.keys() else None
         logger.debug("next token: {}".format(next_token))
         

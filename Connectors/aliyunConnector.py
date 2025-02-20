@@ -160,7 +160,7 @@ class aliyunConnector(RESTExtractor):
         self.source_models = aliyun_client.source_models
         self.runtime_options = RuntimeOptions()
 
-        preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
+        actual_start_token, preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
         # Build a request context for the current client API
         request_context = self.build_request( model, **preprocessed_params )
@@ -176,4 +176,4 @@ class aliyunConnector(RESTExtractor):
         data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
         logger.debug("Next token: {}".format(next_token))
 
-        return data, is_truncated, next_token, start_token
+        return data, is_truncated, next_token, actual_start_token

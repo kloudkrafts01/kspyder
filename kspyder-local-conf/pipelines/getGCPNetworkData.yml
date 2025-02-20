@@ -2,33 +2,35 @@ Steps:
 
   - Name: GetProjectIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: GCPProjectIds
     Params:
-      query_name: GetProjectIds
-      query_conf:
-        collection: GCloudProjects
-        operations:
-          $project:
+      collection_name: GCloudProjects
+      pipeline:
+        # - $match:
+        #     project_id: 
+        #       $regex: shared-it
+        - $project:
             project: $project_id
-          $unset:
+        - $unset:
             - _id
   
   - Name: SetProjectRegionIds
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: GCPProjectsEUW4
     Params:
-      query_name: SetProjectRegionIds
-      query_conf:
-        collection: GCloudProjects
-        operations:
-          $set:
+      collection_name: GCloudProjects
+      pipeline:
+        # - $match:
+        #     project_id: 
+        #       $regex: shared-it
+        - $set:
             region: europe-west4
-          $project:
+        - $project:
             project: $project_id
             region: 1
-          $unset:
+        - $unset:
             - _id
 
   # - Name: GetToMongo.GCloudVPCs
@@ -37,7 +39,7 @@ Steps:
   #   Output: GCloudVPCs
   #   Params:
   #     from_worker: gcloudConnector
-  #     model_name: GCloudVPCs
+  #     model_name: VPCs
 
   # - Name: GetToMongo.GCloudSubnets
   #   Job: get_data_to_mongo
@@ -45,7 +47,7 @@ Steps:
   #   Output: GCloudSubnets
   #   Params:
   #     from_worker: gcloudConnector
-  #     model_name: GCloudSubnets
+  #     model_name: Subnets
 
   - Name: GetToMongo.GCloudAddresses
     Job: get_data_to_mongo
@@ -53,8 +55,7 @@ Steps:
     Output: GCloudAddresses
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudAddresses    
-
+      model_name: Addresses    
 
 
   - Name: GetToMongo.GCloudForwardingRules
@@ -63,7 +64,7 @@ Steps:
     Output: GCloudForwardingRules
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudForwardingRules    
+      model_name: LBForwardingRules    
 
   - Name: GetToMongo.GCloudBackendBuckets
     Job: get_data_to_mongo
@@ -71,12 +72,4 @@ Steps:
     Output: GCloudBackendBuckets
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudBackendBuckets
-
-  - Name: GetToMongo.GCloudInstanceGroups
-    Job: get_data_to_mongo
-    Input: GCPProjectsEUW4.data
-    Output: GCloudInstanceGroups
-    Params:
-      from_worker: gcloudConnector
-      model_name: GCloudInstanceGroups
+      model_name: LBBackendBuckets

@@ -296,7 +296,8 @@ Models:
         API: ECS
         request_builder: DescribeImagesRequest
         query_name: describe_images_with_options
-        datapath: Images.Image[]
+        response_map: 
+            data: Images.Image[]
         accepted_inputs:
             - region_id
             - image_owner_alias
@@ -309,7 +310,8 @@ Models:
         API: ECS
         request_builder: DescribeSecurityGroupsRequest
         query_name: describe_security_groups_with_options
-        datapath: SecurityGroups.SecurityGroup[]
+        response_map: 
+            data: SecurityGroups.SecurityGroup[]
         accepted_inputs:
             - region_id
         index_keys:
@@ -319,7 +321,9 @@ Models:
         API: ECS
         request_builder: DescribeSecurityGroupAttributeRequest
         query_name: describe_security_group_attribute_with_options
-        datapath: Permissions.Permission[]
+        response_map: 
+
+            data: Permissions.Permission[]
         accepted_inputs:
             - region_id
             - security_group_id

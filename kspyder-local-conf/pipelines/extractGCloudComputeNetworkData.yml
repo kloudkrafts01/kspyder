@@ -1,22 +1,150 @@
 Steps:
 
+  # ============= Expand, save, extract IP Address data ================
+
+  - Name: Extend.IPAddressData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GCloudIPAddressData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.Compute.IPAddressData
+      collection_name: GCloud.Compute.Addresses
+      pipeline:
+        - $unwind: 
+            path: $users
+            preserveNullAndEmptyArrays: true
+        - $set:
+            user_type:
+              $arrayElemAt:
+                - $split:
+                  - $users
+                  - "/"
+                - 3
+            user_project:
+              $arrayElemAt:
+                - $split:
+                  - $users
+                  - "/"
+                - 6
+            user_name:
+              $arrayElemAt:
+                - $split:
+                  - $users
+                  - "/"
+                - -1
+            subnet:
+              $arrayElemAt:
+                - $split:
+                  - $subnetwork
+                  - "/"
+                - -1
+            subnet_project:
+              $arrayElemAt:
+                - $split:
+                  - $subnetwork
+                  - "/"
+                - 6
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            creation_timestamp: 1
+            address_type: 1
+            address: 1
+            status: 1
+            purpose: 1
+            description: 1
+            network_tier: 1
+            user_name: 1
+            user_type: 1
+            user_project: 1
+            subnet_project: 1
+            subnet: 1
+
+  # ============= Expand, save, extract Load Balancing Rules data ================
+
+  - Name: Extend.LBRulesData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: GCloudLBRulesData
+    DumpCSV: true
+    Params:
+      save_to: GCloud.Compute.LBRulesData
+      collection_name: GCloud.Compute.LBForwardingRules
+      pipeline:
+        - $unwind: 
+            path: $ports
+            preserveNullAndEmptyArrays: true
+        - $set:
+            backend_service_project:
+              $arrayElemAt:
+                - $split:
+                  - $backend_service
+                  - "/"
+                - 6
+            backend_service_name:
+              $arrayElemAt:
+                - $split:
+                  - $backend_service
+                  - "/"
+                - -1
+            vpc_project:
+              $arrayElemAt:
+                - $split:
+                  - $network
+                  - "/"
+                - 6
+            vpc:
+              $arrayElemAt:
+                - $split:
+                  - $network
+                  - "/"
+                - -1
+            subnet:
+              $arrayElemAt:
+                - $split:
+                  - $subnetwork
+                  - "/"
+                - -1
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            creation_timestamp: 1
+            address: $I_p_address
+            protocol: $I_p_protocol
+            load_balancing_scheme: 1
+            allow_global_access: 1
+            backend_service_name: 1
+            backend_service_project: 1
+            vpc_project: 1
+            vpc: 1
+            subnet: 1
+            all_ports: 1
+            port: $ports
+            network_tier: 1
+
+
+
+
   # ============= Expand, save, extract Instance NIC data ================
 
-  - Name: Extend.SAPComputeInstancesData.Nics
+  - Name: Extend.ComputeInstancesData.Nics
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: GCloudComputeNetworkData
     DumpCSV: false
     Params:
       save_to: GCloud.Compute.NetworkData
-      collection_name: GCloudComputeInstances
+      collection_name: GCloud.Compute.ComputeInstances
       pipeline:
         - $unwind: $network_interfaces
         - $set:
             ip_address: $network_interfaces.network_i_p
             ip_address_type: primary
         - $unionWith:
-            coll: GCloudComputeInstances
+            coll: GCloud.Compute.ComputeInstances
             pipeline:
               - $unwind: $network_interfaces
               - $unwind: $network_interfaces.alias_ip_ranges

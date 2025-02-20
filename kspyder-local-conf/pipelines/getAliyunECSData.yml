@@ -7,48 +7,48 @@ Steps:
       data:
         - region_id: cn-shanghai
 
-  - Name: GetToMongo.ECSInstances
-    Job: get_data_to_mongo
-    Output: ECSInstances
-    Input: RegionData.data
-    Params:
-      from_worker: aliyunConnector 
-      model_name: ECSInstances
+  # - Name: GetToMongo.ECSInstances
+  #   Job: get_data_to_mongo
+  #   Output: ECSInstances
+  #   Input: RegionData.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: ECSInstances
 
-  - Name: GetToMongo.StandardImages
-    Job: get_data_to_mongo
-    Output: ECSImages
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: ECSImages
-      last_days: null
+  # - Name: GetToMongo.StandardImages
+  #   Job: get_data_to_mongo
+  #   Output: ECSImages
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: ECSImages
+  #     last_days: null
 
-  - Name: GetToMongo.MarketplaceImages
-    Job: get_data_to_mongo
-    Output: ECSMarketplaceImages
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: ECSImages
-      last_days: null
-      search_domains:
-        - - 'ImageOwnerAlias'
-          - 'eq'
-          - 'marketplace'
+  # - Name: GetToMongo.MarketplaceImages
+  #   Job: get_data_to_mongo
+  #   Output: ECSMarketplaceImages
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: ECSImages
+  #     last_days: null
+  #     search_domains:
+  #       - - 'ImageOwnerAlias'
+  #         - 'eq'
+  #         - 'marketplace'
 
   - Name: GetToMongo.NSGs
     Job: get_data_to_mongo
     Input: RegionData.data
-    Output: AliyunNSGs
+    Output: NetworkSecurityGroups
     Params:
       from_worker: aliyunConnector
-      model_name: AliyunNSGs
+      model_name: NetworkSecurityGroups
 
   - Name: Extract.NSGIds
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: NSGIds
     Params:
-      collection_name: AliyunNSGs
+      collection_name: Aliyun.ECS.NetworkSecurityGroups
       pipeline:
         - $project:
             security_group_id: $SecurityGroupId
@@ -59,7 +59,7 @@ Steps:
   - Name: GetToMongo.NSGRules
     Job: get_data_to_mongo
     Input: NSGIds.data
-    Output: AliyunNSGRules
+    Output: NSGRules
     Params:
       from_worker: aliyunConnector
-      model_name: AliyunNSGRules
+      model_name: NSGRules
