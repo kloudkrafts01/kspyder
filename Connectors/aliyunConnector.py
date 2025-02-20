@@ -15,8 +15,10 @@ CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
 
-APIS_CONF = CONF['APIs']
+APIS = CONF['APIs']
 MODELS = CONF['Models']
+
+ALIYUN_MAX_PAGE_SIZE = 100
 
 class AliyunClient:
 
@@ -50,18 +52,20 @@ class AliyunClient:
 
 class aliyunConnector(RESTExtractor):
 
-    def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, scopes=None, rate_limit=DEFAULT_RATE, **params):
+    def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, scopes=None, rate_limit=DEFAULT_RATE, batch_size=ALIYUN_MAX_PAGE_SIZE, **params):
 
         self.schema = schema
         self.models = models
+        self.apis = apis
         self.scopes = scopes
         self.params = params
         self.profile = profile
         self.rate_limit = rate_limit
+        self.batch_size = batch_size
 
         # All the fields below are set at each query context
         self.api_name = None
-        self.api_conf = None
+        self.api = None
         self.convert_case = False
         self.is_truncated_key = None
         self.next_token_key = None
@@ -85,46 +89,32 @@ class aliyunConnector(RESTExtractor):
 
         return string
 
-    def set_api_from_model(self, model):
-
-        # Get the API config from the chosen Model
-        api_id = model['API']
-        self.api_conf = APIS_CONF[api_id]
-        self.api_name = self.api_conf['name']
-        logger.debug("Setting client from API conf: {}".format(self.api_conf))
-
-        self.update_field = self.api_conf['update_field']
-        if 'rate_limit' in self.api_conf.keys():
-            self.rate_limit = self.api_conf['rate_limit']
-
-        # Initiate all fields that can be useful for pagination
-        self.convert_case = self.api_conf['convert_response_case'] if 'convert_response_case' in self.api_conf.keys() else False
-        self.is_truncated_key = self.api_conf['is_truncated_key'] if 'is_truncated_key' in self.api_conf.keys() else None
-        self.next_token_key = self.api_conf['next_token_key'] if 'next_token_key' in self.api_conf.keys() else None
-        self.last_request_key = self.api_conf['last_request_key'] if 'last_request_key' in self.api_conf.keys() else None
-        self.max_results_key = self.api_conf['max_results_key'] if 'max_results_key' in self.api_conf.keys() else None
-        self.page_number_key = self.api_conf['page_number_key'] if 'page_number_key' in self.api_conf.keys() else None
-        self.page_size_key = self.api_conf['page_size_key'] if 'page_size_key' in self.api_conf.keys() else None
 
 
-        # Instantiate a new AliyunClient and set it to current client
-        aliyun_client = AliyunClient.from_env(api_name = self.api_name)
-        self.client = aliyun_client.client
-        self.source_models = aliyun_client.source_models
-        self.runtime_options = RuntimeOptions()
-
-
-    def build_request(self, model, start_token=None, **params):
+    def build_request(self, model, **params):
 
         request_builder = None
         request_context = []
 
         # Instanciate a request object with the sdk module needed arguments
         request_params = {}
-        if start_token:
-            request_params[ self.next_token_key ] = start_token
-        if self.max_results_key and self.max_results_key in model['accepted_inputs']:
-            request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
+        # if start_token:
+        #     request_params[ self.next_token_key ] = start_token
+        # if hasattr(self.api, 'batch_size_key') and self.api.batch_size_key in model['accepted_inputs']:
+        #     request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
+
+        # add base keys from API definition
+        base_keys = (
+            self.api.next_token_key,
+            self.api.batch_size_key
+        )
+        if hasattr(self.api, 'is_truncated_key'):
+            base_keys += self.api.is_truncated_key,
+        if hasattr(self.api, 'total_count_key'):
+            base_keys += self.api.total_count_key,
+    
+        for key in (x for x in params.keys() if x in base_keys):
+            request_params[key] = params[key]
 
         if 'accepted_inputs' in model.keys():
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
@@ -137,6 +127,7 @@ class aliyunConnector(RESTExtractor):
             logger.debug("request builder name: {}".format(model['request_builder']))
             logger.debug("request builder object: {}".format(request_builder))
             logger.debug("request builder params: {}".format(request_params))
+
             request = request_builder(**request_params)
             
             # Add the request to request context (mandatory)
@@ -147,8 +138,8 @@ class aliyunConnector(RESTExtractor):
             request_context.append(request_params)
         
         # If the API requires a header (e.g. ContainerServices API), add it
-        if 'header' in self.api_conf.keys():
-            request_context.append(self.api_conf['header'])
+        if hasattr(self.api, 'header'):
+            request_context.append(self.api.header)
         
         # Add RuntimeOptions (mandatory)
         request_context.append(self.runtime_options)
@@ -156,49 +147,33 @@ class aliyunConnector(RESTExtractor):
         logger.debug("Request context: {}".format(request_context))
         return request_context
 
-    def read_query(self,model,search_domains=[],start_token=None,query_args=[],**params):
+    def read_query(self,model,search_domains=[],start_token=None,batch_size=None,query_args=[],**params):
+        
+        data = []
+        metadata = {}
+        is_truncated = False
+        next_token = None
+
+        # Instantiate a new AliyunClient and set it to current client
+        aliyun_client = AliyunClient.from_env(api_name = self.api.name)
+        self.client = aliyun_client.client
+        self.source_models = aliyun_client.source_models
+        self.runtime_options = RuntimeOptions()
+
+        actual_start_token, preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
         # Build a request context for the current client API
-        request_context = self.build_request( model, start_token = start_token, **params )
+        request_context = self.build_request( model, **preprocessed_params )
         
         # Send a query with the request context built before
         query = getattr(self.client, model['query_name'])
         response = query( *request_context )
 
         # Parse response and retrieve relevant data
-        response_dict = response.body.to_map()
-        results = []
+        raw_response_data = response.body.to_map()
+        logger.debug("Response dict keys: {}".format(raw_response_data.keys()))
 
-        logger.debug("Response dict keys: {}".format(response_dict.keys()))
+        data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
+        logger.debug("Next token: {}".format(next_token))
 
-        if model['datapath'] == '$root':
-            results = response_dict
-        else:
-            datapath = jmespath.compile(model['datapath'])
-            results = datapath.search(response_dict)
-        
-        response_next_token_key = self.next_token_key
-        response_max_results = self.max_results_key
-        response_is_truncated_key = self.is_truncated_key
-        # response_page_size_key = self.page_size_key
-        # response_page_number_key = self.page_number_key
-
-        # If specified in the API conf, convert field name to CamelCase to look for the needed fields in the response dict
-        if self.convert_case:
-            response_next_token_key = self.convert_to_camelcase(response_next_token_key)
-            response_max_results = self.convert_to_camelcase(response_max_results)
-            response_is_truncated_key = self.convert_to_camelcase(response_is_truncated_key)
-            # response_page_size_key = self.convert_to_camelcase(response_page_size_key)
-            # response_page_number_key = self.convert_to_camelcase(response_page_number_key)
-
-        next_token = response_dict[response_next_token_key] if response_next_token_key in response_dict.keys() else ''
-        # logger.debug("Next Token: {}".format(next_token))
-
-        is_next_token = next_token != ''
-        # logger.debug("Is Next Token ? {}".format(is_next_token))
-        is_truncated_key = response_is_truncated_key in response_dict.keys()
-        # determine whether pagination should continue : if response explicitly tells so, relay the info. If not, see if a "next" token exists
-        is_truncated = response_dict[response_is_truncated_key] if is_truncated_key else is_next_token
-        logger.debug("Is response truncated ? {}".format(is_truncated))
-
-        return results, is_truncated, next_token, start_token
+        return data, is_truncated, next_token, actual_start_token

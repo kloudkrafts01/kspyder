@@ -63,7 +63,7 @@ class RESTExtractor():
         for key,value in valid_params.items():
             
             # Compile and search for the parameter key in the URL path expression
-            pattern_string = '\{\$(%s)\}' % key
+            pattern_string = r'\{\$(%s)\}' % key
             var_pattern = re.compile(pattern_string,re.I)
             matches = re.search(var_pattern, path_expression)
             match_groups = matches.groups() if matches else []
@@ -203,25 +203,23 @@ class RESTExtractor():
         
         self.api_name = model['API']
         self.api = GenericMap(payload = self.apis[self.api_name])
-        # api_def = self.apis[self.api_name]
-        # self.base_url = api_def['base_url']
-        # self.rate_limit = api_def['rate_limit'] if 'rate_limit' in api_def.keys() else None
-        # self.is_truncated_key = api_def['is_truncated_key'] if 'is_truncated_key' in api_def.keys() else None
-        # self.next_token_key = api_def['next_token_key'] if 'next_token_key' in api_def.keys() else None
-        # self.pagination_style = api_def['pagination_style'] if 'pagination_style' in api_def.keys() else None
-        # self.batch_size_key = api_def['batch_size_key'] if 'batch_size_key' in api_def.keys() else None
-        
+
+        # Prepare response translation map
         base_response_map = self.api.response_map if hasattr(self.api, 'response_map') else {}
         response_map = model['response_map'] if 'response_map' in model.keys() else {}
         include_base_map = model['include_base_response_map'] if 'include_base_response_map' in model.keys() else True
+        
         if include_base_map:
             # if include API base mapping is true, merge both dicts
             model['response_map'] = { **base_response_map, **response_map }
-        
+
         self.response_map = model['response_map']
-        
         if 'data' not in model['response_map'].keys():
             logger.exception("Model does not specify a 'data' path. No payload will be returned.")
+
+        # prepare rate limit (expressed in seconds before new call)
+        self.rate_limit = self.api.rate_limit if hasattr(self.api, 'rate_limit') else self.rate_limit
+
 
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
@@ -264,23 +262,25 @@ class RESTExtractor():
     def preprocess_params(self,params,start_token=None,batch_size=None):
         """Process and add up query parameters for pagination, according to the API's pagination style"""
 
+        # mandatory: put start and batch size into query parameters entry
+        actual_start_token = start_token
+        actual_batch_size = int(batch_size) if batch_size else self.batch_size
+
+        logger.debug("Pagination style is: {}".format(self.api.pagination_style))
+        
         if self.api.pagination_style == "pages":
-            start_token = int(start_token) if start_token else 1
+            actual_start_token = int(start_token) if start_token else 1
 
         if self.api.pagination_style == "offsets":
-            start_token = int(start_token) if start_token else 0
+            actual_start_token = int(start_token) if start_token else 0
         
-        # mandatory: put start and batch size into query parameters entry
-        start_param = { self.api.next_token_key : start_token }
-        actual_batch_size = batch_size if batch_size else self.batch_size
-        size_param = { self.api.batch_size_key : actual_batch_size }
-        params = { **start_param, **size_param, **params }
+        params[self.api.next_token_key] = actual_start_token
+        params[self.api.batch_size_key] = actual_batch_size
+        logger.debug("Preprocessed Params: {}".format(params))
 
-        logger.debug("Params: {}".format(params))
+        return actual_start_token, params
 
-        return params, start_token, actual_batch_size
-
-    def postprocess_response(self, response_data, model=None, start_token=None, **params):
+    def postprocess_response(self, response_data, start_token=None, **params):
 
         translated_data = {}
         metadata = {}
@@ -300,19 +300,27 @@ class RESTExtractor():
         logger.debug("Item metadata: {}".format(metadata))
 
         count = int(translated_data['count']) if 'count' in translated_data.keys() else len(data)
-        total_count = int(translated_data['total_count']) if 'total_count' in translated_data.keys() else None
+        total_count = translated_data['total_count'] if 'total_count' in translated_data.keys() else None
+        total_count = int(total_count) if total_count else None
         next_token = translated_data['next_token'] if 'next_token' in translated_data.keys() else None
+        logger.debug("next token: {}".format(next_token))
         
         # Determine if the current results are truncated or not, based on explicit fields if present, or on number counts
         if 'is_truncated' in translated_data.keys():
             is_truncated = translated_data['is_truncated']
         else:
-            if next_token is not None:
+            if 'is_last' in translated_data.keys():
+                is_last = bool(translated_data['is_last'])
+                logger.debug("Is Last ? {}".format(is_last))
+                is_truncated = not is_last
+            elif next_token is not None:
                 is_truncated = (next_token != "")
             elif total_count is not None:
                 is_truncated = (count < total_count) and (count > 0)
             else: 
                 is_truncated = False
+
+        logger.debug("Is response truncated? {}".format(is_truncated))
 
         # If page-based pagination, replace whatever next_token value with pagenumber + 1
         if (self.api.pagination_style == "pages") and is_truncated:

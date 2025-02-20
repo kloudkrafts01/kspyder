@@ -9,15 +9,16 @@ Models:
     RAMUsers:
         base_name: User
         nested: true
-        class: ram
+        API: RAM
         query_domains:
             - ListUsers
         datapath: Users.User[]
     
-    AliyunNSGs:
+    NetworkSecurityGroups:
         base_name: SecurityGroup
         nested: true
-        class: ecs
+        paginate: true
+        API: ECS
         query_domains:
             - DescribeSecurityGroups
         datapath: SecurityGroups.SecurityGroup[]
@@ -26,11 +27,12 @@ Models:
             - SecurityGroupName
             - VpcId
 
-    AliyunNSGRules:
+    NSGRules:
         base_name: SecurityGroupRule
-        class: ecs
+        API: ECS
         query_domains:
             - DescribeSecurityGroupAttribute
+        paginate: false
         datapath: Permissions.Permission[]
         accepted_inputs:
             - SecurityGroupId
@@ -40,7 +42,7 @@ Models:
     ECSInstances:
         base_name: Instance
         nested: true
-        class: ecs
+        API: ECS
         query_domains:
             - DescribeInstances
         datapath: Instances.Instance[]
@@ -50,7 +52,7 @@ Models:
 
     ECSImages:
         base_name: Image
-        class: ecs
+        API: ECS
         query_domains:
             - DescribeImages
         datapath: Images.Image[]
@@ -60,8 +62,8 @@ Models:
 
     VPCs:
         base_name: VPC
-        class: vpc
-        paginated: false
+        API: VPC
+        paginate: false
         query_domains:
             - DescribeVpcs
         datapath: Vpcs.Vpc[]
@@ -71,7 +73,7 @@ Models:
 
     VSwitches:
         base_name: VSwitch
-        class: vpc
+        API: VPC
         query_domains:
             - DescribeVSwitches
         datapath: VSwitches.VSwitch[]
@@ -82,20 +84,20 @@ Models:
     LoadBalancers:
         base_name: LoadBalancer
         nested: true
-        class: slb
+        API: SLB
         query_domains:
             - DescribeLoadBalancers
 
     LoadBalancerListeners:
         base_name: Listener
         nested: false
-        class: slb
+        API: SLB
         query_domains:
             - DescribeLoadBalancerListeners
 
     CloudSSODirectories:
         base_name: CloudSSODirectories
-        class: cloudsso
+        API: CloudSSO
         paginated: false
         total_count_key: TotalCounts
         query_domains:
@@ -106,7 +108,7 @@ Models:
     
     CloudSSOUsers:
         base_name: CloudSSOUsers
-        class: cloudsso
+        API: CloudSSO
         query_domains:
             - ListUsers
         datapath: Users.User[]

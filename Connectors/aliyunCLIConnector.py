@@ -6,7 +6,7 @@ import json, jmespath
 from Engines.rpcExtractorEngine import DirectExtractor
 from common.loggingHandler import logger
 
-from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
+from common.config import BASE_FILE_HANDLER as fh
 
 # Load the Connector's config
 CONF = fh.load_yaml('aliyunCLIModels', subpath=__name__)
@@ -20,6 +20,7 @@ MODELS_LIST = list(MODELS.keys())
 # specific formatting expected by Aliyun CLI when filtering over a datetime
 DATETIME_FORMAT = '%Y-%m-%dT%H:%mZ'
 GET_TABULAR_OUTPUT = False
+ALIYUN_PAGE_SIZE = 50
 
 class aliyunCLIClient:
     """Class to process the raw output of an Aliyun CLI command, because the python sdk sucks.
@@ -31,7 +32,7 @@ class aliyunCLIClient:
     
     def build_command(self,model=None,query_domain=None,search_domains=[],**params):
 
-        command = ['aliyun', model['class']]
+        command = ['aliyun', model['API']]
         # build the basics : 'query_domain' is supposed to be one type of query that fits the model
         if query_domain in model['query_domains']:
             command += query_domain,
@@ -116,16 +117,16 @@ class aliyunCLIClient:
 
         return count
 
-    def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=PAGE_SIZE):
+    def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=ALIYUN_PAGE_SIZE):
 
         # Build the command and add up the offset and page size params
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
         
-        paginate = model['paginated'] if 'paginated' in model.keys() else True
+        paginate = model['paginate'] if 'paginate' in model.keys() else True
         
         if paginate:
             # AliyunCLI page size is strictly limited to 100
-            capped_limit = min(limit,100)
+            capped_limit = min(limit,50)
             command = command + ['--PageSize',str(capped_limit)]
             # calculate page number
             pageno = int(offset / capped_limit) + 1 if offset else 1
