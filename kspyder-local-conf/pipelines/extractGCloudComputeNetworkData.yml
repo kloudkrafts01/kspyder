@@ -134,7 +134,7 @@ Steps:
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: GCloudComputeNetworkData
-    DumpCSV: false
+    DumpCSV: true
     Params:
       save_to: GCloud.Compute.NetworkData
       collection_name: GCloud.Compute.ComputeInstances
@@ -156,19 +156,13 @@ Steps:
                         - "/"
                       - 0
                   ip_address_type: alias
-        - $project:
-            project: 1
-            id: 1
-            name: 1
-            status: 1
-            created: $creation_timestamp
+        - $set:
             machine_type:
               $arrayElemAt:
                 - $split:
                   - $machine_type
                   - "/"
                 - -1
-            nic: $network_interfaces.name
             vpc: 
               $arrayElemAt:
                 - $split:
@@ -180,7 +174,40 @@ Steps:
                 - $split:
                   - $network_interfaces.subnetwork
                   - "/"
+                - -1        
+        - $lookup:
+            from: GCloud.Compute.Subnets
+            localField: subnet
+            foreignField: name
+            as: subnet_info
+        - $unwind: $subnet_info
+        - $set:
+            subnet_cidr: $subnet_info.ip_cidr_range
+            subnet_cidr_size:
+              $arrayElemAt:
+                - $split:
+                  - $subnet_info.ip_cidr_range
+                  - "/"
                 - -1
+            subnet_first_ip:
+              $arrayElemAt:
+                - $split:
+                  - $subnet_info.ip_cidr_range
+                  - "/"
+                - 0
+        - $project:
+            project: 1
+            id: 1
+            name: 1
+            status: 1
+            created: $creation_timestamp
+            nic: $network_interfaces.name
+            machine_type: 1
+            vpc: 1
+            subnet: 1
+            subnet_cidr: 1
+            subnet_cidr_size: 1
+            subnet_first_ip: 1
             ip_address: 1
             ip_address_type: 1
         - $sort:

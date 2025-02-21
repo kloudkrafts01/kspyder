@@ -33,43 +33,43 @@ Steps:
         - $unset:
             - _id
 
-  # - Name: GetToMongo.GCloudVPCs
-  #   Job: get_data_to_mongo
-  #   Input: GCPProjectIds.data
-  #   Output: GCloudVPCs
-  #   Params:
-  #     from_worker: gcloudConnector
-  #     model_name: VPCs
+  - Name: GetToMongo.GCloudVPCs
+    Job: get_data_to_mongo
+    Input: GCPProjectIds.data
+    Output: GCloudVPCs
+    Params:
+      from_worker: gcloudConnector
+      model_name: VPCs
 
-  # - Name: GetToMongo.GCloudSubnets
+  - Name: GetToMongo.GCloudSubnets
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudSubnets
+    Params:
+      from_worker: gcloudConnector
+      model_name: Subnets
+
+  # - Name: GetToMongo.GCloudAddresses
   #   Job: get_data_to_mongo
   #   Input: GCPProjectsEUW4.data
-  #   Output: GCloudSubnets
+  #   Output: GCloudAddresses
   #   Params:
   #     from_worker: gcloudConnector
-  #     model_name: Subnets
-
-  - Name: GetToMongo.GCloudAddresses
-    Job: get_data_to_mongo
-    Input: GCPProjectsEUW4.data
-    Output: GCloudAddresses
-    Params:
-      from_worker: gcloudConnector
-      model_name: Addresses    
+  #     model_name: Addresses    
 
 
-  - Name: GetToMongo.GCloudForwardingRules
-    Job: get_data_to_mongo
-    Input: GCPProjectsEUW4.data
-    Output: GCloudForwardingRules
-    Params:
-      from_worker: gcloudConnector
-      model_name: LBForwardingRules    
+  # - Name: GetToMongo.GCloudForwardingRules
+  #   Job: get_data_to_mongo
+  #   Input: GCPProjectsEUW4.data
+  #   Output: GCloudForwardingRules
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: LBForwardingRules    
 
-  - Name: GetToMongo.GCloudBackendBuckets
-    Job: get_data_to_mongo
-    Input: GCPProjectsEUW4.data
-    Output: GCloudBackendBuckets
-    Params:
-      from_worker: gcloudConnector
-      model_name: LBBackendBuckets
+  # - Name: GetToMongo.GCloudBackendBuckets
+  #   Job: get_data_to_mongo
+  #   Input: GCPProjectsEUW4.data
+  #   Output: GCloudBackendBuckets
+  #   Params:
+  #     from_worker: gcloudConnector
+  #     model_name: LBBackendBuckets
