@@ -9,7 +9,7 @@ Steps:
     DumpCSV: true
     Params:
       save_to: GCloud.VPC.SubnetData
-      collection_name: GCloudSubnets
+      collection_name: GCloud.Compute.Subnets
       pipeline:
         - $set: 
             ip_cidr_type: primary
@@ -60,7 +60,7 @@ Steps:
     DumpCSV: true
     Params:
       save_to: GCloud.VPC.PeeringData
-      collection_name: GCloudVPCs
+      collection_name: GCloud.Compute.VPCs
       pipeline:
         - $unwind: $peerings
         - $set:
@@ -113,7 +113,7 @@ Steps:
     DumpCSV: false
     Params:
       save_to: GCloud.VPC.AddressData
-      collection_name: GCloudAddresses
+      collection_name: GCloud.Compute.Addresses
       pipeline:
         - $project:
             id: 1
