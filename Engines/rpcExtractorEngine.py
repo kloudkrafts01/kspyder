@@ -99,7 +99,7 @@ class GenericRPCExtractor():
             logger.debug("caught {} items starting at row = {}".format(how_many,start_row))
             yield results
             
-            start_row += how_many
+            start_row = start_row + how_many
             batch_size = batch_size - how_many
             print("{} more to go.".format(batch_size))
 

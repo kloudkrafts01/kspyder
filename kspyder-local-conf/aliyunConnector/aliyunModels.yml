@@ -38,10 +38,11 @@ APIs:
     CloudSSO:
         name: alibabacloud_cloudsso20210515
         update_field: update_time
+        pagination_style: tokens
         is_truncated_key: is_truncated
         next_token_key: next_token
         last_request_key: request_id
-        max_results_key: max_results
+        batch_size_key: max_results
         convert_response_case: true
 
     Security:
@@ -190,7 +191,8 @@ Models:
         API: CloudSSO
         request_builder: ListUsersRequest
         query_name: list_users_with_options
-        datapath: Users[]
+        response_map:
+               data: Users[]
         accepted_inputs:
             - directory_id
         index_keys:
@@ -201,7 +203,8 @@ Models:
         API: CloudSSO
         request_builder: ListGroupsRequest
         query_name: list_groups_with_options
-        datapath: Groups[]
+        response_map:
+            data: Groups[]
         accepted_inputs:
             - directory_id
         index_keys:
@@ -212,7 +215,8 @@ Models:
         API: CloudSSO
         request_builder: ListGroupMembersRequest
         query_name: list_group_members_with_options
-        datapath: GroupMembers[]
+        response_map:
+            data: GroupMembers[]
         accepted_inputs:
             - directory_id
             - group_id
@@ -224,7 +228,8 @@ Models:
         API: CloudSSO
         request_builder: ListAccessConfigurationsRequest
         query_name: list_access_configurations_with_options
-        datapath: AccessConfigurations[]
+        response_map:
+            data: AccessConfigurations[]
         accepted_inputs:
             - directory_id
         index_keys:
@@ -234,7 +239,8 @@ Models:
         API: CloudSSO
         request_builder: ListPermissionPoliciesInAccessConfigurationRequest
         query_name: list_permission_policies_in_access_configuration_with_options
-        datapath: PermissionPolicies[]
+        response_map:
+            data: PermissionPolicies[]
         accepted_inputs:
             - directory_id
             - access_configuration_id
@@ -245,7 +251,8 @@ Models:
         API: CloudSSO
         request_builder: ListAccessAssignmentsRequest
         query_name: list_access_assignments_with_options
-        datapath: AccessAssignments[]
+        response_map:
+            data: AccessAssignments[]
         accepted_inputs:
             - directory_id
         index_keys:
@@ -259,7 +266,8 @@ Models:
         API: CS
         request_builder: DescribeClustersV1Request
         query_name: describe_clusters_v1with_options
-        datapath: clusters[]
+        response_map:  
+            data: clusters[]
         index_keys:
             - cluster_id
 
@@ -322,7 +330,6 @@ Models:
         request_builder: DescribeSecurityGroupAttributeRequest
         query_name: describe_security_group_attribute_with_options
         response_map: 
-
             data: Permissions.Permission[]
         accepted_inputs:
             - region_id

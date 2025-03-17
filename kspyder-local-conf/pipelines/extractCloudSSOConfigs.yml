@@ -28,6 +28,7 @@ Steps:
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: CloudSSOPolicyGrants
+    DumpCSV: true
     Params:
       save_to: Aliyun.CloudSSO.PolicyGrants
       collection_name: Aliyun.CloudSSO.CloudSSOAssignments

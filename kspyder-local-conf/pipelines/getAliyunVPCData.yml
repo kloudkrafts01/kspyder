@@ -22,7 +22,7 @@ Steps:
     Output: AliyunVSwitchInfo
     Params:
       save_to: Aliyun.VPC.VSwitchData
-      collection_name: Aliyun.VSwitches
+      collection_name: Aliyun.VPC.VSwitches
       pipeline:
         - $lookup:
             from: Aliyun.VPCs

@@ -63,13 +63,12 @@ Models:
     VPCs:
         base_name: VPC
         API: VPC
-        paginate: false
+        paginate: true
         query_domains:
             - DescribeVpcs
         datapath: Vpcs.Vpc[]
         index_keys:
             - VpcId
-            - VpcName
 
     VSwitches:
         base_name: VSwitch
@@ -79,7 +78,6 @@ Models:
         datapath: VSwitches.VSwitch[]
         index_keys:
             - VSwitchId
-            - VSwitchName
 
     LoadBalancers:
         base_name: LoadBalancer
@@ -111,7 +109,8 @@ Models:
         API: CloudSSO
         query_domains:
             - ListUsers
-        datapath: Users.User[]
+        response_map: 
+            data: Users.User[]
         index_keys:
             - UserId
             - UserName

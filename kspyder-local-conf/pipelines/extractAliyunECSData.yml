@@ -30,6 +30,62 @@ Steps:
             IsSupportIoOptimized: $IsSupportIoOptimized
             LoginAsNonRootSupported: $LoginAsNonRootSupported
 
+  - Name: Extract.ECSData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunECSData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.InstancesData
+      collection_name: Aliyun.ECS.ECSInstances
+      pipeline:
+        - $lookup:
+            from: Aliyun.VPC.VPCs
+            localField: VpcAttributes.VpcId
+            foreignField: VpcId
+            as: VpcInfo
+        - $unwind: 
+            path: $VpcInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Aliyun.VPC.VSwitches
+            localField: VpcAttributes.VSwitchId
+            foreignField: VSwitchId
+            as: VSwitchInfo
+        - $unwind: 
+            path: $VSwitchInfo
+            preserveNullAndEmptyArrays: true
+        - $unwind: 
+            path: $VpcAttributes.PrivateIpAddress.IpAddress
+            preserveNullAndEmptyArrays: true
+        - $unwind: 
+            path: $PublicIpAddress.IpAddress
+            preserveNullAndEmptyArrays: true
+        - $project:
+            InstanceId: 1
+            InstanceName: 1
+            InstanceType: 1
+            Status: 1
+            RegionId: 1
+            ZoneId: 1
+            OsType: 1
+            OSNameEn: 1
+            ImageId: 1
+            Cpu: 1
+            Memory: 1
+            PublicIpAddress: $PublicIpAddress.IpAddress
+            VpcId: $VpcAttributes.VpcId
+            VpcName: $VpcInfo.VpcName
+            VSwitchId: $VpcAttributes.VSwitchId
+            VSwitchName: $VSwitchInfo.VSwitchName
+            PrivateIpAddress: $VpcAttributes.PrivateIpAddress.IpAddress
+            SpotStrategy: 1
+            SpotPriceLimit: 1
+            SpotDuration: 1
+            SpotInterruptionBehavior: 1
+            CreationTime: 1
+            StartTime: 1
+
   - Name: ExtractNSGData
     Worker: mongoDBConnector
     Job: aggregate_data
@@ -37,10 +93,10 @@ Steps:
     DumpCSV: true
     Params:
       save_to: Aliyun.ECS.NSGData
-      collection_name: AliyunNSGRules
+      collection_name: Aliyun.ECS.NSGRules
       pipeline:
         - $lookup:
-            from: AliyunNSGs
+            from: Aliyun.ECS.NetworkSecurityGroups
             localField: security_group_id
             foreignField: SecurityGroupId
             as: NsgInfo
@@ -48,7 +104,7 @@ Steps:
         - $set:
             VpcId: $NsgInfo.VpcId
         - $lookup:
-            from: AliyunVPCs
+            from: Aliyun.VPC.VPCs
             localField: VpcId
             foreignField: VpcId
             as: VpcInfo
@@ -72,8 +128,4 @@ Steps:
             PortRange: 1
             Policy: 1
             Priority: 1
-
-
-
-
 
