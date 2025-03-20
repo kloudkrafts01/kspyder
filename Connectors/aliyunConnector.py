@@ -10,7 +10,6 @@ from alibabacloud_tea_openapi.models import Config
 from alibabacloud_tea_util.models import RuntimeOptions
 
 CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
-logger.debug("CONF: {}".format(CONF))
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
@@ -89,8 +88,6 @@ class aliyunConnector(RESTExtractor):
 
         return string
 
-
-
     def build_request(self, model, **params):
 
         request_builder = None
@@ -113,13 +110,19 @@ class aliyunConnector(RESTExtractor):
         if hasattr(self.api, 'total_count_key'):
             base_keys += self.api.total_count_key,
     
-        for key in (x for x in params.keys() if x in base_keys):
-            request_params[key] = params[key]
+        # for key in (x for x in params.keys() if x in base_keys):
+        #     request_params[key] = params[key]
 
+        # Only keep parameters with accepted keys
+        # valid_params = {}
         if 'accepted_inputs' in model.keys():
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
             for key in valid_keys:
                 request_params[key] = params[key]
+            logger.debug(f"valid request params: {request_params}")
+        else:
+            # If nothing specified, just keep any parameters passed
+            request_params = params
 
         if 'request_builder' in model.keys():
             # Import request builder and instanciate a request object
@@ -173,7 +176,7 @@ class aliyunConnector(RESTExtractor):
         raw_response_data = response.body.to_map()
         logger.debug("Response dict keys: {}".format(raw_response_data.keys()))
 
-        data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
+        data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = actual_start_token)
         logger.debug("Next token: {}".format(next_token))
 
         return data, is_truncated, next_token, actual_start_token

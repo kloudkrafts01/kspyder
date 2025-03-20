@@ -1,37 +1,41 @@
 Steps:
 
-  - Name: GetVPCs
-    Job: get_data_to_mongo
-    Output: AliyunVPCs
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: VPCs
-      last_days: null
+  # - Name: GetVPCs
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVPCs
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VPCs
+  #     last_days: null
 
-  - Name: GetVSwitches
-    Job: get_data_to_mongo
-    Output: AliyunVSwitches
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: VSwitches
-      last_days: null
+  # - Name: GetVSwitches
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVSwitches
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VSwitches
+  #     last_days: null
 
   - Name: ExtractVSwitchInfo
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: AliyunVSwitchInfo
+    DumpCSV: true
     Params:
       save_to: Aliyun.VPC.VSwitchData
       collection_name: Aliyun.VPC.VSwitches
       pipeline:
         - $lookup:
-            from: Aliyun.VPCs
+            from: Aliyun.VPC.VPCs
             localField: VpcId
             foreignField: VpcId
             as: VpcInfo
-        # - $unwind: $VpcInfo
+        - $unwind: 
+            path: $VpcInfo
+            preserveNullAndEmptyArrays: true
         - $project:
             VpcName: $VpcInfo.VpcName
+            VpcCidrBlock: $VpcInfo.CidrBlock
             VpcId: 1
             VSwitchName: 1
             VSwitchId: 1

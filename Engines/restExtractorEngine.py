@@ -140,7 +140,7 @@ class RESTExtractor():
         # logger.debug("Extractor object: {}".format(self.__dict__))
 
         if last_days:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now()
             delta = datetime.timedelta(days=last_days)
             yesterday = now - delta
 
@@ -288,35 +288,53 @@ class RESTExtractor():
         is_truncated = False
         next_token = None
 
+        logger.debug(f"Applying Response map: {self.response_map}")
+        
         for key, value in self.response_map.items():
-            translated_data[key] = jmespath.search(value, response_data)
-
-        # logger.debug("Translated response data: {}".format(translated_data))
+            # get all fields through JMESpath expressions, except if the keyword __ROOT__ is there.
+            # if __ROOT__ is given in the model def, then just store the full response body in list type
+            
+            if value == "__ROOT__":
+                translated_data[key] = response_data if type(response_data) is list else [response_data]
+            else:
+                translated_data[key] = jmespath.search(value, response_data)
 
         # pop out the dataset and keep the rest as metadata
         data = translated_data.pop('data')
+        if data is None:
+            data = []
         metadata = translated_data
 
-        logger.debug("Item metadata: {}".format(metadata))
-
-        count = int(translated_data['count']) if 'count' in translated_data.keys() else len(data)
-        total_count = translated_data['total_count'] if 'total_count' in translated_data.keys() else None
+        count = int(translated_data.get('count', len(data)))
+        total_count = translated_data.get('total_count')
         total_count = int(total_count) if total_count else None
-        next_token = translated_data['next_token'] if 'next_token' in translated_data.keys() else None
+        next_token = translated_data.get('next_token')
         logger.debug("next token: {}".format(next_token))
         
-        # Determine if the current results are truncated or not, based on explicit fields if present, or on number counts
+        # Determine if the current results are truncated or not 
+        # If explicitly given in the response, then take it
         if 'is_truncated' in translated_data.keys():
             is_truncated = translated_data['is_truncated']
+            logger.debug(f"is_truncated value found in response: {is_truncated}")
+
+        # if not : explicit 'is_last' value > no next token > empty next token > count equals total
         else:
             if 'is_last' in translated_data.keys():
                 is_last = bool(translated_data['is_last'])
                 logger.debug("Is Last ? {}".format(is_last))
                 is_truncated = not is_last
+
+            elif next_token is None:
+                is_truncated = False
+
             elif next_token is not None:
                 is_truncated = (next_token != "")
-            elif total_count is not None:
-                is_truncated = (count < total_count) and (count > 0)
+                logger.debug(f"Is Truncated because there is a next token ? {is_truncated}")
+
+                if total_count is not None:
+                    logger.debug(f"Determining if truncated from count: {count}, total count: {total_count}")
+                    is_truncated = (count < total_count) and (count > 0)
+
             else: 
                 is_truncated = False
 
@@ -324,6 +342,7 @@ class RESTExtractor():
 
         # If page-based pagination, replace whatever next_token value with pagenumber + 1
         if (self.api.pagination_style == "pages") and is_truncated:
+            logger.debug(f"Start Token: {start_token}")
             next_token = start_token + 1
         
         # If offset-based pagination, replace whatever next_token value with offset + results size

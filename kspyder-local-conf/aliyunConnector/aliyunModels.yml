@@ -15,6 +15,9 @@ APIs:
     CS:
         name: alibabacloud_cs20151215
         update_field: updated
+        pagination_style: tokens
+        batch_size_key: max_results
+        total_count_key: total_count
         is_truncated_key: is_truncated
         next_token_key: marker
         last_request_key: request_id
@@ -57,6 +60,33 @@ APIs:
             page_size: PageSize
             request_id: RequestId
             total_count: TotalCount
+
+    SLB_by_pages:
+        name: alibabacloud_slb20140515
+        update_field: CreateTime
+        pagination_style: pages
+        next_token_key: page_number
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            page_number: PageNumber
+            page_size: PageSize
+            request_id: RequestId
+            total_count: TotalCount
+
+    SLB_by_tokens:
+        name: alibabacloud_slb20140515
+        update_field: update_date
+        pagination_style: tokens
+        next_token_key: next_token
+        last_request_key: request_id
+        batch_size_key: max_results
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            next_token: NextToken
+            request_id: RequestId
+            max_results: MaxResults
     
 Models:
 
@@ -66,7 +96,8 @@ Models:
         API: RAM
         request_builder: ListUsersRequest
         query_name: list_users_with_options
-        datapath: Users.User[]
+        response_map:
+            data: Users.User[]
         index_keys:
             - UserId
             - UserName
@@ -75,7 +106,8 @@ Models:
         API: RAM
         request_builder: ListGroupsRequest
         query_name: list_groups_with_options
-        datapath: Groups.Group[]
+        response_map:
+            data: Groups.Group[]
         index_keys:
             - GroupId
             - GroupName
@@ -84,7 +116,8 @@ Models:
         API: RAM
         request_builder: ListUsersForGroupRequest
         query_name: list_users_for_group_with_options
-        datapath: Users.User[]
+        response_map:
+            data: Users.User[]
         accepted_inputs:
             - group_name
         index_keys:
@@ -95,7 +128,8 @@ Models:
         API: RAM
         request_builder: ListRolesRequest
         query_name: list_roles_with_options
-        datapath: Roles.Role[]
+        response_map:
+            data: Roles.Role[]
         index_keys:
             - RoleId
             - RoleName
@@ -104,7 +138,8 @@ Models:
         API: RAM
         request_builder: ListPoliciesRequest
         query_name: list_policies_with_options
-        datapath: Policies.Policy[]
+        response_map:
+            data: Policies.Policy[]
         index_keys:
             - PolicyName
 
@@ -112,7 +147,8 @@ Models:
         API: RAM
         request_builder: ListPolicyVersionsRequest
         query_name: list_policy_versions_with_options
-        datapath: PolicyVersions.PolicyVersion[]
+        response_map:
+            data: PolicyVersions.PolicyVersion[]
         accepted_inputs:
             - policy_name
             - policy_type
@@ -124,7 +160,8 @@ Models:
         API: RAM
         request_builder: ListAccessKeysRequest
         query_name: list_access_keys_with_options
-        datapath: AccessKeys.AccessKey[]
+        response_map:
+            data: AccessKeys.AccessKey[]
         accepted_inputs:
             - user_name
         index_keys:
@@ -134,7 +171,8 @@ Models:
         API: RAM
         request_builder: ListPoliciesForGroupRequest
         query_name: list_policies_for_group_with_options
-        datapath: Policies.Policy[]
+        response_map:
+            data: Policies.Policy[]
         accepted_inputs:
             - group_name
         index_keys:
@@ -146,7 +184,8 @@ Models:
         API: RAM
         request_builder: ListPoliciesForRoleRequest
         query_name: list_policies_for_role_with_options
-        datapath: Policies.Policy[]
+        response_map:
+            data: Policies.Policy[]
         accepted_inputs:
             - role_name
         index_keys:
@@ -157,7 +196,8 @@ Models:
         API: RAM
         request_builder: ListPoliciesForUserRequest
         query_name: list_policies_for_user_with_options
-        datapath: Policies.Policy[]
+        response_map:
+            data: Policies.Policy[]
         accepted_inputs:
             - user_name
         index_keys:
@@ -169,7 +209,8 @@ Models:
     #     API: RAM
     #     request_builder: ListEntitiesForPolicyRequest
     #     query_name: list_entities_for_policy_with_options
-    #     datapath: Policies.Policy[]
+    #     response_map:
+            # data: Policies.Policy[]
     #     accepted_inputs:
     #         - PolicyName
     #         - PolicyType
@@ -183,7 +224,8 @@ Models:
     # CloudSSODirectories:
     #     API: CloudSSO
     #     query_name: list_directories
-    #     datapath: Directories.Directory[]
+    #     response_map:
+    #         data: Directories.Directory[]
     #     index_keys:
     #         - DirectoryId
 
@@ -266,17 +308,31 @@ Models:
         API: CS
         request_builder: DescribeClustersV1Request
         query_name: describe_clusters_v1with_options
+        accepted_inputs:
+            - region_id
         response_map:  
             data: clusters[]
         index_keys:
             - cluster_id
 
     # To be reworked : maybe better fit for basic REST extract
+    # ACKClusterDetails:
+    #     API: CS
+    #     query_name: describe_cluster_detail_with_options
+    #     response_map:
+    #        data: __ROOT__
+    #     accepted_inputs:
+    #         - cluster_id
+    #     index_keys:
+    #         - cluster_id
+
+    # To be reworked : maybe better fit for basic REST extract
     # ACKClusterResources:
     #     API: CS
     #     request_builder: DescribeClusterResourcesRequest
     #     query_name: describe_cluster_resources_with_options
-    #     datapath: "[]"
+    #     response_map:
+    #        data: __ROOT__
     #     positional_inputs:
     #         - cluster_id
     #     accepted_inputs:
@@ -336,6 +392,91 @@ Models:
             - security_group_id
         index_keys:
             - SecurityGroupRuleId
+
+  # ================ Load Balancers Models ==================
+
+    ClassicLoadBalancers:
+        API: SLB_by_pages
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancersRequest
+        query_name: describe_load_balancers_with_options
+        response_map:
+            data: LoadBalancers.LoadBalancer[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - LoadBalancerId
+
+    CLBAttrributes:
+        API: SLB_by_pages
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancerAttributeRequest
+        query_name: describe_load_balancer_attribute_with_options
+        paginated: false
+        response_map:
+            data: __ROOT__
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+        index_keys:
+            - LoadBalancerId
+
+    LoadBalancerListeners:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancerListenersRequest
+        query_name: describe_load_balancer_listeners_with_options
+        response_map:
+            data: Listeners[]
+        accepted_inputs:
+            - region_id
+            - next_token
+            - max_results
+        index_keys:
+            - LoadBalancerId
+            - AclId
+            - VServerGroupId
+
+    LBForwardingRules:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeRulesRequest
+        query_name: describe_rules_with_options
+        response_map:
+            data: Rules.Rule[]
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+            - listener_port
+        index_keys:
+            - RuleId
+
+    VServerGroups:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeVServerGroupsRequest
+        query_name: describe_vserver_groups_with_options
+        response_map:
+            data: VServerGroups.VServerGroup[]
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+        index_keys:
+            - VServerGroupId
+
+    VServerGroupAttributes:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeVServerGroupAttributeRequest
+        query_name: describe_vserver_group_attribute_with_options
+        response_map:
+            data: __ROOT__
+        accepted_inputs:
+            - region_id
+            - vserver_group_id
+        index_keys:
+            - LoadBalancerId
+            - VServerGroupId
 
   # ================ Yundun / Cloud Security Models ==================
 

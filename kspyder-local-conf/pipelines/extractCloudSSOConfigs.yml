@@ -48,7 +48,7 @@ Steps:
             Description: $Policies.Description
             Permission: $Policies.Permission
             PermissionType: $Policies.PermissionType
-            PermissionDocument: $Policies.PermissionDocument
+            # PermissionDocument: $Policies.PermissionDocument
             TargetId: 1
             TargetName: 1
             TargetPathName: 1

@@ -43,6 +43,8 @@ class pipelineEngine:
             'data': data
         }
 
+        logger.debug(f"Static data: {static_dataset}")
+
         return static_dataset
 
     def get_unique_key_list(self,input_data=None,key=None,datapath=None):
@@ -103,7 +105,7 @@ class pipelineEngine:
             step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
             worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
             job_instance = getattr(worker_module,job_name)
-            logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
+            logger.info("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
 
             if step_input:
                 result = job_instance(input_data=step_input,**step_params)
@@ -112,9 +114,9 @@ class pipelineEngine:
 
             # Store Output
             step_output_name = step['Output'] if 'Output' in step.keys() else step_name
-            logger.debug("Inserting result set {} in the pile.".format(step_output_name))
+            logger.info("Inserting result set {} in the pile.".format(step_output_name))
             datasets[step_output_name] = result
-            logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
+            logger.info("Current datasets in the processing pile: {}".format(list(datasets.keys())))
 
             # If the step conf specifies the result needs to be dumped into csv or json, proceed.
             # Order is important : csv first, then json
