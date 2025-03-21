@@ -407,7 +407,7 @@ Models:
         index_keys:
             - LoadBalancerId
 
-    CLBAttrributes:
+    CLBAttributes:
         API: SLB_by_pages
         api_namespace: SLB
         request_builder: DescribeLoadBalancerAttributeRequest

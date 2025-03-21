@@ -28,13 +28,13 @@ Steps:
         - $unset:
           - _id
 
-  - Name: GetToMongo.CLBAttrributes
+  - Name: GetToMongo.CLBAttributes
     Job: get_data_to_mongo
     Input: ClbIds.data
-    Output: CLBAttrributes
+    Output: CLBAttributes
     Params:
       from_worker: aliyunConnector
-      model_name: CLBAttrributes
+      model_name: CLBAttributes
 
   - Name: Extract.ListenerPorts
     Worker: mongoDBConnector
@@ -42,7 +42,7 @@ Steps:
     Output: ListenerPorts
     Params:
       save_to: Aliyun.SLB.ListenerPorts
-      collection_name: Aliyun.SLB.CLBAttrributes
+      collection_name: Aliyun.SLB.CLBAttributes
       pipeline:
         - $unwind: $ListenerPorts.ListenerPort
         - $project:

@@ -1,20 +1,20 @@
 Steps:
 
-  # - Name: GetVPCs
-  #   Job: get_data_to_mongo
-  #   Output: AliyunVPCs
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: VPCs
-  #     last_days: null
+  - Name: GetVPCs
+    Job: get_data_to_mongo
+    Output: AliyunVPCs
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: VPCs
+      last_days: null
 
-  # - Name: GetVSwitches
-  #   Job: get_data_to_mongo
-  #   Output: AliyunVSwitches
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: VSwitches
-  #     last_days: null
+  - Name: GetVSwitches
+    Job: get_data_to_mongo
+    Output: AliyunVSwitches
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: VSwitches
+      last_days: null
 
   - Name: ExtractVSwitchInfo
     Worker: mongoDBConnector

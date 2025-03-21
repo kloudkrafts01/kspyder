@@ -1,0 +1,87 @@
+Steps:
+
+- Name: Expand.CLBAttributesFull
+  Worker: mongoDBConnector
+  Job: aggregate_data
+  Output: CLBAttributesFull
+  Params:
+    save_to: Aliyun.SLB.CLBAttributesFull
+    collection_name: Aliyun.SLB.CLBAttributes
+    pipeline:
+      - $lookup:
+          from: Aliyun.VPC.VSwitchData
+          localField: VSwitchId
+          foreignField: VSwitchId
+          as: VSwitchInfo
+      - $unwind: 
+          path: $VSwitchInfo
+          preserveNullAndEmptyArrays: true
+      - $set:
+          VpcName: $VSwitchInfo.VpcName
+          VSwitchName: $VSwitchInfo.VSwitchName
+
+- Name: Extract.CLBBackendsData
+  Worker: mongoDBConnector
+  Job: aggregate_data
+  Output: CLBBackendsData
+  Params:
+    save_to: Aliyun.SLB.CLBBackendsData
+    collection_name: Aliyun.SLB.CLBAttributesFull
+    pipeline:
+      - $unwind: $BackendServers.BackendServer
+      - $set: 
+          BackendServerId: $BackendServers.BackendServer.ServerId
+      - $lookup:
+          from: Aliyun.ECS.InstancesData
+          localField: BackendServerId
+          foreignField: InstanceId
+          as: ECSInfo
+      - $unwind: $ECSInfo
+      - $project:
+          LoadBalancerId: 1
+          LoadBalancerName: 1
+          LoadBalancerStatus: 1
+          Address: 1
+          AddressType: 1
+          MasterZoneId: 1
+          SlaveZoneId: 1
+          BackendServerName: $ECSInfo.InstanceName
+          BackendServerAddress: $ECSInfo.PrivateIpAddress
+          BackendVSwitch: $ECSInfo.VSwitchName
+          BackendZone: $ECSInfo.ZoneId
+
+- Name: Extract.ListenersData
+  Worker: mongoDBConnector
+  Job: aggregate_data
+  Output: ListenersData
+  Params:
+    save_to: Aliyun.SLB.ListenersData
+    collection_name: Aliyun.SLB.LoadBalancerListeners
+    pipeline:
+      - $lookup:
+          from: Aliyun.SLB.CLBAttributes
+          localField: LoadBalancerId
+          foreignField: LoadBalancerId
+          as: LBInfo
+      - $unwind: $LBInfo
+      - $project:
+          LoadBalancerId: 1
+          LoadBalancerName: $LBInfo.LoadBalancerName
+          LoadBalancerStatus: $LBInfo.LoadBalancerStatus
+          Address: $LBInfo.Address
+          AddressType: $LBInfo.AddressType
+          Description: 1
+          ListenerPort: 1
+          ListenerProtocol: 1
+          HTTPSIdleTimeout: $HTTPSListenerConfig.IdleTimeout
+          HTTPSRequestTimeout: $HTTPSListenerConfig.RequestTimeout
+          TLSCipherPolicy: $HTTPSListenerConfig.TLSCipherPolicy
+          XForwardedFor: $HTTPSListenerConfig.XForwardedFor
+          Stickysession: $HTTPSListenerConfig.Stickysession
+          TCPPersistenceTimeout: $TCPListenerConfig.PersistenceTimeout
+          HealthCheckConnectPort: $TCPListenerConfig.HealthCheckConnectPort
+          HealthCheckConnectTimeout: $TCPListenerConfig.HealthCheckConnectTimeout
+          HealthCheckInterval: $TCPListenerConfig.HealthCheckInterval
+          HealthCheckURI: $TCPListenerConfig.HealthCheckURI
+          HealthyThreshold: $TCPListenerConfig.HealthyThreshold
+          UnhealthyThreshold: $TCPListenerConfig.UnhealthyThreshold
