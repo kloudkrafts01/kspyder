@@ -110,8 +110,8 @@ class aliyunConnector(RESTExtractor):
         if hasattr(self.api, 'total_count_key'):
             base_keys += self.api.total_count_key,
     
-        # for key in (x for x in params.keys() if x in base_keys):
-        #     request_params[key] = params[key]
+        for key in (x for x in params.keys() if x in base_keys):
+            request_params[key] = params[key]
 
         # Only keep parameters with accepted keys
         # valid_params = {}
@@ -120,9 +120,9 @@ class aliyunConnector(RESTExtractor):
             for key in valid_keys:
                 request_params[key] = params[key]
             logger.debug(f"valid request params: {request_params}")
-        else:
-            # If nothing specified, just keep any parameters passed
-            request_params = params
+        # else:
+        #     # If nothing specified, just keep any parameters passed
+        #     request_params = params
 
         if 'request_builder' in model.keys():
             # Import request builder and instanciate a request object

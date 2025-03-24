@@ -48,6 +48,14 @@ Steps:
             path: $VpcInfo
             preserveNullAndEmptyArrays: true
         - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind: 
+            path: $RGInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
             from: Aliyun.VPC.VSwitches
             localField: VpcAttributes.VSwitchId
             foreignField: VSwitchId
@@ -64,6 +72,9 @@ Steps:
         - $project:
             InstanceId: 1
             InstanceName: 1
+            ResourceGroupId: 1
+            ResourceGroup: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
             InstanceType: 1
             Status: 1
             RegionId: 1
@@ -103,17 +114,27 @@ Steps:
         - $unwind: $NsgInfo
         - $set:
             VpcId: $NsgInfo.VpcId
+            ResourceGroupId: $NsgInfo.ResourceGroupId
+        - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind: $RGInfo
         - $lookup:
             from: Aliyun.VPC.VPCs
             localField: VpcId
             foreignField: VpcId
             as: VpcInfo
         - $unwind: $VpcInfo
-        - $project: 
+        - $project:
             VpcId: 1
             VpcName: $VpcInfo.VpcName
             SecurityGroupId: 1
             SecurityGroupName: $NsgInfo.SecurityGroupName
+            ResourceGroupId: 1
+            ResourceGroup: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
             SecurityGroupRuleId: 1
             Description: 1
             SourcePortRange: 1

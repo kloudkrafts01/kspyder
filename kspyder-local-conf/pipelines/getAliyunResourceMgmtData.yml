@@ -1,0 +1,8 @@
+Steps:
+
+  - Name: GetToMongo.ResourceGroups
+    Job: get_data_to_mongo
+    Output: ResourceGroups
+    Params:
+      from_worker: aliyunConnector 
+      model_name: ResourceGroups

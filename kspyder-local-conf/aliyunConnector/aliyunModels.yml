@@ -11,6 +11,21 @@ APIs:
         next_token_key: marker
         last_request_key: request_id
         convert_response_case: true
+
+    RM:
+        name: alibabacloud_resourcemanager20200331
+        update_field: CreateDate
+        pagination_style: pages
+        next_token_key: page_number
+        batch_size_key: page_size
+        total_count_key: total_count
+        last_request_key: request_id
+        response_map:
+            total_count: TotalCount
+            request_id: RequestId
+            page_size: PageSize
+            page_number: PageNumber
+
     
     CS:
         name: alibabacloud_cs20151215
@@ -89,6 +104,17 @@ APIs:
             max_results: MaxResults
     
 Models:
+
+# ================ Resource Management Models ==================
+
+    ResourceGroups:
+        API: RM
+        request_builder: ListResourceGroupsRequest
+        query_name: list_resource_groups_with_options
+        response_map:
+            data: ResourceGroups.ResourceGroup[]
+        index_keys:
+            - Id
 
 # ================ RAM Models ==================
 

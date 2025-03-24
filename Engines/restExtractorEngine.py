@@ -293,7 +293,6 @@ class RESTExtractor():
         for key, value in self.response_map.items():
             # get all fields through JMESpath expressions, except if the keyword __ROOT__ is there.
             # if __ROOT__ is given in the model def, then just store the full response body in list type
-            
             if value == "__ROOT__":
                 translated_data[key] = response_data if type(response_data) is list else [response_data]
             else:
@@ -305,10 +304,13 @@ class RESTExtractor():
             data = []
         metadata = translated_data
 
+        logger.debug(f"Translated metadata: {translated_data}")
+
         count = int(translated_data.get('count', len(data)))
         total_count = translated_data.get('total_count')
         total_count = int(total_count) if total_count else None
-        next_token = translated_data.get('next_token')
+        next_token_key = self.api.next_token_key
+        next_token = translated_data.get(next_token_key)
         logger.debug("next token: {}".format(next_token))
         
         # Determine if the current results are truncated or not 
