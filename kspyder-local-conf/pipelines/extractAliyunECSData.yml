@@ -150,3 +150,54 @@ Steps:
             Policy: 1
             Priority: 1
 
+  - Name: ViewInstanceTypeByZone
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AvailableInstanceTypesByZone
+    # DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.InstanceTypesByZone
+      collection_name: Aliyun.ECS.AvailableECStypes
+      pipeline:
+        - $unwind:
+            path: $AvailableResources.AvailableResource
+            preserveNullAndEmptyArrays: true
+        - $unwind:
+            path: $AvailableResources.AvailableResource.SupportedResources.SupportedResource
+            preserveNullAndEmptyArrays: true
+        - $set:
+            resource: $AvailableResources.AvailableResource.SupportedResources.SupportedResource
+        - $project:
+            RegionId: 1
+            ZoneId: 1
+            InstanceFamily:
+              $arrayElemAt:
+                - $split:
+                    - $resource.Value
+                    - "."
+                - 1
+            InstanceSize:
+              $arrayElemAt:
+                - $split:
+                    - $resource.Value
+                    - "."
+                - 2
+            InstanceType: $resource.Value
+            Status: $resource.Status
+            StatusCategory: $resource.StatusCategory
+
+  - Name: ExtractInstanceTypesSubset
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: InstanceTypesSubset
+    DumpCSV: true
+    Params:
+      collection_name: Aliyun.ECS.InstanceTypesByZone
+      pipeline:
+        - $match:
+            $or:
+              - ZoneId: cn-shanghai-b
+              - ZoneId: cn-shanghai-g
+              - ZoneId: cn-shanghai-l
+              - ZoneId: cn-shanghai-m
+              - ZoneId: cn-shanghai-n

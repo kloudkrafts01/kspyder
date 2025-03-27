@@ -109,20 +109,23 @@ class aliyunConnector(RESTExtractor):
             base_keys += self.api.is_truncated_key,
         if hasattr(self.api, 'total_count_key'):
             base_keys += self.api.total_count_key,
-    
-        for key in (x for x in params.keys() if x in base_keys):
-            request_params[key] = params[key]
+
+        # If pull should be paginated (default = true), add base pagination params
+        if model.get('paginate', True):
+            for key in (x for x in params.keys() if x in base_keys):
+                request_params[key] = params[key]
+
+        # # if the pull should not be paginated, drop the next token param
+        # if not model.get('paginate', True):
+        #     request_params.pop(self.api.next_token_key)
 
         # Only keep parameters with accepted keys
-        # valid_params = {}
         if 'accepted_inputs' in model.keys():
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
             for key in valid_keys:
                 request_params[key] = params[key]
             logger.debug(f"valid request params: {request_params}")
-        # else:
-        #     # If nothing specified, just keep any parameters passed
-        #     request_params = params
+        
 
         if 'request_builder' in model.keys():
             # Import request builder and instanciate a request object

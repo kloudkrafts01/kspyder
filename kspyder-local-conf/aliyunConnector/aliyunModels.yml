@@ -396,6 +396,20 @@ Models:
             - ImageName
             - ImageOwnerAlias
 
+    AvailableECStypes:
+        API: ECS
+        request_builder: DescribeAvailableResourceRequest
+        query_name: describe_available_resource_with_options
+        paginate: false
+        response_map:
+            data: AvailableZones.AvailableZone[]
+        accepted_inputs:
+            - region_id
+            - destination_resource
+        index_keys:
+            - RegionId
+            - ZoneId
+
     NetworkSecurityGroups:
         API: ECS
         request_builder: DescribeSecurityGroupsRequest

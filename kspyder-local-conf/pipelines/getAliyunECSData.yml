@@ -15,13 +15,13 @@ Steps:
       from_worker: aliyunConnector 
       model_name: ECSInstances
 
-  # - Name: GetToMongo.StandardImages
-  #   Job: get_data_to_mongo
-  #   Output: ECSImages
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: ECSImages
-  #     last_days: null
+  - Name: GetToMongo.StandardImages
+    Job: get_data_to_mongo
+    Output: ECSImages
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: ECSImages
+      last_days: null
 
   # - Name: GetToMongo.MarketplaceImages
   #   Job: get_data_to_mongo
@@ -34,6 +34,22 @@ Steps:
   #       - - 'ImageOwnerAlias'
   #         - 'eq'
   #         - 'marketplace'
+
+  - Name: PrepareInstanceTypeInput
+    Job: set_static_data
+    Output: InstanceTypeInput
+    Params:
+      data:
+        - region_id: cn-shanghai
+          destination_resource: InstanceType
+
+  - Name: GetToMongo.AvailableECStypes
+    Job: get_data_to_mongo
+    Input: InstanceTypeInput.data
+    Output: AvailableECStypes
+    Params:
+      from_worker: aliyunConnector
+      model_name: AvailableECStypes
 
   - Name: GetToMongo.NSGs
     Job: get_data_to_mongo
