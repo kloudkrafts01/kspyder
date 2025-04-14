@@ -15,6 +15,14 @@ Steps:
       from_worker: aliyunConnector 
       model_name: ECSInstances
 
+  - Name: GetToMongo.ECSDisks
+    Job: get_data_to_mongo
+    Output: ECSDisks
+    Input: RegionData.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: ECSDisks
+
   - Name: GetToMongo.StandardImages
     Job: get_data_to_mongo
     Output: ECSImages

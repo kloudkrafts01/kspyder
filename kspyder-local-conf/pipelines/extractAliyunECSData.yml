@@ -97,6 +97,60 @@ Steps:
             CreationTime: 1
             StartTime: 1
 
+  - Name: Extract.ECSDiskData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunECSDiskData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.DisksData
+      collection_name: Aliyun.ECS.ECSDisks
+      pipeline:
+        - $unwind: $Attachments.Attachment
+        - $set:
+            mountpoint: $Attachments.Attachment
+        - $lookup:
+            from: Aliyun.ECS.InstancesData
+            localField: mountpoint.InstanceId
+            foreignField: InstanceId
+            as: InstanceInfo
+        - $unwind:
+            path: $InstanceInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind:
+            path: $RGInfo
+            preserveNullAndEmptyArrays: true
+        - $project:
+            ResourceGroupName: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
+            ResourceGroupId: 1
+            RegionId: 1
+            ZoneId: 1
+            DiskId: 1
+            DiskName: 1
+            DiskCategory: $Category
+            DiskSize: $Size
+            DiskStatus: $Status
+            MultiAttach: 1
+            MountInstanceName: $InstanceInfo.InstanceName
+            MountInstanceId: $mountpoint.InstanceId
+            MountPoint: $mountpoint.Device
+            MountTime: $mountpoint.AttachedTime
+            EnableAutomatedSnapshotPolicy: 1
+            AutoSnapshotPolicyId: 1
+            Portable: 1
+            DeleteWithInstance: 1
+            IOPS: 1
+
+
+          
+
+
   - Name: ExtractNSGData
     Worker: mongoDBConnector
     Job: aggregate_data

@@ -163,7 +163,7 @@ class gcloudConnector(RESTExtractor):
             for item in response:
 
                 data = self.postprocess_item(item, model)
-                logger.debug("post-processed item: {}".format(data))
+                # logger.debug("post-processed item: {}".format(data))
                 total_count += 1
                 output_docs += data,
 

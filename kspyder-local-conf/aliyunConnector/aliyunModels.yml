@@ -102,6 +102,16 @@ APIs:
             next_token: NextToken
             request_id: RequestId
             max_results: MaxResults
+
+    ELK:
+        name: alibabacloud_elasticsearch20170613
+        update_field: update_date
+        pagination_style: pages
+        next_token_key: page
+        last_request_key: request_id
+        batch_size_key: size
+        response_map:
+            request_id: RequestId
     
 Models:
 
@@ -382,6 +392,17 @@ Models:
             - InstanceId
             - InstanceName
 
+    ECSDisks:
+        API: ECS
+        request_builder: DescribeDisksRequest
+        query_name: describe_disks_with_options
+        response_map:
+            data: Disks.Disk[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - DiskId
+
     ECSImages:
         API: ECS
         request_builder: DescribeImagesRequest
@@ -532,3 +553,15 @@ Models:
             data: Policys[]
         index_keys:
             - PolicyId
+
+# ================ Yundun / Cloud Security Models ==================
+
+    ElasticClusters:
+        API: ELK
+        query_name: list_instance_with_options
+        accepted_inputs:
+            - resource_group_id
+            - vpc_id
+        response_map:
+            data: Result
+            request_id: RequestId
