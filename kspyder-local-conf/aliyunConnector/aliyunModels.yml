@@ -53,6 +53,20 @@ APIs:
             request_id: RequestId
             max_results: MaxResults
 
+    KMS:
+        name: alibabacloud_kms20160120
+        update_field: update_date
+        pagination_style: pages
+        next_token_key: page_number
+        last_request_key: request_id
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            page_number: PageNumber
+            request_id: RequestId
+            page_size: PageSize
+
     CloudSSO:
         name: alibabacloud_cloudsso20210515
         update_field: update_time
@@ -400,6 +414,7 @@ Models:
             data: Disks.Disk[]
         accepted_inputs:
             - region_id
+            - RegionId
         index_keys:
             - DiskId
 
@@ -439,6 +454,7 @@ Models:
             data: SecurityGroups.SecurityGroup[]
         accepted_inputs:
             - region_id
+            - RegionId
         index_keys:
             - SecurityGroupId
 
@@ -451,10 +467,56 @@ Models:
         accepted_inputs:
             - region_id
             - security_group_id
+            - RegionId
+            - SecurityGroupId
         index_keys:
             - SecurityGroupRuleId
 
-  # ================ Load Balancers Models ==================
+# ================ Key Management Service Models ==================
+
+    KMSKeyList:
+        API: KMS
+        request_builder: ListKeysRequest
+        query_name: list_keys_with_options
+        response_map:
+            data: Keys.Key[]
+        index_keys:
+            - KeyId
+    
+    KMSKeys:
+        API: KMS
+        request_builder: DescribeKeyRequest
+        query_name: describe_key_with_options
+        paginate: false
+        response_map:
+            data: KeyMetadata
+        accepted_inputs:
+            - key_id
+        index_keys:
+            - KeyId
+    
+    KMSInstanceList:
+        API: KMS
+        request_builder: ListKmsInstancesRequest
+        query_name: list_kms_instances_with_options
+        response_map:
+            data: KmsInstances.KmsInstance[]
+        index_keys:
+            - KmsInstanceId
+
+    KMSInstances:
+        API: KMS
+        request_builder: GetKmsInstanceRequest
+        query_name: get_kms_instance_with_options
+        paginate: false
+        response_map:
+            data: KmsInstance
+        accepted_inputs:
+            - kms_instance_id
+        index_keys:
+            - KmsInstanceId
+
+# ================ Load Balancers Models ==================
 
     ClassicLoadBalancers:
         API: SLB_by_pages

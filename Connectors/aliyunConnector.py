@@ -6,6 +6,7 @@ from Engines.restExtractorEngine import RESTExtractor
 from common.config import MODULES_MAP, PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 
+from alibabacloud_credentials.client import Client as CredClient
 from alibabacloud_tea_openapi.models import Config
 from alibabacloud_tea_util.models import RuntimeOptions
 
@@ -21,16 +22,28 @@ ALIYUN_MAX_PAGE_SIZE = 50
 
 class AliyunClient:
 
-    def __init__(self, access_key_id:str, access_key_secret:str, region_id:str, api_name=None, **kwargs):
+    def __init__(self, 
+                 access_key_id:str=None, 
+                 access_key_secret:str=None, 
+                 region_id:str='cn-shanghai', 
+                 api_name:str=None, 
+                 **kwargs
+                 ):
         
+        cred = CredClient()
         config = Config(
-            # Required, your AccessKey ID,
-            access_key_id = access_key_id,
-            # Required, your AccessKey secret,
-            access_key_secret = access_key_secret,
-            # The Region Id. Required in some cases depending on the actual client
+            credential = cred,
             region_id = region_id
-        )
+            )
+
+        # config = Config(
+        #     # Required, your AccessKey ID,
+        #     access_key_id = access_key_id,
+        #     # Required, your AccessKey secret,
+        #     access_key_secret = access_key_secret,
+        #     # The Region Id. Required in some cases depending on the actual client
+        #     region_id = region_id
+        # )
 
         # Import the connector's modules
         self.source_client = import_module('{}.client'.format(api_name))
@@ -43,9 +56,9 @@ class AliyunClient:
     def from_env(cls,api_name=None):
         env = os.environ
         return cls(
-            env['ALIBABACLOUD_ACCESS_KEY_ID'],
-            env['ALIBABACLOUD_ACCESS_KEY_SECRET'],
-            env['ALIBABACLOUD_REGION_ID'],
+            env['ALIBABA_CLOUD_ACCESS_KEY_ID'],
+            env['ALIBABA_CLOUD_ACCESS_KEY_SECRET'],
+            env['ALIBABA_CLOUD_REGION_ID'],
             api_name = api_name
         )
 
@@ -161,7 +174,7 @@ class aliyunConnector(RESTExtractor):
         next_token = None
 
         # Instantiate a new AliyunClient and set it to current client
-        aliyun_client = AliyunClient.from_env(api_name = self.api.name)
+        aliyun_client = AliyunClient( api_name = self.api.name )
         self.client = aliyun_client.client
         self.source_models = aliyun_client.source_models
         self.runtime_options = RuntimeOptions()

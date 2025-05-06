@@ -1,0 +1,56 @@
+Steps:
+
+  # - Name: SetAliyunRegionId
+  #   Job: set_static_data
+  #   Output: RegionData
+  #   Params:
+  #     data:
+  #       - region_id: cn-shanghai
+
+  - Name: GetToMongo.KMSInstanceList
+    Job: get_data_to_mongo
+    Output: KMSInstanceList
+    Params:
+      from_worker: aliyunConnector 
+      model_name: KMSInstanceList
+  
+  # - Name: Set.KMSIdsList
+  #   Job: get_unique_key_list
+  #   Input: KMSInstanceList
+  #   Output: KMSInstanceIds
+  #   Params:
+  #     key: kms_instance_id
+  #     datapath: data[].KmsInstanceId
+
+  # - Name: GetToMongo.KMSInstances
+  #   Job: get_data_to_mongo
+  #   Output: KMSInstances
+  #   Input: KMSInstanceIds.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: KMSInstances
+
+  # - Name: GetToMongo.KMSKeyList
+  #   Job: get_data_to_mongo
+  #   Output: KMSKeyList
+  #   Input: RegionData.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: KMSKeyList
+  
+  # - Name: Set.KeysIdsList
+  #   Job: get_unique_key_list
+  #   Input: KMSKeyList
+  #   Output: KMSKeyIds
+  #   Params:
+  #     key: key_id
+  #     datapath: data[].KeyId
+
+  # - Name: GetToMongo.KMSKeys
+  #   Job: get_data_to_mongo
+  #   Output: KMSKeys
+  #   Input: KMSKeyIds.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: KMSKeys
+  

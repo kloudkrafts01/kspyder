@@ -1,12 +1,42 @@
 Steps:
 
+  - Name: ExtractPublicImages
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunPublicImages
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.PublicImagesData
+      collection_name: Aliyun.ECS.ECSImages
+      pipeline:
+        - $match:
+            ImageOwnerAlias: system
+        - $project:
+            ImageId: $ImageId
+            Name: $ImageName
+            Description: $Description
+            Version: $ImageVersion
+            ProductCode: $ProductCode
+            Family: $ImageFamily
+            OSType: $OSType
+            OSName: $OSName
+            OSNameEn: $OSNameEn
+            Platform: $Platform
+            Arch: $Architecture
+            BootMode: $BootMode
+            IsPublic: $IsPublic
+            cloudInit: $IsSupportCloudInit
+            IsSupportIoOptimized: $IsSupportIoOptimized
+            LoginAsNonRootSupported: $LoginAsNonRootSupported
+
   - Name: ExtractRHELImages
     Worker: mongoDBConnector
     Job: aggregate_data
     Output: AliyunRHELImages
+    DumpCSV: true
     Params:
       save_to: Aliyun.ECS.RHELImagesData
-      collection_name: ECSImages
+      collection_name: Aliyun.ECS.ECSImages
       pipeline:
         - $match:
             ImageOwnerAlias: marketplace
@@ -136,6 +166,8 @@ Steps:
             DiskCategory: $Category
             DiskSize: $Size
             DiskStatus: $Status
+            Encrypted: 1
+            KMSKeyId: 1
             MultiAttach: 1
             MountInstanceName: $InstanceInfo.InstanceName
             MountInstanceId: $mountpoint.InstanceId
