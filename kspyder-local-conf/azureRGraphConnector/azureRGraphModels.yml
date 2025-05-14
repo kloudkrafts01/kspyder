@@ -4,6 +4,10 @@ Connector:
     default_class: resources
     default_fields: name,type,location,zones,subscriptionId,resourceGroup,tags,properties
 
+APIs:
+    AzureRGraph:
+        name: AzureRGraph
+
 Models:
 
 # ================== Management & Governance Services Models =================
@@ -127,6 +131,12 @@ Models:
 
     AzureKeyVaults:
         base_name: Microsoft.KeyVault/vaults
+
+    AzureKVSecrets:
+        base_name: Microsoft.KeyVault/vaults/secrets
+
+    AzureKeys:
+        base_name: Microsoft.KeyVault/vaults/keys
 
 
 # ================== Other Models ==================

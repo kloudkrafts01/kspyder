@@ -55,6 +55,7 @@ class azureRGraphConnector(RESTExtractor):
         self.update_field = update_field
 
         self.client = azureRGraphClient()
+        self.rate_limit = 0.01
 
         self.subscriptions = self.client.get_subscriptions()
         # set the subscription IDs and scope names from the scopes specified in the request,
@@ -62,6 +63,11 @@ class azureRGraphConnector(RESTExtractor):
         self.scopes = None
         self.subscription_ids = None
         self.set_scopes_and_subscription_ids(scopes)
+
+    def set_api_from_model(self, model):
+        self.api = {
+            'name': 'Microsoft'
+        }
     
     def set_scopes_and_subscription_ids(self,scopes=None):
         
