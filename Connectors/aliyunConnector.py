@@ -1,9 +1,8 @@
 import os, re
 from importlib import import_module
-import jmespath
 
 from Engines.restExtractorEngine import RESTExtractor
-from common.config import MODULES_MAP, PAGE_SIZE, BASE_FILE_HANDLER as fh
+from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 
 from alibabacloud_credentials.client import Client as CredClient

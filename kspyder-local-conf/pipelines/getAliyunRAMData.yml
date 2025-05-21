@@ -109,12 +109,12 @@ Steps:
         - $unset:
           - _id
   
-  - Name: Get.RAMCustomPolicyVersions
-    Job: get_data_to_mongo
-    Input: RAMCustomPolicyNames.data
-    Output: RAMCustomPolicyVersions
-    Params:
-      from_worker: aliyunConnector
-      model_name: RAMPolicyVersions
-      collection: Aliyun.RAM.CustomPolicyDocuments
+  # - Name: Get.RAMCustomPolicyVersions
+  #   Job: get_data_to_mongo
+  #   Input: RAMCustomPolicyNames.data
+  #   Output: RAMCustomPolicyVersions
+  #   Params:
+  #     from_worker: aliyunConnector
+  #     model_name: RAMPolicyVersions
+  #     collection: Aliyun.RAM.CustomPolicyDocuments
 

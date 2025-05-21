@@ -11,6 +11,8 @@ APIs:
         next_token_key: marker
         last_request_key: request_id
         convert_response_case: true
+        pagination_style: tokens
+        batch_size_key: max_results
 
     RM:
         name: alibabacloud_resourcemanager20200331
