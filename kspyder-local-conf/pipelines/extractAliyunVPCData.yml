@@ -1,0 +1,55 @@
+Steps:
+
+  # ============= Expand, save, extract Route Entries by VSwitch data ================
+
+  - Name: Expand.VSwitchRouteTablesData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: VSwitchRouteTablesData
+    # DumpCSV: true
+    Params:
+      save_to: Aliyun.VPC.VSwitchRouteTablesData
+      collection_name: Aliyun.VPC.VSwitchData
+      pipeline:     
+        - $lookup:
+            from: Aliyun.VPC.RouteTableDetails
+            localField: RouteTableId
+            foreignField: RouteTableId
+            as: RouteTable
+        - $unwind:
+            path: $RouteTable
+            preserveNullAndEmptyArrays: true
+        - $set:
+            RouteEntries: $RouteTable.RouteEntrys
+        - $unwind: 
+            path: $RouteEntries.RouteEntry
+            preserveNullAndEmptyArrays: true
+        - $project:
+            VSwitchName: 1
+            VSwitchId: 1
+            VpcName: 1
+            VswitchCidrBlock: $CidrBlock
+            RouteTableId: 1
+            RouteTableType: $RouteTable.RouteTableType
+            EntryId: $RouteEntries.RouteEntry.RouteEntryId
+            EntryType: $RouteEntries.RouteEntry.Type
+            EntryDestination: $RouteEntries.RouteEntry.DestinationCidrBlock
+            EntryInstanceId: $RouteEntries.RouteEntry.InstanceId
+            EntryNextHopType: $RouteEntries.RouteEntry.NextHopType
+            EntryDesc: $RouteEntries.RouteEntry.Description
+
+  - Name: Extract.ACKNonPRDRouteEntries
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: ACKNonPRDRouteEntries
+    DumpCSV: true
+    Params:
+      collection_name: Aliyun.VPC.VSwitchRouteTablesData
+      pipeline:
+        - $match:
+            VSwitchName:
+              $regex: "(ACK-NONPRD)|(ACKNodes-NONPRD)"
+
+              
+
+
