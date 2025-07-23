@@ -382,6 +382,8 @@ class RESTExtractor():
         full_dataset = graph.to_dict()
         # Adding model specification for interop compliance with mongo insert and json dump methods
         full_dataset['header']['model'] = model
+        full_dataset['header']['count'] = graph.node_count
+        full_dataset['header']['schema'] = self.schema
 
         if DUMP_JSON:
             full_dataset = fh.dump_json(full_dataset,self.schema,model_name)

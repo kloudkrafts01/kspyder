@@ -163,6 +163,7 @@ Steps:
             vpc: $subnetInfo.vpc
             subnet: 1
             name: 1
+            env: 
             ip_address: 1
             purpose: 1
             subnet_cidr: $subnetInfo.ip_cidr_range

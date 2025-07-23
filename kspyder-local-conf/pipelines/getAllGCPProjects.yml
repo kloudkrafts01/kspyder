@@ -2,21 +2,18 @@ Steps:
 
   - Name: GetFolderIdsFromMongo
     Worker: mongoDBConnector
-    Job: execute_query
+    Job: aggregate_data
     Output: GCloudFoldersIds
     Params:
-      query_name: GetFolderIds
-      query_conf:
-        collection: GCloudFolders
-        dump_json: true
-        operations:
-          $match:
+      collection_name: GCloud.RM.Folders
+      pipeline:
+        - $match:
             name:
               $not:
                 $regex: organizations
-          $project:
+        - $project:
             parent: $name
-          $unset:
+        - $unset:
             - _id
 
   # - Name: GetFolderLeavesFromMongo
@@ -42,6 +39,6 @@ Steps:
     Output: GCloudProjects
     Params:
       from_worker: gcloudConnector
-      model_name: GCloudProjects
+      model_name: Projects
 
 

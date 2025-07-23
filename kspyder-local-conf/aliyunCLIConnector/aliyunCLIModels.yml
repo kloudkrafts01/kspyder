@@ -79,6 +79,28 @@ Models:
         index_keys:
             - VSwitchId
 
+    RouteTables:
+        base_name: RouteTable
+        API: VPC
+        query_domains:
+            - DescribeRouteTableList
+        datapath: RouterTableList.RouterTableListType[]
+        accepted_inputs:
+            - RegionId
+        index_keys:
+            - RouteTableId
+
+    RouteTableDetails:
+        base_name: RouteTableDetails
+        API: VPC
+        query_domains:
+            - DescribeRouteTables
+        datapath: RouteTables.RouteTable[]
+        accepted_inputs:
+            - RouteTableId
+        index_keys:
+            - RouteTableId
+
     LoadBalancers:
         base_name: LoadBalancer
         nested: true

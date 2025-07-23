@@ -1,0 +1,8 @@
+Steps:
+
+  - Name: GetToMongo.RecoveryServicesVaults
+    Job: get_data_to_mongo
+    Output: RecoveryServicesVaults
+    Params:
+      from_worker: azureRGraphConnector
+      model_name: RecoveryServicesVaults

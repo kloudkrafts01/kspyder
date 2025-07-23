@@ -7,9 +7,9 @@ Steps:
     Params:
       collection_name: GCloudProjects
       pipeline:
-        - $match:
-            project_id: 
-              $regex: security-hub
+        # - $match:
+        #     project_id: 
+        #       $regex: gke
         - $project:
             project: $project_id
         - $unset:
@@ -22,9 +22,9 @@ Steps:
     Params:
       collection_name: GCloudProjects
       pipeline:
-        - $match:
-            project_id: 
-              $regex: security-hub
+        # - $match:
+        #     project_id: 
+        #       $regex: gke
         - $set:
             region: europe-west4
         - $project:
@@ -33,21 +33,21 @@ Steps:
         - $unset:
             - _id
 
-  # - Name: GetToMongo.GCloudVPCs
-  #   Job: get_data_to_mongo
-  #   Input: GCPProjectIds.data
-  #   Output: GCloudVPCs
-  #   Params:
-  #     from_worker: gcloudConnector
-  #     model_name: VPCs
+  - Name: GetToMongo.GCloudVPCs
+    Job: get_data_to_mongo
+    Input: GCPProjectIds.data
+    Output: GCloudVPCs
+    Params:
+      from_worker: gcloudConnector
+      model_name: VPCs
 
-  # - Name: GetToMongo.GCloudSubnets
-  #   Job: get_data_to_mongo
-  #   Input: GCPProjectsEUW4.data
-  #   Output: GCloudSubnets
-  #   Params:
-  #     from_worker: gcloudConnector
-  #     model_name: Subnets
+  - Name: GetToMongo.GCloudSubnets
+    Job: get_data_to_mongo
+    Input: GCPProjectsEUW4.data
+    Output: GCloudSubnets
+    Params:
+      from_worker: gcloudConnector
+      model_name: Subnets
 
   - Name: GetToMongo.GCloudAddresses
     Job: get_data_to_mongo

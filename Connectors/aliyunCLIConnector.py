@@ -58,7 +58,7 @@ class aliyunCLIClient:
                 else:
                     command = command + [f'--{domain[0]}', domain[2]]
 
-        for key,value in params:
+        for key,value in params.items():
             command = command + [f'--{key}', value]
         
         if GET_TABULAR_OUTPUT:
@@ -101,11 +101,11 @@ class aliyunCLIClient:
 
         return output
 
-    def get_records_count(self,model=None,query_domain=None,search_domains=[]):
+    def get_records_count(self,model=None,query_domain=None,search_domains=[],**params):
 
         count = 0
 
-        command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
+        command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains,**params)
         output = self.execute_command(command)
         total_count_key = model['total_count_key'] if 'total_count_key' in model.keys() else 'TotalCount'
 
@@ -117,10 +117,10 @@ class aliyunCLIClient:
 
         return count
 
-    def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=ALIYUN_PAGE_SIZE):
+    def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=ALIYUN_PAGE_SIZE,**params):
 
         # Build the command and add up the offset and page size params
-        command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains)
+        command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains,**params)
         
         paginate = model['paginate'] if 'paginate' in model.keys() else True
         
@@ -157,13 +157,13 @@ class aliyunCLIConnector(DirectExtractor):
         total_count = 0
         # default to the first item in the model's query domains list
         query_domain = query_domain if query_domain else model['query_domains'][0]
-        total_count = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains)            
+        total_count = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains,**params) 
         return total_count
 
     def read_query(self, model=None, query_domain=None, search_domains=[], start_row=0,**params):
 
         # default to the first item in the model's query domains list
         query_domain = query_domain if query_domain else model['query_domains'][0]
-        dataset = self.client.search_read(model=model,query_domain=query_domain,search_domains=search_domains,offset=start_row)
+        dataset = self.client.search_read(model=model,query_domain=query_domain,search_domains=search_domains,offset=start_row,**params)
         return dataset
 

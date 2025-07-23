@@ -70,6 +70,11 @@ Models:
             - name
             - properties.resourceGuid
 
+    RouteTables:
+        base_name: Microsoft.Network/routeTables
+        index_keys:
+            - name
+
     PublicIPs:
         base_name: Microsoft.Network/publicIPAddresses
         index_keys:
@@ -144,3 +149,47 @@ Models:
     AzureAutomationJobs:
         base_name: Microsoft.Automation/automationAccounts/jobs
         fields: name,properties
+
+# ================== Backup / Recovery Models ==================
+
+    RecoveryServicesVaults:
+        base_name: Microsoft.RecoveryServices/vaults
+        fields: name,location,type,properties,sku,tags
+
+# ================== PaaS Database Models ==================
+
+    MongoDBClusters:
+        base_name: Microsoft.DocumentDB/mongoClusters
+        fields: name,location,type,properties,tags
+        index_keys: 
+            - name
+
+    MongoDBClusterFirewallRules:
+        base_name: Microsoft.DocumentDB/mongoClusters/firewallRules
+        fields: name,properties
+        index_keys: 
+            - name
+    
+    MongoDBClusterPEConnections:
+        base_name: Microsoft.DocumentDB/mongoClusters/privateEndpointConnections
+        fields: name,properties
+        index_keys: 
+            - name
+
+    SQLServers:
+        base_name: Microsoft.sql/servers
+        fields: name,location,type,properties,tags
+        index_keys: 
+            - name
+
+    SQLFirewallRules:
+        base_name: Microsoft.sql/servers/firewallRules
+        fields: name,properties
+        index_keys: 
+            - name
+    
+    SQLVnetRules:
+        base_name: Microsoft.sql/servers/virtualNetworkRules
+        fields: name,properties
+        index_keys: 
+            - name

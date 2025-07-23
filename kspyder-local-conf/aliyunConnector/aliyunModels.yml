@@ -8,7 +8,7 @@ APIs:
         name: alibabacloud_ram20150501
         update_field: UpdateDate
         is_truncated_key: is_truncated
-        next_token_key: marker
+        next_token_key: next_token
         last_request_key: request_id
         convert_response_case: true
         pagination_style: tokens

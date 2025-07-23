@@ -1,5 +1,12 @@
 Steps:
 
+  - Name: GetToMongo.RouteTables
+    Job: get_data_to_mongo
+    Output: AzureRouteTables
+    Params:
+      from_worker: azureRGraphConnector
+      model_name: RouteTables
+
   - Name: ExtractVnetTabularData
     Worker: mongoDBConnector
     Job: aggregate_data
@@ -17,6 +24,64 @@ Steps:
             resourceGroup: 1
             CIDR: $properties.addressSpace.addressPrefixes
             dnsServers: $properties.dhcpOptions.dnsServers
+
+  - Name: Extract.VnetPeerings
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AzureVnetPeeringsRaw
+    Params:
+      save_to: Azure.Vnet.PeeringsRaw
+      collection_name: AzureVirtualNetworks
+      pipeline:
+        - $unwind: $properties.addressSpace.addressPrefixes
+        - $unwind: $properties.virtualNetworkPeerings
+        - $project:
+            environment: $tags.environment
+            name: 1
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            CIDR: $properties.addressSpace.addressPrefixes
+            peeringConfig: $properties.virtualNetworkPeerings
+  
+  - Name: Extract.VnetPeeringsData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AzureVnetPeeringsData
+    DumpCSV: true
+    Params:
+      save_to: Azure.Vnet.PeeringsData
+      collection_name: Azure.Vnet.PeeringsRaw
+      pipeline:
+        - $unwind: $peeringConfig.properties.remoteVirtualNetworkAddressSpace.addressPrefixes
+        - $project:
+            environment: 1
+            region: 1
+            peering_name: $peeringConfig.properties.name
+            vnet_subscriptionId: $subscriptionId
+            vnet_resourceGroup: $resourceGroup
+            vnet_name: $name
+            vnet_CIDR: $CIDR
+            peer_resourceGroup:
+              $arrayElemAt:
+                - $split:
+                  - $peeringConfig.properties.remoteVirtualNetwork.id
+                  - "/"
+                - 4
+            peer_name: 
+              $arrayElemAt:
+                - $split:
+                  - $peeringConfig.properties.remoteVirtualNetwork.id
+                  - "/"
+                - -1
+            peer_CIDR: $peeringConfig.properties.remoteVirtualNetworkAddressSpace.addressPrefixes
+            provisioningState: $peeringConfig.properties.provisioningState
+            peeringState: $peeringConfig.properties.peeringState
+            allowForwardedTraffic: $peeringConfig.properties.allowForwardedTraffic
+            allowGatewayTransit: $peeringConfig.properties.allowGatewayTransit
+            useRemoteGateways: $peeringConfig.properties.useRemoteGateways
+            allowVirtualNetworkAccess: $peeringConfig.properties.allowVirtualNetworkAccess
+            
 
   - Name: ExtractSubnetTabularData
     Worker: mongoDBConnector

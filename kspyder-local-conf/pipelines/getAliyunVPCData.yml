@@ -1,20 +1,20 @@
 Steps:
 
-  - Name: GetVPCs
-    Job: get_data_to_mongo
-    Output: AliyunVPCs
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: VPCs
-      last_days: null
+  # - Name: GetVPCs
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVPCs
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VPCs
+  #     last_days: null
 
-  - Name: GetVSwitches
-    Job: get_data_to_mongo
-    Output: AliyunVSwitches
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: VSwitches
-      last_days: null
+  # - Name: GetVSwitches
+  #   Job: get_data_to_mongo
+  #   Output: AliyunVSwitches
+  #   Params:
+  #     from_worker: aliyunCLIConnector
+  #     model_name: VSwitches
+  #     last_days: null
 
   - Name: ExtractVSwitchInfo
     Worker: mongoDBConnector
@@ -43,6 +43,33 @@ Steps:
             CreationTime: 1
             CidrBlock: 1
             AvailableIpAddressCount: 1
+            RouteTableId: $RouteTable.RouteTableId
 
-   
+  - Name: Set.RegionsList
+    Job: set_static_data
+    Output: RegionData
+    Params:
+      data:
+        - RegionId: cn-shanghai
+
+  - Name: Extract.RouteTableIds
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: RouteTableIds
+    Params:
+      collection_name: Aliyun.VPC.VSwitchData
+      pipeline:
+        - $project:
+            RouteTableId: 1
+        - $unset:
+          - _id
+
+  - Name: GetToMongo.RouteTableDetails
+    Job: get_data_to_mongo
+    Output: RouteTableDetails
+    Input: RouteTableIds.data
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: RouteTableDetails
+      last_days: null
 

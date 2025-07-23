@@ -69,31 +69,31 @@ Steps:
       from_worker: aliyunConnector
       model_name: LBForwardingRules
 
-  - Name: GetToMongo.VServerGroups
-    Job: get_data_to_mongo
-    Input: ClbIds.data
-    Output: VServerGroups
-    Params:
-      from_worker: aliyunConnector
-      model_name: VServerGroups
+  # - Name: GetToMongo.VServerGroups
+  #   Job: get_data_to_mongo
+  #   Input: ClbIds.data
+  #   Output: VServerGroups
+  #   Params:
+  #     from_worker: aliyunConnector
+  #     model_name: VServerGroups
 
-  - Name: Extract.VSGInfo
-    Worker: mongoDBConnector
-    Job: aggregate_data
-    Output: VsgIds
-    Params:
-      collection_name: Aliyun.SLB.VServerGroups
-      pipeline:
-        - $project:
-            region_id: 1
-            vserver_group_id: $VServerGroupId
-        - $unset:
-          - _id
+  # - Name: Extract.VSGInfo
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: VsgIds
+  #   Params:
+  #     collection_name: Aliyun.SLB.VServerGroups
+  #     pipeline:
+  #       - $project:
+  #           region_id: 1
+  #           vserver_group_id: $VServerGroupId
+  #       - $unset:
+  #         - _id
 
-  - Name: GetToMongo.VServerGroupAttributes
-    Job: get_data_to_mongo
-    Input: VsgIds.data
-    Output: VServerGroupAttributes
-    Params:
-      from_worker: aliyunConnector
-      model_name: VServerGroupAttributes
+  # - Name: GetToMongo.VServerGroupAttributes
+  #   Job: get_data_to_mongo
+  #   Input: VsgIds.data
+  #   Output: VServerGroupAttributes
+  #   Params:
+  #     from_worker: aliyunConnector
+  #     model_name: VServerGroupAttributes

@@ -4,6 +4,7 @@ Steps:
   Worker: mongoDBConnector
   Job: aggregate_data
   Output: CLBAttributesFull
+  DumpCSV: true
   Params:
     save_to: Aliyun.SLB.CLBAttributesFull
     collection_name: Aliyun.SLB.CLBAttributes
@@ -24,6 +25,7 @@ Steps:
   Worker: mongoDBConnector
   Job: aggregate_data
   Output: CLBBackendsData
+  DumpCSV: true
   Params:
     save_to: Aliyun.SLB.CLBBackendsData
     collection_name: Aliyun.SLB.CLBAttributesFull
@@ -54,6 +56,7 @@ Steps:
   Worker: mongoDBConnector
   Job: aggregate_data
   Output: ListenersData
+  DumpCSV: true
   Params:
     save_to: Aliyun.SLB.ListenersData
     collection_name: Aliyun.SLB.LoadBalancerListeners

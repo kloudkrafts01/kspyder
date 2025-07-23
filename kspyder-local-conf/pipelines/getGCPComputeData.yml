@@ -18,6 +18,14 @@ Steps:
       from_worker: gcloudConnector
       model_name: ComputeInstances
 
+  - Name: GetToMongo.RegionalTargetHttpProxies
+    Job: get_data_to_mongo
+    Input: GCPProjectZones.data
+    Output: RegionalTargetHttpProxies
+    Params:
+      from_worker: gcloudConnector
+      model_name: RegionalTargetHttpProxies
+
   # # CAREFUL WITH THAT AXE, EUGENE : 
   # # many requests will be sent with this one you might blow up your API quota
   # - Name: GetToMongo.MachineTypes
@@ -28,23 +36,23 @@ Steps:
   #     from_worker: gcloudConnector
   #     model_name: ComputeMachineTypes
 
-  - Name: BuildParentURIs
-    Worker: mongoDBConnector
-    Job: aggregate_data
-    Output: GCRParentURIs
-    Params:
-      collection_name: GCPProjects
-      pipeline:
-        - $set:
-            parent: 
-              $replaceOne:
-                input: "/projects/{project_id}/location/europe-west-4"
-                find: "{project_id}"
-                replacement: $project_id
-        - $project:
-            parent: 1
-        - $unset:
-            - _id
+  # - Name: BuildParentURIs
+  #   Worker: mongoDBConnector
+  #   Job: aggregate_data
+  #   Output: GCRParentURIs
+  #   Params:
+  #     collection_name: GCPProjects
+  #     pipeline:
+  #       - $set:
+  #           parent: 
+  #             $replaceOne:
+  #               input: "/projects/{project_id}/location/europe-west-4"
+  #               find: "{project_id}"
+  #               replacement: $project_id
+  #       - $project:
+  #           parent: 1
+  #       - $unset:
+  #           - _id
     
   # - Name: GetToMongo.CloudRunServices
   #   Job: get_data_to_mongo

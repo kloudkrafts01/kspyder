@@ -22,12 +22,9 @@ class GenericRPCExtractor():
     def forge_item(self,item,model_name,**kwargs):
         ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],**params):
+    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
-
-        # sd = []
-        model = self.models[model_name]
 
         if last_days:
             now = datetime.datetime.now(datetime.datetime.utc)
@@ -36,8 +33,36 @@ class GenericRPCExtractor():
 
             logger.info("UTC start datetime is {}".format(yesterday))
             search_domains += [self.update_field,'>=',yesterday],
+        
+        # sd = []
+        model = self.models[model_name]
+        count = 0
+        dataset = []
+        failed_items = []
 
-        count, dataset = self.fetch_dataset(model=model,search_domains=search_domains,**params)
+        for input_item in input_data:
+            
+            logger.debug("Input item: {}".format(input_item))
+
+            input_params = input_item | params
+            logger.debug("Using this as input params for this round: {}".format(input_params))
+
+            try:
+                result_count, plain_dataset = self.fetch_dataset(model=model,search_domains=search_domains,**input_params)
+                
+                count += result_count
+                # Only add the result dataset if not empty
+                if result_count > 0:
+                    result_dataset = [ input_item | result_item for result_item in plain_dataset]
+                    dataset.extend(result_dataset)
+            
+            except Exception as e:
+                logger.exception(e)
+                failed_items += {
+                    'item': input_item
+                    # 'reason': e
+                },
+                continue
 
         full_dataset = {
                 'header': {
@@ -50,6 +75,7 @@ class GenericRPCExtractor():
                     'json_dump': None,
                     'csv_dump': None
                 },
+                'failed_items': failed_items,
                 'data': dataset
             }
 
