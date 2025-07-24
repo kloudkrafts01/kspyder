@@ -1,0 +1,39 @@
+Steps:
+
+  - Name: Extract.VirtualMachineData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: VirtualMachineData
+    DumpCSV: true
+    Params:
+      save_to: Azure.VM.VirtualMachineData
+      collection_name: Azure.VirtualMachines
+      pipeline:
+        - $unwind: $properties.networkProfile.networkInterfaces
+        - $set: 
+            nic: 
+              $arrayElemAt:
+                - $split:
+                  - $properties.networkProfile.networkInterfaces.id
+                  - "/"
+                - -1
+        - $lookup:
+            from: AzureNicIPConfigs
+            foreignField: name
+            localField: nic
+            as: nicInfo
+        - $unwind: $nicInfo
+        - $project:
+            name: 1
+            location: 1
+            subscriptionId: 1
+            resourceGroup: 1
+            environment: $tags.lvmh_environment
+            vmSize: $properties.hardwareProfile.vmSize
+            licenseType: $properties.licenseType
+            osVersion: $imageInfo.sku
+            osDiskType: $properties.storageProfile.osDisk.managedDisk.storageAccountType
+            osDiskSizeGB: $properties.storageProfile.osDisk.diskSizeGB
+            ipAddress: $nicInfo.privateIP
+            vnet: $nicInfo.vnet
+            subnet: $nicInfo.subnet
