@@ -7,13 +7,13 @@ Steps:
       data:
         - region_id: cn-shanghai
 
-  # - Name: GetToMongo.ECSInstances
-  #   Job: get_data_to_mongo
-  #   Output: ECSInstances
-  #   Input: RegionData.data
-  #   Params:
-  #     from_worker: aliyunConnector 
-  #     model_name: ECSInstances
+  - Name: GetToMongo.ECSInstances
+    Job: get_data_to_mongo
+    Output: ECSInstances
+    Input: RegionData.data
+    Params:
+      from_worker: aliyunConnector 
+      model_name: ECSInstances
 
   - Name: GetToMongo.ECSDisks
     Job: get_data_to_mongo
@@ -23,13 +23,13 @@ Steps:
       from_worker: aliyunConnector 
       model_name: ECSDisks
 
-  # - Name: GetToMongo.StandardImages
-  #   Job: get_data_to_mongo
-  #   Output: ECSImages
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: ECSImages
-  #     last_days: null
+  - Name: GetToMongo.StandardImages
+    Job: get_data_to_mongo
+    Output: ECSImages
+    Params:
+      from_worker: aliyunCLIConnector
+      model_name: ECSImages
+      last_days: null
 
   # - Name: GetToMongo.MarketplaceImages
   #   Job: get_data_to_mongo
@@ -80,10 +80,10 @@ Steps:
         - $unset:
           - _id
 
-  # - Name: GetToMongo.NSGRules
-  #   Job: get_data_to_mongo
-  #   Input: NSGIds.data
-  #   Output: NSGRules
-  #   Params:
-  #     from_worker: aliyunConnector
-  #     model_name: NSGRules
+  - Name: GetToMongo.NSGRules
+    Job: get_data_to_mongo
+    Input: NSGIds.data
+    Output: NSGRules
+    Params:
+      from_worker: aliyunConnector
+      model_name: NSGRules
