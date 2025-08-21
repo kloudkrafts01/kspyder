@@ -81,6 +81,11 @@ Models:
             - name
             - resourceGroup
 
+    LoadBalancers:
+        base_name: Microsoft.Network/loadBalancers
+        index_keys:
+            - name
+
     NetworkInterfaces:
         base_name: Microsoft.Network/networkInterfaces
         fields: name,location,extendedLocation,tags,properties
