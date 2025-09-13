@@ -1,5 +1,80 @@
 Steps:
 
+  # ============= Extract VPCs Data ================
+
+  - Name: Extract.VPCData
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunVPCData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.VPC.VPCData
+      collection_name: Aliyun.VPC.VPCs
+      pipeline:
+        - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: ResourceGroupInfo
+        - $unwind:
+            path: $ResourceGroupInfo
+            preserveNullAndEmptyArrays: true
+        # - $unwind:
+        #     path: $SecondaryCidrBlocks
+        #     preserveNullAndEmptyArrays: true
+        - $set:
+            CIDR_Range: $CidrBlock
+            CIDR_Type: Primary
+        - $unionWith:
+            coll: Aliyun.VPC.VPCs
+            pipeline:
+              - $unwind: $SecondaryCidrBlocks.SecondaryCidrBlock
+              - $set:
+                  CIDR_Range: $SecondaryCidrBlocks.SecondaryCidrBlock
+                  CIDR_Type: Secondary
+        - $project:
+            VpcId: 1
+            VpcName: 1
+            Description: 1
+            ResourceGroupName: $ResourceGroupInfo.Name
+            ResourceGroupId: 1
+            RegionId: 1
+            CenStatus: 1
+            DhcpOptionsSetStatus: 1
+            CIDR_Range: 1
+            CIDR_Type: 1
+
+  - Name: ExtractVSwitchInfo
+    Worker: mongoDBConnector
+    Job: aggregate_data
+    Output: AliyunVSwitchInfo
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.VPC.VSwitchData
+      collection_name: Aliyun.VPC.VSwitches
+      pipeline:
+        - $lookup:
+            from: Aliyun.VPC.VPCs
+            localField: VpcId
+            foreignField: VpcId
+            as: VpcInfo
+        - $unwind: 
+            path: $VpcInfo
+            preserveNullAndEmptyArrays: true
+        - $project:
+            VpcName: $VpcInfo.VpcName
+            VpcCidrBlock: $VpcInfo.CidrBlock
+            VpcId: 1
+            VSwitchName: 1
+            VSwitchId: 1
+            ZoneId: 1
+            CreationTime: 1
+            CidrBlock: 1
+            AvailableIpAddressCount: 1
+            RouteTableId: $RouteTable.RouteTableId
+
+
+
   # ============= Expand, save, extract Route Entries by VSwitch data ================
 
   - Name: Expand.VSwitchRouteTablesData

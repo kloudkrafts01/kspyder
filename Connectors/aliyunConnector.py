@@ -17,7 +17,7 @@ DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
 APIS = CONF['APIs']
 MODELS = CONF['Models']
 
-ALIYUN_MAX_PAGE_SIZE = 50
+ALIYUN_MAX_PAGE_SIZE = 20
 
 class AliyunClient:
 

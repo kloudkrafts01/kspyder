@@ -7,57 +7,57 @@ Steps:
       data:
         - region_id: cn-shanghai
 
-  - Name: GetToMongo.ECSInstances
-    Job: get_data_to_mongo
-    Output: ECSInstances
-    Input: RegionData.data
-    Params:
-      from_worker: aliyunConnector 
-      model_name: ECSInstances
-
-  - Name: GetToMongo.ECSDisks
-    Job: get_data_to_mongo
-    Output: ECSDisks
-    Input: RegionData.data
-    Params:
-      from_worker: aliyunConnector 
-      model_name: ECSDisks
-
-  - Name: GetToMongo.StandardImages
-    Job: get_data_to_mongo
-    Output: ECSImages
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: ECSImages
-      last_days: null
-
-  # - Name: GetToMongo.MarketplaceImages
+  # - Name: GetToMongo.ECSInstances
   #   Job: get_data_to_mongo
-  #   Output: ECSMarketplaceImages
+  #   Output: ECSInstances
+  #   Input: RegionData.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: ECSInstances
+
+  # - Name: GetToMongo.ECSDisks
+  #   Job: get_data_to_mongo
+  #   Output: ECSDisks
+  #   Input: RegionData.data
+  #   Params:
+  #     from_worker: aliyunConnector 
+  #     model_name: ECSDisks
+
+  # - Name: GetToMongo.StandardImages
+  #   Job: get_data_to_mongo
+  #   Output: ECSImages
   #   Params:
   #     from_worker: aliyunCLIConnector
   #     model_name: ECSImages
   #     last_days: null
-  #     search_domains:
-  #       - - 'ImageOwnerAlias'
-  #         - 'eq'
-  #         - 'marketplace'
 
-  - Name: PrepareInstanceTypeInput
-    Job: set_static_data
-    Output: InstanceTypeInput
-    Params:
-      data:
-        - region_id: cn-shanghai
-          destination_resource: InstanceType
+  # # - Name: GetToMongo.MarketplaceImages
+  # #   Job: get_data_to_mongo
+  # #   Output: ECSMarketplaceImages
+  # #   Params:
+  # #     from_worker: aliyunCLIConnector
+  # #     model_name: ECSImages
+  # #     last_days: null
+  # #     search_domains:
+  # #       - - 'ImageOwnerAlias'
+  # #         - 'eq'
+  # #         - 'marketplace'
 
-  - Name: GetToMongo.AvailableECStypes
-    Job: get_data_to_mongo
-    Input: InstanceTypeInput.data
-    Output: AvailableECStypes
-    Params:
-      from_worker: aliyunConnector
-      model_name: AvailableECStypes
+  # - Name: PrepareInstanceTypeInput
+  #   Job: set_static_data
+  #   Output: InstanceTypeInput
+  #   Params:
+  #     data:
+  #       - region_id: cn-shanghai
+  #         destination_resource: InstanceType
+
+  # - Name: GetToMongo.AvailableECStypes
+  #   Job: get_data_to_mongo
+  #   Input: InstanceTypeInput.data
+  #   Output: AvailableECStypes
+  #   Params:
+  #     from_worker: aliyunConnector
+  #     model_name: AvailableECStypes
 
   - Name: GetToMongo.NSGs
     Job: get_data_to_mongo

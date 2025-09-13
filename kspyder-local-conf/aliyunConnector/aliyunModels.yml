@@ -333,6 +333,7 @@ Models:
         API: CloudSSO
         request_builder: ListPermissionPoliciesInAccessConfigurationRequest
         query_name: list_permission_policies_in_access_configuration_with_options
+        paginate: false
         response_map:
             data: PermissionPolicies[]
         accepted_inputs:

@@ -13,7 +13,7 @@ Steps:
           from: Aliyun.VPC.VSwitchData
           localField: VSwitchId
           foreignField: VSwitchId
-          as: VSwitchInfo
+          as: VSwitchInfo 
       - $unwind: 
           path: $VSwitchInfo
           preserveNullAndEmptyArrays: true

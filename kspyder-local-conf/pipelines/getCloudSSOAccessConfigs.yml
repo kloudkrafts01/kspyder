@@ -64,6 +64,4 @@ Steps:
     Params:
       from_worker: aliyunConnector
       model_name: CloudSSOAssignments
-
-
   
