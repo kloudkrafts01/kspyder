@@ -1,24 +1,26 @@
-#!python3
+import jmespath
+import requests
 
-from Engines.rpcExtractorEngine import GenericRPCExtractor
-import os, requests
-
-from common.config import load_conf, AZ_PRICING_PROFILE
+from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from Engines.restExtractorEngine import RESTExtractor
 
-MODELS = load_conf('azureRG_models', subfolder='manifests')
-MODELS_LIST = list(MODELS.keys())
+CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
 
 # mandatory connector config
-SCHEMA_NAME = 'azureRetailPrices'
-UPD_FIELD_NAME = 'write_date'
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
-class AzurePricingConnector(GenericRPCExtractor):
+MODELS = CONF['Models']
+APIS = CONF['APIs']
+
+class AzurePricingConnector(RESTExtractor):
 
     def __init__(self, endpoint, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
 
         self.endpoint = endpoint
-        self.client = AzurePricingConnector(AZ_PRICING_PROFILE['url'])
+        self.client = RetailPriceClient(AZ_PRICING_PROFILE['url'])
         self.schema = schema
         self.models = models
         self.update_field = update_field
