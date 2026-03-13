@@ -78,7 +78,7 @@ def get_to_mongo():
     mgconn = mongoDBConnector()
     for result in results:
         try:
-            collection_name = result['header']['model']
+            collection_name = result['header']['model_name']
             mgconn.insert_dataset(input_data=result['data'], collection = collection_name)
         except Exception as e:
             logger.error("get_to_mongo :: Caught Exception: {}".format(e))
