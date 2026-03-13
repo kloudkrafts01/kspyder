@@ -3,7 +3,7 @@ Steps:
   # ============= Expand, save, extract IP Address data ================
 
   - Name: Extend.IPAddressData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudIPAddressData
     DumpCSV: true
@@ -65,7 +65,7 @@ Steps:
   # ============= Expand, save, extract Load Balancing Rules data ================
 
   - Name: Extend.LBRulesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudLBRulesData
     DumpCSV: true
@@ -131,7 +131,7 @@ Steps:
   # ============= Expand, save, extract Instance NIC data ================
 
   - Name: Extend.ComputeInstancesData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudComputeNetworkData
     DumpCSV: true

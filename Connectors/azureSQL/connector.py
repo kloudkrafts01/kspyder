@@ -1,13 +1,12 @@
 #!python3
 
-
 import os,json
 
 from Engines.sqlEngine import GenericSQLEngine
 from common.config import CONF_FOLDER
 from common.profileHandler import profileHandler
 
-CONNECTOR_CONF_PATH = os.path.join(CONF_FOLDER,__name__)
+CONNECTOR_CONF_PATH = os.path.join(CONF_FOLDER, 'azureSQL')
 DEFAULT_PROFILE = 'azureSQLProfile'
 
 class azureSQLConnector(GenericSQLEngine):
@@ -20,7 +19,7 @@ class azureSQLConnector(GenericSQLEngine):
         return cls.from_profile(profile)
 
     def insert_from_jsonfile(self,jsonpath):
-        
+
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
@@ -31,4 +30,3 @@ class azureSQLConnector(GenericSQLEngine):
         result = self.update_from_json(dataset)
 
         return result
-

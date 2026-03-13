@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GCP.ComputeMachineTypes
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ComputeMachineTypes
     Params:

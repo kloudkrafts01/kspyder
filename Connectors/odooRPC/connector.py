@@ -1,5 +1,7 @@
 #!python3
 
+import os
+
 from common.profileHandler import profileHandler
 from Engines.rpcExtractorEngine import GenericRPCExtractor
 import xmlrpc.client
@@ -7,9 +9,9 @@ import ssl
 
 from common.config import ODOO_PROFILE, PAGE_SIZE, BASE_FILE_HANDLER as fh
 
-
 # Load the Connector's config
-CONF = fh.load_yaml('odooRPCModels', subfolder=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
@@ -21,7 +23,7 @@ class OdooClient:
     """Simple class to instanciate an XML-RPC client connected to the Odoo API and provide querying methods"""
 
     def __init__(self,url,dbname,username, password):
-        
+
         self.url = url
         self.dbname = dbname
         self.__username = username
@@ -45,7 +47,7 @@ class OdooClient:
         )
 
     def get_records_count(self,model,search_domains=[]):
-        
+
         result = self.models.execute_kw(
             self.dbname, self.uid, self.__password,
             model['odoo_name'], 'search_count',
@@ -112,13 +114,13 @@ class OdooRPCConnector(GenericRPCExtractor):
                 new_key = fields[key]['dbname']
                 new_dict[new_key] = value[0]
                 additional_field = UNPACKING[key]
-                
+
                 if additional_field is not None:
                     additional_key = additional_field['dbname']
                     new_dict[additional_key] = value[1]
 
             elif isInFieldMap:
-                
+
                 new_key = fields[key]['dbname']
                 new_dict[new_key] = value
 
@@ -126,4 +128,3 @@ class OdooRPCConnector(GenericRPCExtractor):
                 new_dict[key] = value
 
         return new_dict
-

@@ -11,28 +11,28 @@ Steps:
     Job: get_data_to_mongo
     Output: RAMUsers
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: RAMUsers
   
   - Name: GetToMongo.RAMRoles
     Job: get_data_to_mongo
     Output: RAMRoles
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: RAMRoles
   
   - Name: GetToMongo.RAMGroups
     Job: get_data_to_mongo
     Output: RAMGroups
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: RAMGroups
 
   - Name: GetToMongo.RAMPolicies
     Job: get_data_to_mongo
     Output: RAMPolicies
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: RAMPolicies
 
   - Name: GetUserNamesList
@@ -64,7 +64,7 @@ Steps:
     Output: RAMGroupMembers
     Input: RAMGroupNamesList.data
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: RAMGroupMembers
 
   
@@ -73,7 +73,7 @@ Steps:
     Output: PolicyForGroups
     Input: RAMGroupNamesList.data
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: PolicyForGroups
 
   
@@ -82,7 +82,7 @@ Steps:
     Output: PolicyForRoles
     Input: RAMRoleNamesList.data
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: PolicyForRoles
 
   
@@ -91,11 +91,11 @@ Steps:
     Output: PolicyForUsers
     Input: RAMUserNamesList.data
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: PolicyForUsers
 
   - Name: Extract.CustomPolicyNames
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: RAMCustomPolicyNames
     Params:
@@ -114,7 +114,7 @@ Steps:
   #   Input: RAMCustomPolicyNames.data
   #   Output: RAMCustomPolicyVersions
   #   Params:
-  #     from_worker: aliyunConnector
+  #     from_worker: aliyun
   #     model_name: RAMPolicyVersions
   #     collection: Aliyun.RAM.CustomPolicyDocuments
 

@@ -3,7 +3,7 @@ Steps:
 # ============= Expand, save and export Instance basic data ================
 
   - Name: Extend.ComputeInstancesData.Basics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeInstancesData
     DumpCSV: true
@@ -56,7 +56,7 @@ Steps:
   # ============= Expand, save and export Instance Network data ================
 
   - Name: Extend.ComputeInstancesData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeNetworkData
     DumpCSV: true
@@ -120,7 +120,7 @@ Steps:
 # ============= Expand, save and export Instance Disk data ================
 
   - Name: Extract.ComputeInstancesDisksData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeDiskData
     DumpCSV: true
@@ -154,7 +154,7 @@ Steps:
   # ============= Expand, save and export Load Balancing Rule data ================
 
   - Name: Extract.LoadBalancingRulesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPLoadBalancingRulesData
     DumpCSV: true
@@ -191,7 +191,7 @@ Steps:
  # ============= Expand, save and export IAM Policies data ================
 
   - Name: Extract.SAPIAMBindings
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPIAMBindings
     DumpCSV: true

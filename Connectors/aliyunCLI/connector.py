@@ -2,6 +2,7 @@
 
 import subprocess
 import json, jmespath
+import os
 
 from Engines.rpcExtractorEngine import DirectExtractor
 from common.loggingHandler import logger
@@ -9,7 +10,8 @@ from common.loggingHandler import logger
 from common.config import BASE_FILE_HANDLER as fh
 
 # Load the Connector's config
-CONF = fh.load_yaml('aliyunCLIModels', subpath=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
@@ -27,9 +29,9 @@ class aliyunCLIClient:
     This WILL NOT set or authenticate to your Aliyun context, you have to run locally 'aliyun configure'"""
 
     def __init__(self, update_field=UPD_FIELD_NAME):
-        
+
         self.update_field = update_field
-    
+
     def build_command(self,model=None,query_domain=None,search_domains=[],**params):
 
         command = ['aliyun', model['API']]
@@ -60,7 +62,7 @@ class aliyunCLIClient:
 
         for key,value in params.items():
             command = command + [f'--{key}', value]
-        
+
         if GET_TABULAR_OUTPUT:
             # add the tabular formatting cmdlets
             command = self.add_tabular_cmdlet(command,model)
@@ -87,7 +89,7 @@ class aliyunCLIClient:
 
     def execute_command(self,command):
 
-        output = None 
+        output = None
 
         try:
             result = subprocess.run(
@@ -121,9 +123,9 @@ class aliyunCLIClient:
 
         # Build the command and add up the offset and page size params
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains,**params)
-        
+
         paginate = model['paginate'] if 'paginate' in model.keys() else True
-        
+
         if paginate:
             # AliyunCLI page size is strictly limited to 100
             capped_limit = min(limit,50)
@@ -131,10 +133,10 @@ class aliyunCLIClient:
             # calculate page number
             pageno = int(offset / capped_limit) + 1 if offset else 1
             command = command + ['--PageNumber', str(pageno)]
-            
+
         logger.debug('Final Aliyun command: {}'.format(command))
         output = self.execute_command(command)
-        
+
         datapath = model['datapath']
         dataset = jmespath.search(datapath,output)
 
@@ -157,7 +159,7 @@ class aliyunCLIConnector(DirectExtractor):
         total_count = 0
         # default to the first item in the model's query domains list
         query_domain = query_domain if query_domain else model['query_domains'][0]
-        total_count = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains,**params) 
+        total_count = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains,**params)
         return total_count
 
     def read_query(self, model=None, query_domain=None, search_domains=[], start_row=0,**params):
@@ -166,4 +168,3 @@ class aliyunCLIConnector(DirectExtractor):
         query_domain = query_domain if query_domain else model['query_domains'][0]
         dataset = self.client.search_read(model=model,query_domain=query_domain,search_domains=search_domains,offset=start_row,**params)
         return dataset
-

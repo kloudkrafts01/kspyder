@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Extract.ResourceGroupData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ResourceGroupData
     DumpCSV: true

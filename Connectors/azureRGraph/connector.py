@@ -1,3 +1,4 @@
+import os
 import jmespath
 
 from azure.identity import DefaultAzureCredential
@@ -9,7 +10,8 @@ from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from Engines.restExtractorEngine import RESTExtractor
 
-CONF = fh.load_yaml('azureRGraphModels', subpath=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
@@ -34,7 +36,7 @@ class azureRGraphClient(ResourceGraphClient):
     def get_subscriptions(self):
 
         # Instantiate azure Subscriptions Client
-        sub_client = SubscriptionClient( 
+        sub_client = SubscriptionClient(
             credential = self.credential
         )
         sub_iter = sub_client.subscriptions.list()
@@ -68,9 +70,9 @@ class azureRGraphConnector(RESTExtractor):
         self.api = {
             'name': 'Microsoft'
         }
-    
+
     def set_scopes_and_subscription_ids(self,scopes=None):
-        
+
         subscription_ids = []
 
         if scopes:
@@ -83,9 +85,6 @@ class azureRGraphConnector(RESTExtractor):
             all_scopes = jmespath.search('[].display_name', self.subscriptions)
             self.scopes = all_scopes
             subscription_ids = jmespath.search('[].subscription_id', self.subscriptions)
-
-        # logger.debug("Final Scope names: {}".format(self.scopes))
-        # logger.debug("Final Subscription Ids: {}".format(subscription_ids))
 
         self.subscription_ids = subscription_ids
 
@@ -126,5 +125,3 @@ class azureRGraphConnector(RESTExtractor):
             )
 
         return request
-
-

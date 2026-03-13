@@ -4,11 +4,11 @@ Steps:
     Job: get_data_to_mongo
     Output: AzureRouteTables
     Params:
-      from_worker: azureRGraphConnector
+      from_worker: azureRGraph
       model_name: RouteTables
 
   - Name: ExtractVnetTabularData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AzureVnetData
     Params:
@@ -26,7 +26,7 @@ Steps:
             dnsServers: $properties.dhcpOptions.dnsServers
 
   - Name: Extract.VnetPeerings
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AzureVnetPeeringsRaw
     Params:
@@ -45,7 +45,7 @@ Steps:
             peeringConfig: $properties.virtualNetworkPeerings
   
   - Name: Extract.VnetPeeringsData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AzureVnetPeeringsData
     DumpCSV: true
@@ -84,7 +84,7 @@ Steps:
             
 
   - Name: ExtractSubnetTabularData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AzureSubnetData
     Params:

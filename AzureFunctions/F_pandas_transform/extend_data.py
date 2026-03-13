@@ -4,7 +4,7 @@ import os
 
 from common.config import CONF_FOLDER, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
-from Connectors.pandasSQL import PandasSQLConnector
+from Connectors.pandasSQL.connector import PandasSQLConnector
 
 TRANSFORMS_DIR = os.path.join(CONF_FOLDER,'transforms')
 

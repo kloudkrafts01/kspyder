@@ -1,14 +1,15 @@
+import os
 import jmespath
 import requests
 
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 
-
-from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
+from common.config import BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from Engines.restExtractorEngine import RESTExtractor
 
-CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 
 # mandatory connector config
 CONNECTOR_CONF = CONF['Connector']
@@ -56,13 +57,12 @@ class akamaiConnector(RESTExtractor):
         params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 
         url, headers, valid_params = self.build_request(model, baseurl = self.client.baseurl, **params)
-        
+
         # pass the request, get http status and response payload
         response = self.client.session.get(url, headers = headers, params = valid_params)
         raw_response_data = response.json()
         status_code = response.status_code
         logger.debug("Response Status code: {}".format(status_code))
-        # logger.debug("Raw response data: {}".format(raw_response_data))
 
         if status_code == 200:
             data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)

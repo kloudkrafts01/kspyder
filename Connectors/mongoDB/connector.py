@@ -5,8 +5,7 @@ import datetime
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 
-MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml",subpath="mongoDBConnector")
-# SCHEMA_NAME = APP_NAME
+MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml", subpath="mongoDB")
 
 ACCEPTED_OPS = {
     "=": None,
@@ -22,7 +21,7 @@ class mongoDBConnector():
     def __init__(self):
         self.client = MongoClient('localhost',27017)
         self.db = self.client[APP_NAME]
-        self.schema = __name__
+        self.schema = 'mongoDBConnector'
 
     def insert_dataset(self,input_data={},collection=None,key='name'):
 
@@ -38,7 +37,7 @@ class mongoDBConnector():
         result_dataset = []
         insert_count = 0
         update_count = 0
-        
+
         model_name = model['name'] if model else input_data['header']['model_name']
         model = model if model else input_data['header']['model']
         target_schema = input_data['header']['schema']
@@ -55,13 +54,11 @@ class mongoDBConnector():
         dbcollection = self.db[collection_name]
         logger.info("Upserting dataset to Mongo Collection: {}\nModel:\n{}".format(collection_name,model))
 
-        for document in dataset:            
+        for document in dataset:
 
             filter = {}
             for key in model['index_keys']:
                 filter[key] = jmespath.search(key,document)
-            # logger.debug("Using the following filter: {}".format(filter))
-            # logger.debug("Upserting document: {}".format(document))
             upsert_result = dbcollection.replace_one(filter, document, upsert=True)
 
             if upsert_result.did_upsert:
@@ -91,7 +88,7 @@ class mongoDBConnector():
                 },
                 'data': result_dataset
             }
-        
+
         if len(result_dataset) == 0:
             logger.info("Provided dataset is empty.")
         else:
@@ -101,7 +98,7 @@ class mongoDBConnector():
         return full_dataset
 
     def insert_from_jsonfile(self,jsonpath):
-        
+
         if jsonpath:
             with open(jsonpath,'r') as jf:
                 json_data = json.load(jf)
@@ -110,7 +107,7 @@ class mongoDBConnector():
                 self.insert_dataset(input_data=input_data, collection=model_name)
 
     def execute_queries(self, query_names=None, search_domain=None):
-        
+
         queries = {}
         #extracting a subset of the MONGO_QUERIES dicitonary if query names were explicitly provided
         if query_names:
@@ -123,10 +120,7 @@ class mongoDBConnector():
 
             #if search domains were given, pile them up into a $match aggregation clause, with AND logic
             if search_domain:
-                
-                # matches = []
 
-                # for sd in search_domains:
                 sd = search_domain
                 field = sd[0]
                 operator = sd[1]
@@ -140,8 +134,6 @@ class mongoDBConnector():
                 else:
                     raise ValueError
 
-                    # matches += sd_conf,
-
                 match_conf = { '$match': sd_conf }
 
                 old_conf = query_conf['operations']
@@ -152,45 +144,6 @@ class mongoDBConnector():
         # If DUMP_JSON is true, save last obtained dataset
         if DUMP_JSON:
             result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
-
-    # def execute_query(self,query_name,query_conf):
-
-    #     collection_name, queryPipeline = build_mongo_query(query_conf)
-    #     collection = self.db[collection_name]
-
-    #     logger.info("Executing mongo Query on Collection {}: {}".format(collection_name,queryPipeline))
-
-    #     results = collection.aggregate(queryPipeline)
-    #     results_list = results.to_list()
-    #     results_count = len(results_list)
-
-    #     logger.info("Query returned {} items.".format(results_count))
-
-    #     result_dataset = {
-    #         "header": {
-    #             "schema": APP_NAME,
-    #             "collection": collection_name,
-    #             "query_name": query_name,
-    #             "query_conf": query_conf,
-    #             "count": results_count,
-    #         },
-    #         "data": results_list
-    #     }
-
-    #     # If the query conf specifies the atomic query result needs to be dumped into csv or json,
-    #     # proceed. Order is important : csv first, then json
-    #     save_result = query_conf['save'] if 'save' in query_conf.keys() else None
-    #     query_dump_json = query_conf['dump_json'] if 'dump_json' in query_conf.keys() else None
-    #     query_dump_csv = query_conf['dump_csv'] if 'dump_csv' in query_conf.keys() else None
-
-    #     if results_count > 0:
-    #         if query_dump_csv:
-    #             result_dataset = fh.dump_csv(result_dataset,APP_NAME,query_name)
-
-    #         if query_dump_json:
-    #             result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
-
-    #     return result_dataset
 
     def process_filter(self,filter_def):
 
@@ -207,11 +160,11 @@ class mongoDBConnector():
                     ACCEPTED_OPS[operator]: filter_def[2]
                 }
             }
-        
+
         return filter
 
     def aggregate_data(self,save_to=None,collection_name=None,pipeline=None,filters=[],**params):
-        
+
         count = 0
         results_list = []
         processed_filter_chain = []
@@ -222,7 +175,7 @@ class mongoDBConnector():
 
         if len(processed_filter_chain) > 0:
             pipeline = processed_filter_chain + pipeline
-            
+
         logger.debug("Final pipeline: {}".format(pipeline))
 
         if save_to:
@@ -235,7 +188,7 @@ class mongoDBConnector():
 
             results = view.find()
             results_list = results.to_list()
-        
+
         else:
             collection = self.db[collection_name]
 
@@ -272,7 +225,7 @@ class mongoDBConnector():
             count = view.estimated_document_count()
 
         except errors.CollectionInvalid:
-            
+
             if overwrite:
                 logger.info("Collection already exists: {}. Overwriting.".format(name))
                 existing_collection = self.db[name]
@@ -288,14 +241,3 @@ class mongoDBConnector():
         logger.info("Collection {} has {} documents.".format(name,count))
 
         return view, count
-
-# def build_mongo_query(query_conf):
-
-#     queryPipeline = []
-#     collection_name = query_conf['collection']
-
-#     for operation_name,operation in query_conf['operations'].items():
-        
-#         queryPipeline += {operation_name: operation},
-
-#     return collection_name, queryPipeline

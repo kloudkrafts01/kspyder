@@ -8,8 +8,8 @@ from common.config import DEFAULT_TIMESPAN
 from common.loggingHandler import logger
 from common.clientHandler import clientHandler
 
-from Connectors.mongoDBConnector import mongoDBConnector
-from Connectors.azureSQLConnector import azureSQLConnector
+from Connectors.mongoDB.connector import mongoDBConnector
+from Connectors.azureSQL.connector import azureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data

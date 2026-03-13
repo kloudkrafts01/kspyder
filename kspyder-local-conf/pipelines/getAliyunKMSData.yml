@@ -11,7 +11,7 @@ Steps:
     Job: get_data_to_mongo
     Output: KMSInstanceList
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: KMSInstanceList
   
   # - Name: Set.KMSIdsList
@@ -27,7 +27,7 @@ Steps:
   #   Output: KMSInstances
   #   Input: KMSInstanceIds.data
   #   Params:
-  #     from_worker: aliyunConnector 
+  #     from_worker: aliyun 
   #     model_name: KMSInstances
 
   # - Name: GetToMongo.KMSKeyList
@@ -35,7 +35,7 @@ Steps:
   #   Output: KMSKeyList
   #   Input: RegionData.data
   #   Params:
-  #     from_worker: aliyunConnector 
+  #     from_worker: aliyun 
   #     model_name: KMSKeyList
   
   # - Name: Set.KeysIdsList
@@ -51,6 +51,6 @@ Steps:
   #   Output: KMSKeys
   #   Input: KMSKeyIds.data
   #   Params:
-  #     from_worker: aliyunConnector 
+  #     from_worker: aliyun 
   #     model_name: KMSKeys
   

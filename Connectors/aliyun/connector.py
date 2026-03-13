@@ -2,14 +2,15 @@ import os, re
 from importlib import import_module
 
 from Engines.restExtractorEngine import RESTExtractor
-from common.config import MODULES_MAP, BASE_FILE_HANDLER as fh
+from common.config import BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 
 from alibabacloud_credentials.client import Client as CredClient
 from alibabacloud_tea_openapi.models import Config
 from alibabacloud_tea_util.models import RuntimeOptions
 
-CONF = fh.load_yaml(MODULES_MAP[__name__], subpath=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
 DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
@@ -21,14 +22,14 @@ ALIYUN_MAX_PAGE_SIZE = 20
 
 class AliyunClient:
 
-    def __init__(self, 
-                 access_key_id:str=None, 
-                 access_key_secret:str=None, 
-                 region_id:str='cn-shanghai', 
-                 api_name:str=None, 
+    def __init__(self,
+                 access_key_id:str=None,
+                 access_key_secret:str=None,
+                 region_id:str='cn-shanghai',
+                 api_name:str=None,
                  **kwargs
                  ):
-        
+
         cred = CredClient()
         config = Config(
             credential = cred,
@@ -87,7 +88,7 @@ class aliyunConnector(RESTExtractor):
         self.runtime_options = None
 
     def convert_to_camelcase(self,string):
-        
+
         if string:
             old_string = string
 
@@ -95,7 +96,7 @@ class aliyunConnector(RESTExtractor):
             temp = re.split('_+', string)
             # using lambda function to convert first letter of every word to uppercase
             string = ''.join(map(lambda x: x.title(), temp))
-            
+
             logger.debug("Converted field {} to {}".format(old_string, string))
 
         return string
@@ -107,10 +108,6 @@ class aliyunConnector(RESTExtractor):
 
         # Instanciate a request object with the sdk module needed arguments
         request_params = {}
-        # if start_token:
-        #     request_params[ self.next_token_key ] = start_token
-        # if hasattr(self.api, 'batch_size_key') and self.api.batch_size_key in model['accepted_inputs']:
-        #     request_params[ self.max_results_key ] = min( PAGE_SIZE, 100 )
 
         # add base keys from API definition
         base_keys = (
@@ -127,17 +124,13 @@ class aliyunConnector(RESTExtractor):
             for key in (x for x in params.keys() if x in base_keys):
                 request_params[key] = params[key]
 
-        # # if the pull should not be paginated, drop the next token param
-        # if not model.get('paginate', True):
-        #     request_params.pop(self.api.next_token_key)
-
         # Only keep parameters with accepted keys
         if 'accepted_inputs' in model.keys():
             valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
             for key in valid_keys:
                 request_params[key] = params[key]
             logger.debug(f"valid request params: {request_params}")
-        
+
 
         if 'request_builder' in model.keys():
             # Import request builder and instanciate a request object
@@ -147,18 +140,18 @@ class aliyunConnector(RESTExtractor):
             logger.debug("request builder params: {}".format(request_params))
 
             request = request_builder(**request_params)
-            
+
             # Add the request to request context (mandatory)
             request_context.append(request)
 
         else:
             # if no request builder class is provided, just pass on the valid key-value params
             request_context.append(request_params)
-        
+
         # If the API requires a header (e.g. ContainerServices API), add it
         if hasattr(self.api, 'header'):
             request_context.append(self.api.header)
-        
+
         # Add RuntimeOptions (mandatory)
         request_context.append(self.runtime_options)
 
@@ -166,7 +159,7 @@ class aliyunConnector(RESTExtractor):
         return request_context
 
     def read_query(self,model,search_domains=[],start_token=None,batch_size=None,query_args=[],**params):
-        
+
         data = []
         metadata = {}
         is_truncated = False
@@ -182,7 +175,7 @@ class aliyunConnector(RESTExtractor):
 
         # Build a request context for the current client API
         request_context = self.build_request( model, **preprocessed_params )
-        
+
         # Send a query with the request context built before
         query = getattr(self.client, model['query_name'])
         response = query( *request_context )

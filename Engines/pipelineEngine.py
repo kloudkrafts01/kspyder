@@ -73,7 +73,7 @@ class pipelineEngine:
         worker_module = self.ch.get_client(from_worker)
         full_dataset = worker_module.get_data(input_data=input_data,**params)
 
-        mongo_module = self.ch.get_client('mongoDBConnector')
+        mongo_module = self.ch.get_client('mongoDB')
         mongo_module.upsert_dataset(input_data=full_dataset)
 
         return full_dataset

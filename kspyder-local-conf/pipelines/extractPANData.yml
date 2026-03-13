@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Extend.PANComputeInstancesData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: PANComputeExtendedNics
     Params:
@@ -18,7 +18,7 @@ Steps:
             - _id
 
   - Name: Save.ExtendedPANData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: upsert_dataset
     Input: PANComputeExtendedNics
     Output: PANComputeExtendedNicsInsertionResults
@@ -30,7 +30,7 @@ Steps:
           - network_interfaces.name
 
   # - Name: Extend.PANComputeInstancesData.Disks
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: PANComputeExtendedDisks
   #   Params:
@@ -44,7 +44,7 @@ Steps:
   #           - _id
 
   # - Name: Save.ExtendedPANData.Disks
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: upsert_dataset
   #   Input: PANComputeExtendedDisks
   #   Output: PANComputeExtendedDisksInsertionResults
@@ -56,7 +56,7 @@ Steps:
   #         - disks.device_name
 
   - Name: Extract.PANComputeInstancesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: PAN.ComputeInstancesData
     Params:
@@ -95,7 +95,7 @@ Steps:
 
 
   # - Name: Extract.PANComputeInstancesData
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: PAN.ComputeInstancesData
   #   Params:

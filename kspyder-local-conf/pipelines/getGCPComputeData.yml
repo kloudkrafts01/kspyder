@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetProjectZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCPProjectZones
     Params:
@@ -15,7 +15,7 @@ Steps:
     Input: GCPProjectZones.data
     Output: GCloudComputeInstances
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: ComputeInstances
 
   - Name: GetToMongo.RegionalTargetHttpProxies
@@ -23,7 +23,7 @@ Steps:
     Input: GCPProjectZones.data
     Output: RegionalTargetHttpProxies
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: RegionalTargetHttpProxies
 
   # # CAREFUL WITH THAT AXE, EUGENE : 
@@ -33,11 +33,11 @@ Steps:
   #   Input: GCPProjectZones.data
   #   Output: ComputeMachineTypes
   #   Params:
-  #     from_worker: gcloudConnector
+  #     from_worker: gcloud
   #     model_name: ComputeMachineTypes
 
   # - Name: BuildParentURIs
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: aggregate_data
   #   Output: GCRParentURIs
   #   Params:
@@ -59,5 +59,5 @@ Steps:
   #   Input: GCPParentURIs.data
   #   Output: CloudRunServices
   #   Params:
-  #     from_worker: gcloudConnector
+  #     from_worker: gcloud
   #     model_name: CloudRunServices

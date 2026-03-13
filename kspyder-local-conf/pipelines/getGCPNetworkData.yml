@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetProjectIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCPProjectIds
     Params:
@@ -16,7 +16,7 @@ Steps:
             - _id
   
   - Name: SetProjectRegionIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCPProjectsEUW4
     Params:
@@ -38,7 +38,7 @@ Steps:
     Input: GCPProjectIds.data
     Output: GCloudVPCs
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: VPCs
 
   - Name: GetToMongo.GCloudSubnets
@@ -46,7 +46,7 @@ Steps:
     Input: GCPProjectsEUW4.data
     Output: GCloudSubnets
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: Subnets
 
   - Name: GetToMongo.GCloudAddresses
@@ -54,7 +54,7 @@ Steps:
     Input: GCPProjectsEUW4.data
     Output: GCloudAddresses
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: Addresses    
 
 
@@ -63,7 +63,7 @@ Steps:
     Input: GCPProjectsEUW4.data
     Output: GCloudForwardingRules
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: LBForwardingRules    
 
   # - Name: GetToMongo.GCloudBackendBuckets
@@ -71,5 +71,5 @@ Steps:
   #   Input: GCPProjectsEUW4.data
   #   Output: GCloudBackendBuckets
   #   Params:
-  #     from_worker: gcloudConnector
+  #     from_worker: gcloud
   #     model_name: LBBackendBuckets

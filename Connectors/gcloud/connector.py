@@ -3,6 +3,7 @@ from importlib import import_module
 import proto
 import time
 import datetime
+import os
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 from google.iam.v1.policy_pb2 import Policy
 
@@ -11,7 +12,8 @@ from common.config import BASE_FILE_HANDLER as fh
 from Engines.restExtractorEngine import RESTExtractor
 from common.loggingHandler import logger
 
-CONF = fh.load_yaml('gcloudModels', subpath=__name__)
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 logger.debug("CONF: {}".format(CONF))
 CONNECTOR_CONF = CONF['Connector']
 SCHEMA_NAME = CONNECTOR_CONF['schema']
@@ -80,7 +82,7 @@ class gcloudConnector(RESTExtractor):
                 while len(binding.members) > 0:
                     member = binding.members.pop()
                     members.append(member)
-                
+
                 bindings += {
                     'role': binding.role,
                     'members': members,
@@ -103,18 +105,18 @@ class gcloudConnector(RESTExtractor):
                     data[value] = item_value
             else:
                 logger.error("Item {} not parsable and no field modeling found.")
-            
+
         return data
 
-    
+
     def discover_data(self, model_name=None, input_data=None, **params):
-        
+
         model = self.models[model_name]
         # Instantiate the relevant API client class from google.cloud
         self.set_current_client_from_model(model)
-        
+
         return super().discover_data(model_name, input_data=input_data, **params)
-    
+
     def build_request(self,model,**params):
 
         # Import request builder and instanciate a request in context, if provided
@@ -140,7 +142,7 @@ class gcloudConnector(RESTExtractor):
         request = request_builder(**valid_params) if request_builder_name else None
 
         return valid_params, request
-    
+
     def fetch_dataset(self,model=None,search_domains=[],**params):
         """Supercharges the RESTExtractor method as Google Cloud client libraries
             provide a fancy shortcut to iterate over pagination"""
@@ -163,12 +165,11 @@ class gcloudConnector(RESTExtractor):
             for item in response:
 
                 data = self.postprocess_item(item, model)
-                # logger.debug("post-processed item: {}".format(data))
                 total_count += 1
                 output_docs += data,
 
                 time.sleep(1.5)
-        
+
         else:
             data = self.postprocess_item(response, model)
             total_count +=1
