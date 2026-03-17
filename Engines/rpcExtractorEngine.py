@@ -127,7 +127,7 @@ class GenericRPCExtractor():
             
             start_row = start_row + how_many
             batch_size = batch_size - how_many
-            print("{} more to go.".format(batch_size))
+            logger.info("{} more to go.".format(batch_size))
 
 
 class DirectExtractor(GenericRPCExtractor):
