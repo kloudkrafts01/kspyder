@@ -3,6 +3,7 @@ import traceback
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from common.models import Dataset, DatasetHeader, DataPage, PageCursor
 
 class GenericRPCExtractor():
 
@@ -22,98 +23,80 @@ class GenericRPCExtractor():
     def forge_item(self,item,model_name,**kwargs):
         ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
+    def get_data(self, model_name=None, last_days=DEFAULT_TIMESPAN, search_domains=[], input_data=[{}], **params):
 
         logger.debug("Extractor object: {}".format(self.__dict__))
 
         if last_days:
-            now = datetime.datetime.now(datetime.datetime.utc)
+            now = datetime.datetime.now(datetime.timezone.utc)
             delta = datetime.timedelta(days=last_days)
             yesterday = now - delta
-
             logger.info("UTC start datetime is {}".format(yesterday))
-            search_domains += [self.update_field,'>=',yesterday],
-        
-        # sd = []
+            search_domains += [self.update_field, '>=', yesterday],
+
         model = self.models[model_name]
-        count = 0
-        dataset = []
-        failed_items = []
+        scopes = self.scopes if isinstance(self.scopes, list) else None
+
+        dataset = Dataset(
+            header=DatasetHeader(
+                source_schema=self.schema,
+                model_name=model_name,
+                model=model,
+                scopes=scopes,
+                params=params,
+            )
+        )
 
         for input_item in input_data:
-            
             logger.debug("Input item: {}".format(input_item))
-
-            input_params = input_item | params
-            logger.debug("Using this as input params for this round: {}".format(input_params))
-
             try:
-                result_count, plain_dataset = self.fetch_dataset(model=model,search_domains=search_domains,**input_params)
-                
-                count += result_count
-                # Only add the result dataset if not empty
-                if result_count > 0:
-                    result_dataset = [ input_item | result_item for result_item in plain_dataset]
-                    dataset.extend(result_dataset)
-            
+                self.fetch_dataset(dataset, input_item, model, search_domains=search_domains, **params)
             except Exception as e:
                 logger.exception(e)
-                failed_items += {
-                    'item': input_item
-                    # 'reason': e
-                },
+                dataset.failed_items.append({'item': input_item})
                 continue
 
-        full_dataset = {
-                'header': {
-                    'schema': self.schema,
-                    'scopes': self.scopes,
-                    'model_name': model_name,
-                    'model': model,
-                    'count': count,
-                    'params': params,
-                    'json_dump': None,
-                    'csv_dump': None
-                },
-                'failed_items': failed_items,
-                'data': dataset
-            }
-
-        if dataset == []:
+        if not dataset:
             logger.info('no results were found.')
-        
-        else: 
+        else:
             if DUMP_JSON:
-                full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
+                fh.dump_json(dataset.to_json(), self.schema, model_name)
 
-        
-        return full_dataset
+        return dataset
 
-    def fetch_dataset(self,model=None,search_domains=[],**params):
+    def fetch_dataset(self, dataset: Dataset, input_item: dict, model, search_domains=[], **params):
 
-        output_rows = []    
-        total_count = self.get_count(model,search_domains=search_domains,**params)
+        merged_params = input_item | params
+        logger.debug("Using this as input params for this round: {}".format(merged_params))
 
-        if total_count > 0:    
-            
-            logger.info('Found a total of {} items.'.format(total_count))        
-            ex_iter = self.batch_fetch(model,search_domains=search_domains,batch_size=total_count,**params)
+        total_count = self.get_count(model, search_domains=search_domains, **merged_params)
+        if total_count == 0:
+            return
 
-            for results in ex_iter:
+        logger.info('Found a total of {} items.'.format(total_count))
+        ex_iter = self.batch_fetch(model, search_domains=search_domains, batch_size=total_count, **merged_params)
 
-                for row in results:
-                    # logger.debug('raw item: {}'.format(row))
-                    try:
-                        # cleaning and formatting the item for the dataset
-                        new_row = self.forge_item(row,model,**params)
-                        # logger.debug("forged item : {}".format(new_row))
-                        output_rows += new_row,
+        accumulated = 0
+        for page_num, results in enumerate(ex_iter):
+            forged_rows = []
+            for row in results:
+                try:
+                    forged_rows.append(self.forge_item(row, model, **merged_params))
+                except Exception:
+                    logger.exception(traceback.format_exc())
+                    continue
 
-                    except Exception as ie:
-                        logger.exception(traceback.format_exc())
-                        continue
-        
-        return total_count,output_rows
+            accumulated += len(forged_rows)
+            if forged_rows:
+                is_last = accumulated >= total_count
+                dataset.update(DataPage(
+                    page_num=page_num,
+                    count=len(forged_rows),
+                    data=forged_rows,
+                    input_context=input_item,
+                    is_last=is_last,
+                    cursor=PageCursor(next_offset=accumulated) if not is_last else None,
+                ))
 
     def batch_fetch(self,model,search_domains=[],start_row=0,batch_size=None,**params):
 

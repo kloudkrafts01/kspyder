@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from common.baseModels import DataGraph
+from common.models import Dataset, DatasetHeader, DataPage, PageCursor
 
 class GenericMap():
 
@@ -109,23 +110,23 @@ class RESTExtractor():
 
         return url, headers, valid_params
 
-    def get_data(self,model_name=None,last_days=DEFAULT_TIMESPAN,search_domains=[],input_data=[{}],**params):
+    def get_data(self, model_name=None, last_days=DEFAULT_TIMESPAN, search_domains=[], input_data=[{}], **params):
         """Get Data from the connector.
-        
+
         INPUTS :
-        
+
          - model_name : Name of the model of data wanted
          - last_days : number of days of data to get
          - search_domains : triplets for search query parameters
         search_domain are given in the form of a 3-element list: [ 'field', 'operation', 'value' ]
-        
+
          - input_data : a given array of input key-values
         Each key-value needs to be fed as input to a query, and aggregated.
-        This method assumes the input in the form of a list of 
+        This method assumes the input in the form of a list of
         one-level key-value dicts, with consistent keys ie :
-        inputs = [ 
+        inputs = [
                     {
-                        "key01": "value01", 
+                        "key01": "value01",
                         "key02": "value02"
                     },
                     {
@@ -137,67 +138,42 @@ class RESTExtractor():
          - **params : additional keyword arguments
         """
 
-        # logger.debug("Extractor object: {}".format(self.__dict__))
-
         if last_days:
             now = datetime.datetime.now()
             delta = datetime.timedelta(days=last_days)
             yesterday = now - delta
-
             logger.info("UTC start datetime is {}".format(yesterday))
-            search_domains += [self.update_field,'>=',yesterday],
+            search_domains += [self.update_field, '>=', yesterday],
 
-        count = 0
-        dataset = []
-        failed_items = []
         model = self.models[model_name]
+        scopes = self.scopes if isinstance(self.scopes, list) else None
+
+        dataset = Dataset(
+            header=DatasetHeader(
+                source_schema=self.schema,
+                model_name=model_name,
+                model=model,
+                scopes=scopes,
+                params=params,
+            )
+        )
 
         for input_item in input_data:
-            
             logger.debug("Input item: {}".format(input_item))
-
-            item_params = {**params, **input_item}
-            logger.debug("Using this as input params for this round: {}".format(item_params))
-
             try:
-                result_count, plain_dataset = self.fetch_dataset(model,search_domains=search_domains,**item_params)
-                
-                count += result_count
-                # Only add the result dataset if not empty
-                if result_count > 0:
-                    result_dataset = [{**input_item, **result_item} for result_item in plain_dataset]
-                    dataset.extend(result_dataset)
-            
+                self.fetch_dataset(dataset, input_item, model, search_domains=search_domains, **params)
             except Exception as e:
                 logger.exception(e)
-                failed_items += {
-                    'item': input_item
-                    # 'reason': e
-                },
+                dataset.failed_items.append({'item': input_item})
                 continue
-        
-        full_dataset = {
-                'header': {
-                    'schema': self.schema,
-                    'model_name': model_name,
-                    'model': model,
-                    'count': count,
-                    'json_dump': None,
-                    'csv_dump': None,
-                    'scopes': self.scopes,
-                    'params': params
-                },
-                'failed_items': failed_items,
-                'data': dataset
-            }
-            
-        if dataset == []:
-            logger.info('no results were found.')
-        else: 
-            if DUMP_JSON:
-                full_dataset = fh.dump_json(full_dataset,self.schema,model_name)
 
-        return full_dataset
+        if not dataset:
+            logger.info('no results were found.')
+        else:
+            if DUMP_JSON:
+                fh.dump_json(dataset.to_json(), self.schema, model_name)
+
+        return dataset
 
     def set_api_from_model(self,model):
         
@@ -223,37 +199,50 @@ class RESTExtractor():
 
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
-    def fetch_dataset(self,model,search_domains=[],**params):
-
-        output_docs = []
-        total_count = 0
+    def fetch_dataset(self, dataset: Dataset, input_item: dict, model, search_domains=[], **params):
+        """Paginate over a single input_item and accumulate DataPages into the given Dataset."""
 
         self.set_api_from_model(model)
+        merged_params = {**params, **input_item}
+        logger.debug("Using this as input params for this round: {}".format(merged_params))
 
-        ex_iter = self.paginated_fetch(model,search_domains=search_domains,**params)
+        for page in self.paginated_fetch(model, search_domains=search_domains, **merged_params):
+            if page.count > 0:
+                dataset.update(page.model_copy(update={'input_context': input_item}))
 
-        for results_count, results in ex_iter:
-            
-            total_count += results_count
-            output_docs.extend(results)
-        
-        return total_count,output_docs
+    def _build_cursor(self, next_token, is_truncated: bool) -> PageCursor | None:
+        """Wrap the raw next_token into a typed PageCursor based on the API's pagination style."""
+        if not is_truncated or next_token is None:
+            return None
+        if self.api.pagination_style == "pages":
+            return PageCursor(next_page=int(next_token))
+        if self.api.pagination_style == "offsets":
+            return PageCursor(next_offset=int(next_token))
+        return PageCursor(next_token=str(next_token))
 
-    def paginated_fetch(self,model,search_domains=[],start_token=None,**params):
+    def paginated_fetch(self, model, search_domains=[], start_token=None, **params):
 
-        results_count = 0
         is_truncated = True
+        page_num = 0
 
         while is_truncated:
 
-            results, is_truncated, next_token, current_token = self.read_query(model,search_domains=search_domains,start_token=start_token,**params)
-            
+            results, is_truncated, next_token, current_token = self.read_query(
+                model, search_domains=search_domains, start_token=start_token, **params)
+
             results_count = len(results)
-            logger.debug("caught {} items starting from token {}".format(results_count,current_token))
+            logger.debug("caught {} items starting from token {}".format(results_count, current_token))
 
-            yield results_count, results
+            cursor = self._build_cursor(next_token, is_truncated)
+            yield DataPage(
+                page_num=page_num,
+                count=results_count,
+                data=results,
+                is_last=not is_truncated,
+                cursor=cursor,
+            )
 
-            # set for the next query iteration
+            page_num += 1
             start_token = next_token
 
             if self.rate_limit:
