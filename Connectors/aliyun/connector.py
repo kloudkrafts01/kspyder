@@ -114,9 +114,9 @@ class aliyunConnector(RESTExtractor):
             self.api.next_token_key,
             self.api.batch_size_key
         )
-        if hasattr(self.api, 'is_truncated_key'):
+        if self.api.is_truncated_key is not None:
             base_keys += self.api.is_truncated_key,
-        if hasattr(self.api, 'total_count_key'):
+        if self.api.total_count_key is not None:
             base_keys += self.api.total_count_key,
 
         # If pull should be paginated (default = true), add base pagination params
@@ -149,7 +149,7 @@ class aliyunConnector(RESTExtractor):
             request_context.append(request_params)
 
         # If the API requires a header (e.g. ContainerServices API), add it
-        if hasattr(self.api, 'header'):
+        if self.api.header is not None:
             request_context.append(self.api.header)
 
         # Add RuntimeOptions (mandatory)

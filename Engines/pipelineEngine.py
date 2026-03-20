@@ -7,6 +7,7 @@ import jmespath
 from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
+from common.configModels import PipelineConfig
 
 class pipelineEngine:
 
@@ -78,58 +79,44 @@ class pipelineEngine:
 
         return full_dataset
 
-    def execute_pipeline_from_file(self,filename):
+    def execute_pipeline_from_file(self, filename):
 
         pipeline_data = fh.load_yaml(filename, subpath='pipelines')
-        self.execute_pipeline(pipeline_data)
+        pipeline = PipelineConfig(**pipeline_data)
+        self.execute_pipeline(pipeline)
 
-    def execute_pipeline(self,pipeline):
+    def execute_pipeline(self, pipeline: PipelineConfig):
 
         datasets = {}
 
-        for step in pipeline['Steps']:
+        for step in pipeline.Steps:
 
-            # Mandatory Step definition fields
-            step_name = step['Name']
-            job_name = step['Job']
+            step_input = jmespath.search(step.Input, datasets) if step.Input else None
 
-            # prepare job input
-            step_input_name = step['Input'] if 'Input' in step.keys() else None
-            step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
-            # logger.debug("Step Input: {}".format(step_input))
-
-            step_params = step['Params'] if 'Params' in step.keys() else {}
-            
-            # If no Worker name is given in the Step definition,
-            # It is assumed that the job is one of pipelineEngine's own methods
-            step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
-            worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
-            job_instance = getattr(worker_module,job_name)
-            logger.info("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
+            worker_module = self.ch.get_client(step.Worker) if step.Worker else self
+            job_instance = getattr(worker_module, step.Job)
+            logger.info("Executing step {} : Worker = {}, Job = {}".format(step.Name, worker_module.schema, step.Job))
 
             if step_input:
-                result = job_instance(input_data=step_input,**step_params)
+                result = job_instance(input_data=step_input, **step.Params)
             else:
-                result = job_instance(**step_params)
+                result = job_instance(**step.Params)
 
-            # Store Output
-            step_output_name = step['Output'] if 'Output' in step.keys() else step_name
+            step_output_name = step.Output or step.Name
             logger.info("Inserting result set {} in the pile.".format(step_output_name))
             datasets[step_output_name] = result
             logger.info("Current datasets in the processing pile: {}".format(list(datasets.keys())))
 
             # If the step conf specifies the result needs to be dumped into csv or json, proceed.
             # Order is important : csv first, then json
-            dump_json = step['DumpJSON'] if 'DumpJSON' in step.keys() else None
-            dump_csv = step['DumpCSV'] if 'DumpCSV' in step.keys() else None
             results_count = result['header']['count']
 
             if results_count > 0:
-                if dump_csv:
-                    result_dataset = fh.dump_csv(result,step['Worker'],step_output_name)
+                if step.DumpCSV:
+                    result_dataset = fh.dump_csv(result, step.Worker, step_output_name)
 
-                if dump_json:
-                    result_dataset = fh.dump_json(result,step['Worker'],step_output_name)
+                if step.DumpJSON:
+                    result_dataset = fh.dump_json(result, step.Worker, step_output_name)
 
 
 if __name__ == "__main__":

@@ -9,12 +9,7 @@ from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
 from common.baseModels import DataGraph
 from common.models import Dataset, DatasetHeader, DataPage, PageCursor
-
-class GenericMap():
-
-    def __init__(self, payload={}):
-        for key,value in payload.items():
-            setattr(self,key,value)
+from common.configModels import APIConfig
 
 
 class RESTExtractor():
@@ -178,13 +173,13 @@ class RESTExtractor():
     def set_api_from_model(self,model):
         
         self.api_name = model['API']
-        self.api = GenericMap(payload = self.apis[self.api_name])
+        self.api = APIConfig(**self.apis[self.api_name])
 
         # Prepare response translation map
-        base_response_map = self.api.response_map if hasattr(self.api, 'response_map') else {}
+        base_response_map = self.api.response_map or {}
         response_map = model['response_map'] if 'response_map' in model.keys() else {}
         include_base_map = model['include_base_response_map'] if 'include_base_response_map' in model.keys() else True
-        
+
         if include_base_map:
             # if include API base mapping is true, merge both dicts
             model['response_map'] = { **base_response_map, **response_map }
@@ -194,7 +189,8 @@ class RESTExtractor():
             logger.exception("Model does not specify a 'data' path. No payload will be returned.")
 
         # prepare rate limit (expressed in seconds before new call)
-        self.rate_limit = self.api.rate_limit if hasattr(self.api, 'rate_limit') else self.rate_limit
+        if self.api.rate_limit is not None:
+            self.rate_limit = self.api.rate_limit
 
 
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True

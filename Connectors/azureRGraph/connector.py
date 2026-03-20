@@ -8,6 +8,7 @@ from azure.mgmt.subscription import SubscriptionClient
 
 from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from common.configModels import APIConfig
 from Engines.restExtractorEngine import RESTExtractor
 
 _DIR = os.path.dirname(__file__)
@@ -67,9 +68,7 @@ class azureRGraphConnector(RESTExtractor):
         self.set_scopes_and_subscription_ids(scopes)
 
     def set_api_from_model(self, model):
-        self.api = {
-            'name': 'Microsoft'
-        }
+        self.api = APIConfig(name='Microsoft')
 
     def set_scopes_and_subscription_ids(self,scopes=None):
 
