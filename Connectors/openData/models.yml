@@ -2,7 +2,7 @@ Connector:
     schema: opendata-fr
     update_field: modifiedSince
     default_batch_size: 100
-    default_rate_limit: 1
+    default_rate_limit: 3
 
 APIs:
 
