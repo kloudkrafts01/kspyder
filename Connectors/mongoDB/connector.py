@@ -4,6 +4,7 @@ import datetime
 
 from common.config import APP_NAME, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from common.models import Dataset
 
 MONGO_QUERIES = fh.load_yaml("mongoDBQueries.yml", subpath="mongoDB")
 
@@ -32,18 +33,18 @@ class mongoDBConnector():
 
         return result
 
-    def upsert_dataset(self,input_data={},collection=None,model=None):
+    def upsert_dataset(self, input_data: Dataset, collection=None, model=None):
 
         result_dataset = []
         insert_count = 0
         update_count = 0
 
-        model_name = model['name'] if model else input_data['header']['model_name']
-        model = model if model else input_data['header']['model']
-        target_schema = input_data['header']['schema']
+        model_name = model['name'] if model else input_data.header.model_name
+        model = model if model else input_data.header.model
+        target_schema = input_data.header.source_schema
         api_name = model.get('API')
         api_namespace = model.get('api_namespace', api_name)
-        dataset = input_data['data']
+        dataset = input_data.data
 
         if len(dataset) == 0:
             logger.info("Provided dataset is empty.")
