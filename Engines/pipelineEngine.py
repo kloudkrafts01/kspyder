@@ -8,6 +8,7 @@ from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
 from common.configModels import PipelineConfig
+from common.protocols import DocumentStore, Extractor
 
 class pipelineEngine:
 
@@ -67,14 +68,14 @@ class pipelineEngine:
 
         return full_output_data
 
-    def get_data_to_mongo(self,input_data=[{}],from_worker=None,**params):
-        """Shortcut method to get data from a connector and get the output to mongoDB directly
-        This method assumes model_name = collection_name"""
+    def get_data_to_mongo(self, input_data=[{}], from_worker=None, **params):
+        """Shortcut method to get data from a connector and get the output to mongoDB directly.
+        This method assumes model_name = collection_name."""
 
-        worker_module = self.ch.get_client(from_worker)
-        full_dataset = worker_module.get_data(input_data=input_data,**params)
+        worker_module: Extractor = self.ch.get_client(from_worker)
+        full_dataset = worker_module.get_data(input_data=input_data, **params)
 
-        mongo_module = self.ch.get_client('mongoDB')
+        mongo_module: DocumentStore = self.ch.get_client('mongoDB')
         mongo_module.upsert_dataset(input_data=full_dataset)
 
         return full_dataset
