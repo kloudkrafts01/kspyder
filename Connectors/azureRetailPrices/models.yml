@@ -1,0 +1,34 @@
+Connector:
+    schema: azureRetailPrices
+    update_field: effectiveStartDate
+
+APIs:
+    Pricing:
+        base_url: https://prices.azure.com/api/retail/prices
+        pagination_style: tokens
+
+Models:
+
+    RetailPrices:
+        API: Pricing
+        path: ""
+        accepted_inputs:
+            - $filter
+            - currencyCode
+            - $top
+        response_map:
+            data: Items
+            next_token: NextPageLink
+            total_count: Count
+        index_keys:
+            - skuId
+
+    VirtualMachines.All:
+        API: Pricing
+        path: "?$filter=serviceName eq 'Virtual Machines'"
+        response_map:
+            data: Items
+            next_token: NextPageLink
+            total_count: Count
+        index_keys:
+            - skuId

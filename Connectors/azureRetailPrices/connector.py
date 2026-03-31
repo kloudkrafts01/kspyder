@@ -1,41 +1,58 @@
 #!python3
 
-from Engines.rpcExtractorEngine import GenericRPCExtractor
-import os, requests
+import os
+import requests
 
-from common.config import load_conf, AZ_PRICING_PROFILE
+from common.config import BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
+from Engines.restExtractorEngine import RESTExtractor
 
-MODELS = load_conf('azureRG_models', subfolder='manifests')
-MODELS_LIST = list(MODELS.keys())
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
 
-# mandatory connector config
-SCHEMA_NAME = 'azureRetailPrices'
-UPD_FIELD_NAME = 'write_date'
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
 
-class AzurePricingConnector(GenericRPCExtractor):
+APIS = CONF['APIs']
+MODELS = CONF['Models']
 
-    def __init__(self, endpoint, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
+API_VERSION = '2023-01-01-preview'
 
-        self.endpoint = endpoint
-        self.client = AzurePricingConnector(AZ_PRICING_PROFILE['url'])
+
+class AzureRetailPricesConnector(RESTExtractor):
+
+    def __init__(self, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field=UPD_FIELD_NAME):
+
         self.schema = schema
         self.models = models
+        self.apis = apis
         self.update_field = update_field
+        self.scopes = None
+        self.iterate_output = True
+        self.rate_limit = None
 
-    def get_count(self, model, search_domains=[]):
+    def read_query(self, model, search_domains=[], start_token=None, batch_size=None, **params):
 
-        total_count = 0
+        # NextPageLink from a previous response is a full URL — use it directly.
+        # Skip build_request and preprocess_params entirely: Azure's pagination
+        # is URL-driven, not offset/page-driven, so injecting token params would corrupt the request.
+        if start_token and str(start_token).startswith('https://'):
+            response = requests.get(start_token)
+        else:
+            url, headers, valid_params = self.build_request(model, baseurl=self.api.base_url, **params)
+            valid_params['api-version'] = API_VERSION
+            response = requests.get(url, headers=headers, params=valid_params)
 
-        return total_count
+        status_code = response.status_code
+        logger.debug("Response Status code: {}".format(status_code))
 
-    def read_query(self,model,search_domains=[],start_row=0):
+        if status_code == 200:
+            raw_response_data = response.json()
+            data, metadata, is_truncated, next_token = self.postprocess_response(
+                raw_response_data, model=model, start_token=start_token)
+        else:
+            logger.exception("Encountered error in response: {}".format(response.text))
+            data, is_truncated, next_token = [], False, None
 
-        return 'TODO'
-
-
-    def forge_item(self,input_dict,model):
-        '''TODO function to forge outputs from Azure Resource Graph API'''
-
-        return input_dict
-
+        return data, is_truncated, next_token, start_token

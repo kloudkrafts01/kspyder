@@ -1,1 +1,1 @@
-from .connector import AzurePricingConnector as connector
+from .connector import AzureRetailPricesConnector as connector

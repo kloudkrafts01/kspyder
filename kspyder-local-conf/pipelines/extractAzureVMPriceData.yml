@@ -1,0 +1,51 @@
+Steps:
+
+  - Name: Extract.VMPricesWEU
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AzureWEUVMPrices
+    DumpCSV: true
+    DumpJSON: false
+    Params:
+      collection_name: azureRetailPrices.Pricing.RetailPrices
+      pipeline:
+        - $match:
+            armRegionName: westeurope
+            type: Consumption
+        - $project:
+            armRegionName: 1
+            location: 1
+            skuName: 1
+            armSkuName: 1
+            meterId: 1
+            type: 1
+            unitOfMeasure: 1
+            unitPrice: 1
+            currencyCode: 1
+        - $unset:
+          - _id
+
+  - Name: Extract.VMPricesFRC
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AzureFRCVMPrices
+    DumpCSV: true
+    DumpJSON: false
+    Params:
+      collection_name: azureRetailPrices.Pricing.RetailPrices
+      pipeline:
+        - $match:
+            armRegionName: francecentral
+            type: Consumption
+        - $project:
+            armRegionName: 1
+            location: 1
+            skuName: 1
+            armSkuName: 1
+            meterId: 1
+            type: 1
+            unitOfMeasure: 1
+            unitPrice: 1
+            currencyCode: 1
+        - $unset:
+          - _id

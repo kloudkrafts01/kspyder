@@ -1,8 +1,9 @@
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 from common.models import Dataset
 
 
+@runtime_checkable
 class Extractor(Protocol):
     """Structural contract for any connector that extracts data into a Dataset.
 
@@ -21,6 +22,7 @@ class Extractor(Protocol):
     ) -> Dataset: ...
 
 
+@runtime_checkable
 class DocumentStore(Protocol):
     """Structural contract for any connector that persists a Dataset.
 
