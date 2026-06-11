@@ -22,7 +22,7 @@ API_VERSION = '2023-01-01-preview'
 
 class AzureRetailPricesConnector(RESTExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field=UPD_FIELD_NAME):
+    def __init__(self, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field=UPD_FIELD_NAME, **params):
 
         self.schema = schema
         self.models = models
@@ -34,15 +34,14 @@ class AzureRetailPricesConnector(RESTExtractor):
 
     def read_query(self, model, search_domains=[], start_token=None, batch_size=None, **params):
 
-        # NextPageLink from a previous response is a full URL — use it directly.
-        # Skip build_request and preprocess_params entirely: Azure's pagination
-        # is URL-driven, not offset/page-driven, so injecting token params would corrupt the request.
+        # N>1 requests: start_token is the full NextPageLink URL — delegate to base engine
         if start_token and str(start_token).startswith('https://'):
-            response = requests.get(start_token)
-        else:
-            url, headers, valid_params = self.build_request(model, baseurl=self.api.base_url, **params)
-            valid_params['api-version'] = API_VERSION
-            response = requests.get(url, headers=headers, params=valid_params)
+            return super().read_query(model, start_token=start_token, batch_size=batch_size, **params)
+
+        # First request: build URL normally and inject the required api-version query param
+        url, headers, valid_params = self.build_request(model, baseurl=self.api.base_url, **params)
+        valid_params['api-version'] = API_VERSION
+        response = requests.get(url, headers=headers, params=valid_params)
 
         status_code = response.status_code
         logger.debug("Response Status code: {}".format(status_code))

@@ -25,31 +25,33 @@ class RESTExtractor():
         self.rate_limit = None
         self.response_map = {}
 
-    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
+    def read_query(self, model, start_token=None, batch_size=None, **params):
 
         data = []
         metadata = {}
         is_truncated = False
         next_token = None
 
-        params, start_token, batch_size = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
+        actual_start_token, params = self.preprocess_params(params, start_token=start_token, batch_size=batch_size)
 
-        url, headers, valid_params = self.build_request(model, baseurl = self.api.base_url, **params)
-        
-        # pass the request, get http status and response payload
-        response = requests.get(url, headers = headers, params = valid_params)
+        # URL-based pagination: use the next URL directly on N>1 requests
+        if self.api.pagination_style == "urls" and actual_start_token and str(actual_start_token).startswith('http'):
+            response = requests.get(actual_start_token)
+        else:
+            url, headers, valid_params = self.build_request(model, baseurl=self.api.base_url, **params)
+            response = requests.get(url, headers=headers, params=valid_params)
         raw_response_data = response.json()
         status_code = response.status_code
         logger.debug("Response Status code: {}".format(status_code))
         # logger.debug("Raw response data: {}".format(raw_response_data))
 
         if status_code == 200:
-            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = start_token)
+            data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model=model, start_token=actual_start_token)
 
         else:
             logger.exception("Encountered error in response: {}".format(raw_response_data))
 
-        return data, is_truncated, next_token, start_token
+        return data, is_truncated, next_token, actual_start_token
     
     def build_url_path(self,path_expression,valid_params={}):
         
@@ -214,6 +216,8 @@ class RESTExtractor():
             return PageCursor(next_page=int(next_token))
         if self.api.pagination_style == "offsets":
             return PageCursor(next_offset=int(next_token))
+        if self.api.pagination_style == "urls":
+            return PageCursor(next_url=str(next_token))
         return PageCursor(next_token=str(next_token))
 
     def paginated_fetch(self, model, search_domains=[], start_token=None, **params):
@@ -258,7 +262,11 @@ class RESTExtractor():
 
         if self.api.pagination_style == "offsets":
             actual_start_token = int(start_token) if start_token else 0
-        
+
+        if self.api.pagination_style == "urls":
+            # Pagination state is embedded in the URL — don't inject token/batch params
+            return actual_start_token, params
+
         params[self.api.next_token_key] = actual_start_token
         params[self.api.batch_size_key] = actual_batch_size
         logger.debug("Preprocessed Params: {}".format(params))

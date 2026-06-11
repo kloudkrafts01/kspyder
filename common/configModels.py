@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class APIConfig(BaseModel):
     name: str | None = None
     base_url: str | None = None
-    pagination_style: Literal["pages", "offsets", "tokens"] | None = None
+    pagination_style: Literal["pages", "offsets", "tokens", "urls"] | None = None
     next_token_key: str | None = None
     batch_size_key: str | None = None
     total_count_key: str | None = None
