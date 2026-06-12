@@ -3,6 +3,7 @@ import time
 import re
 import requests
 import jmespath
+from typing import Any, Iterator
 from urllib.parse import urljoin
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
@@ -14,7 +15,7 @@ from common.configModels import APIConfig
 
 class RESTExtractor():
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.client = "This is an empty client from the RESTExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the RESTExtractor interface"
         self.scopes = "Empty scope from the RESTExtractor interface"
@@ -25,7 +26,7 @@ class RESTExtractor():
         self.rate_limit = None
         self.response_map = {}
 
-    def read_query(self, model, start_token=None, batch_size=None, **params):
+    def read_query(self, model: dict, start_token: Any = None, batch_size: int | None = None, **params: Any) -> tuple[list, bool, Any, Any]:
 
         data = []
         metadata = {}
@@ -53,7 +54,7 @@ class RESTExtractor():
 
         return data, is_truncated, next_token, actual_start_token
     
-    def build_url_path(self,path_expression,valid_params={}):
+    def build_url_path(self, path_expression: str, valid_params: dict = {}) -> tuple[str, dict]:
         
         url_path = path_expression
         params_to_pop = []
@@ -78,7 +79,7 @@ class RESTExtractor():
         
         return url_path, valid_params
 
-    def build_request(self,model,baseurl=None,**params):
+    def build_request(self, model: dict, baseurl: str | None = None, **params: Any) -> tuple[str, dict, dict]:
         """Method to build valid URL, parameters and headers for a python request call from a model definition."""
 
         # Only keep parameters with accepted keys
@@ -107,7 +108,7 @@ class RESTExtractor():
 
         return url, headers, valid_params
 
-    def get_data(self, model_name=None, last_days=DEFAULT_TIMESPAN, search_domains=[], input_data=[{}], **params):
+    def get_data(self, model_name: str | None = None, last_days: int | None = DEFAULT_TIMESPAN, search_domains: list = [], input_data: list[dict] = [{}], **params: Any) -> Dataset:
         """Get Data from the connector.
 
         INPUTS :
@@ -172,7 +173,7 @@ class RESTExtractor():
 
         return dataset
 
-    def set_api_from_model(self,model):
+    def set_api_from_model(self, model: dict) -> None:
         
         self.api_name = model['API']
         self.api = APIConfig(**self.apis[self.api_name])
@@ -197,7 +198,7 @@ class RESTExtractor():
 
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
-    def fetch_dataset(self, dataset: Dataset, input_item: dict, model, search_domains=[], **params):
+    def fetch_dataset(self, dataset: Dataset, input_item: dict, model: dict, search_domains: list = [], **params: Any) -> None:
         """Paginate over a single input_item and accumulate DataPages into the given Dataset."""
 
         self.set_api_from_model(model)
@@ -220,7 +221,7 @@ class RESTExtractor():
             return PageCursor(next_url=str(next_token))
         return PageCursor(next_token=str(next_token))
 
-    def paginated_fetch(self, model, search_domains=[], start_token=None, **params):
+    def paginated_fetch(self, model: dict, search_domains: list = [], start_token: Any = None, **params: Any) -> Iterator[DataPage]:
 
         is_truncated = True
         page_num = 0
@@ -248,7 +249,7 @@ class RESTExtractor():
             if self.rate_limit:
                 time.sleep(self.rate_limit)
 
-    def preprocess_params(self,params,start_token=None,batch_size=None):
+    def preprocess_params(self, params: dict, start_token: Any = None, batch_size: int | None = None) -> tuple[Any, dict]:
         """Process and add up query parameters for pagination, according to the API's pagination style"""
 
         # mandatory: put start and batch size into query parameters entry
@@ -273,7 +274,7 @@ class RESTExtractor():
 
         return actual_start_token, params
 
-    def postprocess_response(self, response_data, start_token=None, **params):
+    def postprocess_response(self, response_data: Any, start_token: Any = None, **params: Any) -> tuple[list, dict, bool, Any]:
 
         translated_data = {}
         metadata = {}
@@ -347,7 +348,7 @@ class RESTExtractor():
         return data, metadata, is_truncated, next_token
         
 
-    def discover_data(self,model_name=None,input_data=[{}],**params):
+    def discover_data(self, model_name: str | None = None, input_data: list[dict] = [{}], **params: Any) -> dict:
         """Recursiverly discovers REST data, depth-first, starting from a given root element"""
 
         model = self.models[model_name]

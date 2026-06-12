@@ -2,13 +2,14 @@
 
 import os, re
 import json, yaml, csv, datetime
+from typing import Any
 from bson import ObjectId
 from importlib import import_module
 
 
 class bJSONEncoder(json.JSONEncoder):
 
-    def default(self,o):
+    def default(self, o: Any) -> Any:
         if isinstance(o,ObjectId):
             return str(o)
         json.JSONEncoder.default(self,o)
@@ -16,13 +17,13 @@ class bJSONEncoder(json.JSONEncoder):
 
 class FileHandler():
 
-    def __init__(self,input_folder=".",output_folder=".",**kwargs):
-        
+    def __init__(self, input_folder: str = ".", output_folder: str = ".", **kwargs: Any) -> None:
+
         self.input_folder = os.path.abspath(input_folder)
         self.output_folder = os.path.abspath(output_folder)
 
-        
-    def load_json(self,name,subpath=None,input=None):
+
+    def load_json(self, name: str, subpath: str | None = None, input: str | None = None) -> dict:
         """Simply Loads a JSON file and passes the result as a dict"""
 
         dict_data = {}
@@ -41,7 +42,7 @@ class FileHandler():
         
         return dict_data
 
-    def load_yaml(self,name,subpath=None,input=None):
+    def load_yaml(self, name: str, subpath: str | None = None, input: str | None = None) -> dict:
         """Simply Loads a YAML file and passes the result as a dict"""
 
         dict_data = {}
@@ -61,7 +62,7 @@ class FileHandler():
         
         return dict_data
     
-    def dump_json(self,dataset,schema,name):
+    def dump_json(self, dataset: dict, schema: str, name: str) -> dict:
 
         now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = "{}_{}-{}.json".format(now,schema,name)
@@ -79,7 +80,7 @@ class FileHandler():
 
         return dataset
 
-    def dump_csv(self,dataset,schema,name):
+    def dump_csv(self, dataset: dict, schema: str, name: str) -> dict:
 
         dict_data = dataset['data']
 

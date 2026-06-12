@@ -1,5 +1,6 @@
 import datetime
 import traceback
+from typing import Any, Iterator
 
 from common.config import DEFAULT_TIMESPAN, DUMP_JSON, BASE_FILE_HANDLER as fh
 from common.loggingHandler import logger
@@ -7,23 +8,23 @@ from common.models import Dataset, DatasetHeader, DataPage, PageCursor
 
 class GenericRPCExtractor():
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.client = "This is an empty client from the GenericRPCExtractor interface. Please instantiate an actual Class over it"
         self.schema = "Empty schema from the GenericRPCExtractor interface"
         self.scopes = "Empty scope from the GenericRPCExtractor interface"
         self.update_field = "Empty update_field from the GenericRPCExtractor interface"
         self.models = [{"default": "Empty schema from the GenericRPCExtractor interface"}]
 
-    def get_count(self,**kwargs):
-        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
+    def get_count(self, **kwargs: Any) -> int:
+        raise NotImplementedError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
-    def read_query(self,**kwargs):
-        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
+    def read_query(self, **kwargs: Any) -> list:
+        raise NotImplementedError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
-    def forge_item(self,item,model_name,**kwargs):
-        ValueError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
+    def forge_item(self, item: Any, model_name: Any, **kwargs: Any) -> dict:
+        raise NotImplementedError("This method was called from the GenericRPCExtractor interface. Please instantiate an actual Class over it")
 
-    def get_data(self, model_name=None, last_days=DEFAULT_TIMESPAN, search_domains=[], input_data=[{}], **params):
+    def get_data(self, model_name: str | None = None, last_days: int | None = DEFAULT_TIMESPAN, search_domains: list = [], input_data: list[dict] = [{}], **params: Any) -> Dataset:
 
         logger.debug("Extractor object: {}".format(self.__dict__))
 
@@ -64,7 +65,7 @@ class GenericRPCExtractor():
 
         return dataset
 
-    def fetch_dataset(self, dataset: Dataset, input_item: dict, model, search_domains=[], **params):
+    def fetch_dataset(self, dataset: Dataset, input_item: dict, model: Any, search_domains: list = [], **params: Any) -> None:
 
         merged_params = input_item | params
         logger.debug("Using this as input params for this round: {}".format(merged_params))
@@ -98,7 +99,7 @@ class GenericRPCExtractor():
                     cursor=PageCursor(next_offset=accumulated) if not is_last else None,
                 ))
 
-    def batch_fetch(self,model,search_domains=[],start_row=0,batch_size=None,**params):
+    def batch_fetch(self, model: Any, search_domains: list = [], start_row: int = 0, batch_size: int | None = None, **params: Any) -> Iterator[list]:
 
         while batch_size > 0:
 
@@ -115,5 +116,5 @@ class GenericRPCExtractor():
 
 class DirectExtractor(GenericRPCExtractor):
     # child Interface bypassing the 'forge item' step
-    def forge_item(self,item,model_name,**kwargs):
+    def forge_item(self, item: Any, model_name: Any, **kwargs: Any) -> Any:
         return item

@@ -1,11 +1,13 @@
 import os
 from importlib import import_module
+from typing import Any
 from common.config import CONF_FOLDER
+from common.protocols import Extractor, DocumentStore
 
 
 class clientHandler:
 
-    def get_client(self, source=None, profile_name=None, **kwargs):
+    def get_client(self, source: str | None = None, profile_name: str | None = None, **kwargs: Any) -> Extractor | DocumentStore:
         """Return an instantiated connector for the given source name.
         source must match a sub-package name under Connectors/ (e.g. 'aliyun', 'mongoDB').
         Each connector package exposes its class as 'connector' in its __init__.py."""
