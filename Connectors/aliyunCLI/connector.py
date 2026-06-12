@@ -3,6 +3,7 @@
 import subprocess
 import json, jmespath
 import os
+from typing import Any
 
 from Engines.rpcExtractorEngine import DirectExtractor
 from common.loggingHandler import logger
@@ -28,11 +29,11 @@ class aliyunCLIClient:
     """Class to process the raw output of an Aliyun CLI command, because the python sdk sucks.
     This WILL NOT set or authenticate to your Aliyun context, you have to run locally 'aliyun configure'"""
 
-    def __init__(self, update_field=UPD_FIELD_NAME):
+    def __init__(self, update_field: str = UPD_FIELD_NAME) -> None:
 
         self.update_field = update_field
 
-    def build_command(self,model=None,query_domain=None,search_domains=[],**params):
+    def build_command(self, model: dict | None = None, query_domain: str | None = None, search_domains: list = [], **params: Any) -> list:
 
         command = ['aliyun', model['API']]
         # build the basics : 'query_domain' is supposed to be one type of query that fits the model
@@ -71,7 +72,7 @@ class aliyunCLIClient:
 
         return command
 
-    def add_tabular_cmdlet(self,command,model=None):
+    def add_tabular_cmdlet(self, command: list, model: dict | None = None) -> list:
         # add the tabular formatting cmdlets
         base_name = model['base_name']
         rows_cmdlet = 'rows="{}"'.format(model['datapath'])
@@ -87,7 +88,7 @@ class aliyunCLIClient:
 
         return command
 
-    def execute_command(self,command):
+    def execute_command(self, command: list) -> Any:
 
         output = None
 
@@ -103,7 +104,7 @@ class aliyunCLIClient:
 
         return output
 
-    def get_records_count(self,model=None,query_domain=None,search_domains=[],**params):
+    def get_records_count(self, model: dict | None = None, query_domain: str | None = None, search_domains: list = [], **params: Any) -> int:
 
         count = 0
 
@@ -119,7 +120,7 @@ class aliyunCLIClient:
 
         return count
 
-    def search_read(self,model=None,query_domain=None,search_domains=[],offset=None,limit=ALIYUN_PAGE_SIZE,**params):
+    def search_read(self, model: dict | None = None, query_domain: str | None = None, search_domains: list = [], offset: int | None = None, limit: int = ALIYUN_PAGE_SIZE, **params: Any) -> Any:
 
         # Build the command and add up the offset and page size params
         command = self.build_command(model=model,query_domain=query_domain,search_domains=search_domains,**params)
@@ -145,7 +146,7 @@ class aliyunCLIClient:
 
 class aliyunCLIConnector(DirectExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME, scopes=None, **params):
+    def __init__(self, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME, scopes: list[str] | None = None, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -154,7 +155,7 @@ class aliyunCLIConnector(DirectExtractor):
         self.params = params
         self.scopes = scopes
 
-    def get_count(self, model=None, query_domain=None, search_domains=[],**params):
+    def get_count(self, model: dict | None = None, query_domain: str | None = None, search_domains: list = [], **params: Any) -> int:
 
         total_count = 0
         # default to the first item in the model's query domains list
@@ -162,7 +163,7 @@ class aliyunCLIConnector(DirectExtractor):
         total_count = self.client.get_records_count(model,query_domain=query_domain,search_domains=search_domains,**params)
         return total_count
 
-    def read_query(self, model=None, query_domain=None, search_domains=[], start_row=0,**params):
+    def read_query(self, model: dict | None = None, query_domain: str | None = None, search_domains: list = [], start_row: int = 0, **params: Any) -> Any:
 
         # default to the first item in the model's query domains list
         query_domain = query_domain if query_domain else model['query_domains'][0]

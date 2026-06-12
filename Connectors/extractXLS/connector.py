@@ -1,6 +1,7 @@
 #!python3
 
 from Engines.rpcExtractorEngine import GenericRPCExtractor
+from typing import Any
 import pandas as pd
 import os,re
 
@@ -19,14 +20,14 @@ MODELS_LIST = list(MODELS.keys())
 
 class XLSConnector(GenericRPCExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME,**params):
+    def __init__(self, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
         self.update_field = update_field
         self.dataframes = self.load_tables()
 
-    def load_tables(self,source_folder=DATA_FOLDER):
+    def load_tables(self, source_folder: str = DATA_FOLDER) -> dict[str, pd.DataFrame]:
         '''Loads all excel files in the input folder whose names match one Model name in the schema's YML config'''
 
         file_list = os.listdir(source_folder)
@@ -34,29 +35,29 @@ class XLSConnector(GenericRPCExtractor):
         dataframes = {}
 
         for filename in file_list:
-            
+
             tablename, extname = os.path.splitext(filename)
             if re.match(re.compile("(xls)|(xlsx)$",re.I),extname) and tablename in models_list:
                 tablenames += tablename,
                 filepath = os.path.join(source_folder,filename)
                 dataframes[tablename] = pd.read_excel(filepath)
-        
+
         return dataframes
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model: dict, search_domains: list = []) -> int:
 
         df = self.dataframes[model['base_name']]
         total_count = len(df)
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=0):
-        
+    def read_query(self, model: dict, search_domains: list = [], start_row: int = 0) -> str:
+
         df = self.dataframes[model['base_name']]
         results = df.to_json(orient='records')
         return results
 
 
-    def forge_item(self,input_dict,model):
+    def forge_item(self, input_dict: dict, model: dict) -> dict:
         '''Passthrough function because it has to be here to work with the GenericRPCExtractor flow. No added value in the case of this specific connector.'''
 
         new_dict = input_dict

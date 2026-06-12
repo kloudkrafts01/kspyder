@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import jmespath
 import requests
 
@@ -21,7 +22,7 @@ APIS = CONF['APIs']
 
 class akamaiClient():
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         edgerc = EdgeRc('~/.edgerc')
         default_section = 'default'
@@ -33,7 +34,7 @@ class akamaiClient():
 
 class akamaiConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, **params):
+    def __init__(self, scopes: list[str] | None = None, schema: str = SCHEMA_NAME, models: dict = MODELS, apis: dict = APIS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -47,7 +48,7 @@ class akamaiConnector(RESTExtractor):
         self.client = akamaiClient()
 
 
-    def read_query(self, model, start_token:int = 1, batch_size:int = 100, **params):
+    def read_query(self, model: dict, start_token: int = 1, batch_size: int = 100, **params: Any) -> tuple[list, bool, Any, Any]:
 
         data = []
         metadata = {}

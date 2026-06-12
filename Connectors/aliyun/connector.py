@@ -1,5 +1,6 @@
 import os, re
 from importlib import import_module
+from typing import Any
 
 from Engines.restExtractorEngine import RESTExtractor
 from common.config import BASE_FILE_HANDLER as fh
@@ -23,12 +24,12 @@ ALIYUN_MAX_PAGE_SIZE = 20
 class AliyunClient:
 
     def __init__(self,
-                 access_key_id:str=None,
-                 access_key_secret:str=None,
-                 region_id:str='cn-shanghai',
-                 api_name:str=None,
-                 **kwargs
-                 ):
+                 access_key_id: str | None = None,
+                 access_key_secret: str | None = None,
+                 region_id: str = 'cn-shanghai',
+                 api_name: str | None = None,
+                 **kwargs: Any
+                 ) -> None:
 
         cred = CredClient()
         config = Config(
@@ -53,7 +54,7 @@ class AliyunClient:
         self.client = Client(config)
 
     @classmethod
-    def from_env(cls,api_name=None):
+    def from_env(cls, api_name: str | None = None) -> "AliyunClient":
         env = os.environ
         return cls(
             env['ALIBABA_CLOUD_ACCESS_KEY_ID'],
@@ -64,7 +65,7 @@ class AliyunClient:
 
 class aliyunConnector(RESTExtractor):
 
-    def __init__(self, profile=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, scopes=None, rate_limit=DEFAULT_RATE, batch_size=ALIYUN_MAX_PAGE_SIZE, **params):
+    def __init__(self, profile: Any = None, schema: str = SCHEMA_NAME, models: dict = MODELS, apis: dict = APIS, scopes: list[str] | None = None, rate_limit: int = DEFAULT_RATE, batch_size: int = ALIYUN_MAX_PAGE_SIZE, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -87,7 +88,7 @@ class aliyunConnector(RESTExtractor):
         self.source_models = None
         self.runtime_options = None
 
-    def convert_to_camelcase(self,string):
+    def convert_to_camelcase(self, string: str | None) -> str | None:
 
         if string:
             old_string = string
@@ -101,7 +102,7 @@ class aliyunConnector(RESTExtractor):
 
         return string
 
-    def build_request(self, model, **params):
+    def build_request(self, model: dict, **params: Any) -> list:
 
         request_builder = None
         request_context = []
@@ -158,7 +159,7 @@ class aliyunConnector(RESTExtractor):
         logger.debug("Request context: {}".format(request_context))
         return request_context
 
-    def read_query(self,model,search_domains=[],start_token=None,batch_size=None,query_args=[],**params):
+    def read_query(self, model: dict, search_domains: list = [], start_token: Any = None, batch_size: int | None = None, query_args: list = [], **params: Any) -> tuple[list, bool, Any, Any]:
 
         data = []
         metadata = {}

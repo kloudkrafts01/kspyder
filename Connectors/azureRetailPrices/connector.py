@@ -1,6 +1,7 @@
 #!python3
 
 import os
+from typing import Any
 import requests
 
 from common.config import BASE_FILE_HANDLER as fh
@@ -22,7 +23,7 @@ API_VERSION = '2023-01-01-preview'
 
 class AzureRetailPricesConnector(RESTExtractor):
 
-    def __init__(self, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field=UPD_FIELD_NAME, **params):
+    def __init__(self, schema: str = SCHEMA_NAME, models: dict = MODELS, apis: dict = APIS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -32,7 +33,7 @@ class AzureRetailPricesConnector(RESTExtractor):
         self.iterate_output = True
         self.rate_limit = None
 
-    def read_query(self, model, search_domains=[], start_token=None, batch_size=None, **params):
+    def read_query(self, model: dict, search_domains: list = [], start_token: Any = None, batch_size: int | None = None, **params: Any) -> tuple[list, bool, Any, Any]:
 
         # N>1 requests: start_token is the full NextPageLink URL — delegate to base engine
         if start_token and str(start_token).startswith('https://'):

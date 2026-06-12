@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import jmespath
 import requests
 
@@ -22,7 +23,7 @@ MODELS = CONF['Models']
 
 class openDataConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, apis=APIS, update_field = UPD_FIELD_NAME, batch_size=PAGE_SIZE, rate_limit=RATE_LIMIT, **params):
+    def __init__(self, scopes: list[str] | None = None, schema: str = SCHEMA_NAME, models: dict = MODELS, apis: dict = APIS, update_field: str = UPD_FIELD_NAME, batch_size: int = PAGE_SIZE, rate_limit: int | None = RATE_LIMIT, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -35,7 +36,7 @@ class openDataConnector(RESTExtractor):
         self.rate_limit = rate_limit
         self.batch_size = batch_size
 
-    def read_query(self, model, start_token=None, batch_size=None, **params):
+    def read_query(self, model: dict, start_token: Any = None, batch_size: int | None = None, **params: Any) -> tuple[list, bool, Any, Any]:
 
         actual_start_token, preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
 

@@ -1,6 +1,7 @@
 #!python3
 
 import os
+from typing import Any
 
 from common.profileHandler import profileHandler
 from Engines.rpcExtractorEngine import GenericRPCExtractor
@@ -22,7 +23,7 @@ MODELS_LIST = list(MODELS.keys())
 class OdooClient:
     """Simple class to instanciate an XML-RPC client connected to the Odoo API and provide querying methods"""
 
-    def __init__(self,url,dbname,username, password):
+    def __init__(self, url: str, dbname: str, username: str, password: str) -> None:
 
         self.url = url
         self.dbname = dbname
@@ -34,7 +35,7 @@ class OdooClient:
         self.models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.url),context=ssl._create_unverified_context())
 
     @classmethod
-    def from_profile(cls,profile_name):
+    def from_profile(cls, profile_name: str) -> "OdooClient":
 
         ph = profileHandler(input_folder=CONF)
         profile = ph.load_profile(profile_name=profile_name)
@@ -46,7 +47,7 @@ class OdooClient:
             profile['password']
         )
 
-    def get_records_count(self,model,search_domains=[]):
+    def get_records_count(self, model: dict, search_domains: list = []) -> int:
 
         result = self.models.execute_kw(
             self.dbname, self.uid, self.__password,
@@ -55,7 +56,7 @@ class OdooClient:
         )
         return result
 
-    def search_read(self,model,search_domains=[],offset=None,limit=PAGE_SIZE):
+    def search_read(self, model: dict, search_domains: list = [], offset: int | None = None, limit: int = PAGE_SIZE) -> list:
 
         fields = model['fields']
         paramsDict = {'fields': fields, 'order': 'id'}
@@ -77,7 +78,7 @@ class OdooClient:
 
 class OdooRPCConnector(GenericRPCExtractor):
 
-    def __init__(self, profile=ODOO_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME,**params):
+    def __init__(self, profile: str = ODOO_PROFILE, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
 
         # instantiate an Odoo XML-RPC client
         self.client = OdooClient.from_profile(profile)
@@ -86,18 +87,18 @@ class OdooRPCConnector(GenericRPCExtractor):
         self.models = models
         self.update_field = update_field
 
-    def get_count(self, model=None, search_domains=[]):
+    def get_count(self, model: dict | None = None, search_domains: list = []) -> int:
 
         total_count = self.client.get_records_count(model=model,search_domains=search_domains)
         return total_count
 
-    def read_query(self,model=None,search_domains=[],start_row=0):
+    def read_query(self, model: dict | None = None, search_domains: list = [], start_row: int = 0) -> list:
 
         results = self.client.search_read(model=model,search_domains=search_domains,offset=start_row)
         return results
 
 
-    def forge_item(self,odoo_dict,model=None):
+    def forge_item(self, odoo_dict: dict, model: dict | None = None) -> dict:
         '''function to split Odoo dict objects that contain two-value list as values, as it can happen when getting stuff from the Odoo RPC API.
         The values are split into two distinct fields, and if needed the second field can be dropped (e.g. when it contains PII we don't want to keep).'''
 

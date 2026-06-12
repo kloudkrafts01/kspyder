@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import jmespath
 
 from azure.identity import DefaultAzureCredential
@@ -25,7 +26,7 @@ MODELS = CONF['Models']
 
 class azureRGraphClient(ResourceGraphClient):
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.credential = DefaultAzureCredential()
         # Instantiate Azure Resource Graph Client with Credential
@@ -34,7 +35,7 @@ class azureRGraphClient(ResourceGraphClient):
             credential = self.credential
         )
 
-    def get_subscriptions(self):
+    def get_subscriptions(self) -> list[dict]:
 
         # Instantiate azure Subscriptions Client
         sub_client = SubscriptionClient(
@@ -51,7 +52,7 @@ class azureRGraphClient(ResourceGraphClient):
 
 class azureRGraphConnector(RESTExtractor):
 
-    def __init__(self, scopes=None, schema=SCHEMA_NAME, models=MODELS, update_field = UPD_FIELD_NAME, **params):
+    def __init__(self, scopes: list[str] | None = None, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
 
         self.schema = schema
         self.models = models
@@ -67,10 +68,10 @@ class azureRGraphConnector(RESTExtractor):
         self.subscription_ids = None
         self.set_scopes_and_subscription_ids(scopes)
 
-    def set_api_from_model(self, model):
+    def set_api_from_model(self, model: dict) -> None:
         self.api = APIConfig(name='Microsoft')
 
-    def set_scopes_and_subscription_ids(self,scopes=None):
+    def set_scopes_and_subscription_ids(self, scopes: list[str] | None = None) -> None:
 
         subscription_ids = []
 
@@ -87,7 +88,7 @@ class azureRGraphConnector(RESTExtractor):
 
         self.subscription_ids = subscription_ids
 
-    def read_query(self,model,start_token=None,**params):
+    def read_query(self, model: dict, start_token: Any = None, **params: Any) -> tuple[list, bool, Any, Any]:
 
         request = self.build_request(model,start_token=start_token)
         query_response = self.client.resources(request)
@@ -100,7 +101,7 @@ class azureRGraphConnector(RESTExtractor):
         return result, is_truncated, next_token, start_token
 
 
-    def build_request(self, model, start_token=None, page_size=PAGE_SIZE, **params):
+    def build_request(self, model: dict, start_token: Any = None, page_size: int = PAGE_SIZE, **params: Any) -> QueryRequest:
 
         class_scope = model['class'] if 'class' in model.keys() else DEFAULT_CLASS
         base_name = model['base_name']

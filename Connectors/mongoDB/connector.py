@@ -1,4 +1,5 @@
 import json, jmespath
+from typing import Any
 from pymongo import MongoClient,errors
 import datetime
 
@@ -19,12 +20,12 @@ ACCEPTED_OPS = {
 
 class mongoDBConnector():
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = MongoClient('localhost',27017)
         self.db = self.client[APP_NAME]
         self.schema = 'mongoDBConnector'
 
-    def insert_dataset(self,input_data={},collection=None,key='name'):
+    def insert_dataset(self, input_data: dict = {}, collection: str | None = None, key: str = 'name') -> Any:
 
         logger.info("Inserting dataset to Mongo Collection: {}".format(collection))
 
@@ -33,7 +34,7 @@ class mongoDBConnector():
 
         return result
 
-    def upsert_dataset(self, input_data: Dataset, collection=None, model=None):
+    def upsert_dataset(self, input_data: Dataset, collection: str | None = None, model: dict[str, Any] | None = None) -> dict[str, Any]:
 
         result_dataset = []
         insert_count = 0
@@ -98,7 +99,7 @@ class mongoDBConnector():
 
         return full_dataset
 
-    def insert_from_jsonfile(self,jsonpath):
+    def insert_from_jsonfile(self, jsonpath: str) -> None:
 
         if jsonpath:
             with open(jsonpath,'r') as jf:
@@ -107,7 +108,7 @@ class mongoDBConnector():
                 input_data = json_data['data']
                 self.insert_dataset(input_data=input_data, collection=model_name)
 
-    def execute_queries(self, query_names=None, search_domain=None):
+    def execute_queries(self, query_names: list[str] | None = None, search_domain: list | None = None) -> None:
 
         queries = {}
         #extracting a subset of the MONGO_QUERIES dicitonary if query names were explicitly provided
@@ -146,7 +147,7 @@ class mongoDBConnector():
         if DUMP_JSON:
             result_dataset = fh.dump_json(result_dataset,APP_NAME,query_name)
 
-    def process_filter(self,filter_def):
+    def process_filter(self, filter_def: list) -> dict:
 
         filter = {}
 
@@ -164,7 +165,7 @@ class mongoDBConnector():
 
         return filter
 
-    def aggregate_data(self,save_to=None,collection_name=None,pipeline=None,filters=[],**params):
+    def aggregate_data(self, save_to: str | None = None, collection_name: str | None = None, pipeline: list | None = None, filters: list = [], **params: Any) -> dict:
 
         count = 0
         results_list = []
@@ -214,7 +215,7 @@ class mongoDBConnector():
 
         return result_dataset
 
-    def create_view(self,name=None,collection_name=None,pipeline=None,overwrite=False):
+    def create_view(self, name: str | None = None, collection_name: str | None = None, pipeline: list | None = None, overwrite: bool = False) -> tuple[Any, int]:
 
         now = datetime.datetime.now()
         count = 0

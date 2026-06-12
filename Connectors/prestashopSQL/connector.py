@@ -1,6 +1,7 @@
 #!python3
 
 import datetime,decimal
+from typing import Any
 
 from Engines.sqlEngine import GenericSQLEngine
 from Engines.rpcExtractorEngine import GenericRPCExtractor
@@ -25,7 +26,7 @@ CATALOGS = list(x for x in MODELS.keys() if MODELS[x]['update'] is False)
 
 class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
         
-    def __init__(self, profile=PS_PROFILE, schema=SCHEMA_NAME, models=MODELS, update_field=UPD_FIELD_NAME):
+    def __init__(self, profile: str = PS_PROFILE, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME) -> None:
 
         presta_conn = GenericSQLEngine.from_profile(profile)
         self.client = presta_conn.engine.connect()
@@ -34,7 +35,7 @@ class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
         self.model = models
         self.update_field = update_field
 
-    def get_count(self, model, search_domains=[]):
+    def get_count(self, model: dict, search_domains: list = []) -> int:
 
         countStr = 'SELECT COUNT(*)' + self.build_domain_query( model, search_domains=search_domains )
         logger.debug('Applying count query string: {}'.format(countStr))
@@ -42,7 +43,7 @@ class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
 
         return total_count
 
-    def read_query(self,model,search_domains=[],start_row=None):
+    def read_query(self, model: dict, search_domains: list = [], start_row: int | None = None) -> list:
 
         queryStr = self.build_read_query( model, search_domains=search_domains, offset=start_row )
         logger.debug('Applying the following queryStr: {}'.format(queryStr))
@@ -50,7 +51,7 @@ class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
 
         return results
 
-    def build_read_query(self, model, search_domains=[], offset=None, limit=PAGE_SIZE):
+    def build_read_query(self, model: dict, search_domains: list = [], offset: int | None = None, limit: int = PAGE_SIZE) -> str:
 
         # table_name = model['ps_table']
         fields = model['fields']
@@ -66,7 +67,7 @@ class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
 
         return queryStr
 
-    def build_domain_query(self, model, search_domains=[], offset=None, limit=None):
+    def build_domain_query(self, model: dict, search_domains: list = [], offset: int | None = None, limit: int | None = None) -> str:
 
         table_name = model['ps_table']
         order_by = model['order_by']
@@ -113,7 +114,7 @@ class prestashopSQLExtractor(GenericRPCExtractor,GenericSQLEngine):
 
         return domainStr
 
-    def forge_item(self,row,model):
+    def forge_item(self, row: Any, model: dict) -> dict:
 
         output = {}
         count = 0    

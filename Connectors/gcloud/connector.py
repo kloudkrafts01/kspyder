@@ -4,6 +4,7 @@ import proto
 import time
 import datetime
 import os
+from typing import Any
 from google.cloud.bigquery.dataset import Dataset, DatasetListItem
 from google.iam.v1.policy_pb2 import Policy
 
@@ -22,7 +23,7 @@ MODELS = CONF['Models']
 
 class gcloudConnector(RESTExtractor):
 
-    def __init__(self, client=None, schema=SCHEMA_NAME, scopes=None, models=MODELS, update_field=None,connector_class=None,**params):
+    def __init__(self, client: Any = None, schema: str = SCHEMA_NAME, scopes: list[str] | None = None, models: dict = MODELS, update_field: str | None = None, connector_class: Any = None, **params: Any) -> None:
 
         self.schema = schema
         self.scopes = scopes
@@ -33,7 +34,7 @@ class gcloudConnector(RESTExtractor):
         self.client = client
         self.iterate_output = True
 
-    def set_current_client_from_model(self, model):
+    def set_current_client_from_model(self, model: dict) -> None:
 
         # Get the API config from the chosen Model
         api_ref = model['API']
@@ -55,7 +56,7 @@ class gcloudConnector(RESTExtractor):
 
         self.iterate_output = model['iterable'] if 'iterable' in model.keys() else True
 
-    def postprocess_item(self, item, model=None, **params):
+    def postprocess_item(self, item: Any, model: dict | None = None, **params: Any) -> dict:
         """Run returned items through JSON serialization"""
 
         if isinstance(item, proto.Message):
@@ -109,7 +110,7 @@ class gcloudConnector(RESTExtractor):
         return data
 
 
-    def discover_data(self, model_name=None, input_data=None, **params):
+    def discover_data(self, model_name: str | None = None, input_data: list[dict] | None = None, **params: Any) -> dict:
 
         model = self.models[model_name]
         # Instantiate the relevant API client class from google.cloud
@@ -117,7 +118,7 @@ class gcloudConnector(RESTExtractor):
 
         return super().discover_data(model_name, input_data=input_data, **params)
 
-    def build_request(self,model,**params):
+    def build_request(self, model: dict, **params: Any) -> tuple[dict, Any]:
 
         # Import request builder and instanciate a request in context, if provided
         request_builder_name = model['request_builder'] if 'request_builder' in model.keys() else None
@@ -143,7 +144,7 @@ class gcloudConnector(RESTExtractor):
 
         return valid_params, request
 
-    def fetch_dataset(self,model=None,search_domains=[],**params):
+    def fetch_dataset(self, model: dict | None = None, search_domains: list = [], **params: Any) -> tuple[int, list]:
         """Supercharges the RESTExtractor method as Google Cloud client libraries
             provide a fancy shortcut to iterate over pagination"""
 
