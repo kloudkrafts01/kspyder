@@ -2,22 +2,24 @@
 
 import sys
 from importlib import import_module
+from typing import Any, cast
 import jmespath
 
 from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
 from common.configModels import PipelineConfig
+from common.models import Dataset
 from common.protocols import DocumentStore, Extractor
 
 class pipelineEngine:
 
-    def __init__(self,**params):
+    def __init__(self, **params: Any) -> None:
 
         self.ch = clientHandler()
         self.schema = __name__
 
-    def apply_filters(self,input_data=None,filters=None):
+    def apply_filters(self, input_data: Any = None, filters: Any = None) -> dict:
 
         filtered_data = input_data
         logger.debug("apply_filters :: INPUT DATA : {}".format(input_data))
@@ -35,7 +37,7 @@ class pipelineEngine:
 
         return filtered_dataset
 
-    def set_static_data(self, data=None):
+    def set_static_data(self, data: Any = None) -> dict:
 
         static_dataset = {
             'header': { 
@@ -49,7 +51,7 @@ class pipelineEngine:
 
         return static_dataset
 
-    def get_unique_key_list(self,input_data=None,key=None,datapath=None):
+    def get_unique_key_list(self, input_data: Any = None, key: str | None = None, datapath: str | None = None) -> dict:
 
         values_list = jmespath.search(datapath,input_data)
         if values_list:
@@ -68,27 +70,27 @@ class pipelineEngine:
 
         return full_output_data
 
-    def get_data_to_mongo(self, input_data=[{}], from_worker=None, **params):
+    def get_data_to_mongo(self, input_data: list[dict] = [{}], from_worker: str | None = None, **params: Any) -> Dataset:
         """Shortcut method to get data from a connector and get the output to mongoDB directly.
         This method assumes model_name = collection_name."""
 
-        worker_module: Extractor = self.ch.get_client(from_worker)
+        worker_module = cast(Extractor, self.ch.get_client(from_worker))
         full_dataset = worker_module.get_data(input_data=input_data, **params)
 
-        mongo_module: DocumentStore = self.ch.get_client('mongoDB')
+        mongo_module = cast(DocumentStore, self.ch.get_client('mongoDB'))
         mongo_module.upsert_dataset(input_data=full_dataset)
 
         return full_dataset
 
-    def execute_pipeline_from_file(self, filename):
+    def execute_pipeline_from_file(self, filename: str) -> None:
 
         pipeline_data = fh.load_yaml(filename, subpath='pipelines')
         pipeline = PipelineConfig(**pipeline_data)
         self.execute_pipeline(pipeline)
 
-    def execute_pipeline(self, pipeline: PipelineConfig):
+    def execute_pipeline(self, pipeline: PipelineConfig) -> None:
 
-        datasets = {}
+        datasets: dict = {}
 
         for step in pipeline.Steps:
 
