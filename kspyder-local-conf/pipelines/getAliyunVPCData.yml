@@ -1,46 +1,39 @@
 Steps:
 
-  # - Name: GetVPCs
-  #   Job: get_data_to_mongo
-  #   Output: AliyunVPCs
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: VPCs
-  #     last_days: null
-  #     collection_name: Aliyun.VPC.VPCs
-
-  # - Name: GetVSwitches
-  #   Job: get_data_to_mongo
-  #   Output: AliyunVSwitches
-  #   Params:
-  #     from_worker: aliyunCLIConnector
-  #     model_name: VSwitches
-  #     collection_name: Aliyun.VPC.VSwitches
-  #     last_days: null
-
-  - Name: ExtractVSwitchInfo
-    Worker: mongoDBConnector
-    Job: aggregate_data
-    Output: AliyunVSwitchInfo
+  - Name: GetVPCs
+    Job: get_data_to_mongo
+    Output: AliyunVPCs
     Params:
-      save_to: Aliyun.VPC.VSwitchData
+      from_worker: aliyunCLI
+      model_name: VPCs
+      last_days: null
+
+  - Name: GetVSwitches
+    Job: get_data_to_mongo
+    Output: AliyunVSwitches
+    Params:
+      from_worker: aliyunCLI
+      model_name: VSwitches
+      last_days: null
+
+  - Name: Extract.RouteTableIds
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: RouteTableIds
+    Params:
       collection_name: Aliyun.VPC.VSwitches
       pipeline:
-        - $lookup:
-            from: AliyunVPCs
-            localField: VpcId
-            foreignField: VpcId
-            as: VpcInfo
-        # - $unwind: $VpcInfo
         - $project:
-            VpcName: $VpcInfo.VpcName
-            VpcId: 1
-            VSwitchName: 1
-            VSwitchId: 1
-            ZoneId: 1
-            CreationTime: 1
-            CidrBlock: 1
-            AvailableIpAddressCount: 1
+            RouteTableId: $RouteTable.RouteTableId
+        - $unset:
+          - _id
 
-   
+  # - Name: GetToMongo.RouteTableDetails
+  #   Job: get_data_to_mongo
+  #   Output: RouteTableDetails
+  #   Input: RouteTableIds.data
+  #   Params:
+  #     from_worker: aliyunCLI
+  #     model_name: RouteTableDetails
+  #     last_days: null
 

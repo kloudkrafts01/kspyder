@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetProjectZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCPProjectZones
     Params:
@@ -15,8 +15,16 @@ Steps:
     Input: GCPProjectZones.data
     Output: GCloudComputeInstances
     Params:
-      from_worker: gcloudConnector
-      model_name: GCloudComputeInstances
+      from_worker: gcloud
+      model_name: ComputeInstances
+
+  - Name: GetToMongo.RegionalTargetHttpProxies
+    Job: get_data_to_mongo
+    Input: GCPProjectZones.data
+    Output: RegionalTargetHttpProxies
+    Params:
+      from_worker: gcloud
+      model_name: RegionalTargetHttpProxies
 
   # # CAREFUL WITH THAT AXE, EUGENE : 
   # # many requests will be sent with this one you might blow up your API quota
@@ -25,57 +33,31 @@ Steps:
   #   Input: GCPProjectZones.data
   #   Output: ComputeMachineTypes
   #   Params:
-  #     from_worker: gcloudConnector
+  #     from_worker: gcloud
   #     model_name: ComputeMachineTypes
 
-  # - Name: GetComputeInstances
-  #   Worker: gcloudComputeConnector
-  #   Job: get_data
-  #   Output: ComputeInstances
-  #   Input: GCPProjectZones.data
-  #   Params:
-  #     model_name: ComputeInstances
-
-  # - Name: StoreInstancesToMongo
-  #   Worker: mongoDBConnector
-  #   Job: upsert_dataset
-  #   Input: ComputeInstances
-  #   Output: ComputeInstancesInsertionResult
-  #   Params:
-  #     collection: GCPComputeInstances
-
   # - Name: BuildParentURIs
-  #   Worker: mongoDBConnector
-  #   Job: execute_query
+  #   Worker: mongoDB
+  #   Job: aggregate_data
   #   Output: GCRParentURIs
   #   Params:
-  #     query_name: BuildParentURIs
-  #     query_conf:
-  #       collection: GCPProjects
-  #       operations:
-  #         $set:
+  #     collection_name: GCPProjects
+  #     pipeline:
+  #       - $set:
   #           parent: 
   #             $replaceOne:
   #               input: "/projects/{project_id}/location/europe-west-4"
   #               find: "{project_id}"
   #               replacement: $project_id
-  #         $project:
+  #       - $project:
   #           parent: 1
-  #         $unset:
+  #       - $unset:
   #           - _id
     
-  # - Name: GetCloudRunServices
-  #   Worker: gcloudConnector
-  #   Job: get_data
-  #   Input: GCRParentURIs.data
+  # - Name: GetToMongo.CloudRunServices
+  #   Job: get_data_to_mongo
+  #   Input: GCPParentURIs.data
   #   Output: CloudRunServices
   #   Params:
+  #     from_worker: gcloud
   #     model_name: CloudRunServices
-
-  # - Name: StoreGCRServices
-  #   Worker: mongoDBConnector
-  #   Job: upsert_dataset
-  #   Input: CloudRunServices
-  #   Output: GCRServicesInsertionResult
-  #   Params:
-  #     collection: CloudRunServices

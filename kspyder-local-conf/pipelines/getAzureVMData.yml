@@ -1,0 +1,9 @@
+Steps:
+
+  - Name: GetToMongo.VirtualMachines
+    Job: get_data_to_mongo
+    Output: VirtualMachines
+    Params:
+      from_worker: azureRGraph
+      model_name: VirtualMachines
+  

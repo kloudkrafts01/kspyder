@@ -3,13 +3,13 @@ Steps:
 # ============ Flatten IP Ranges data for Subnets ==============
 
   - Name: GCP.SubnetData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudSubnetData
     DumpCSV: true
     Params:
       save_to: GCloud.VPC.SubnetData
-      collection_name: GCloudSubnets
+      collection_name: GCloud.Compute.Subnets
       pipeline:
         - $set: 
             ip_cidr_type: primary
@@ -54,13 +54,13 @@ Steps:
 # ============ Get VPC Peerings Data ==============
 
   - Name: Extract.VPCPeerings
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudVPCPeeringData
     DumpCSV: true
     Params:
       save_to: GCloud.VPC.PeeringData
-      collection_name: GCloudVPCs
+      collection_name: GCloud.Compute.VPCs
       pipeline:
         - $unwind: $peerings
         - $set:
@@ -107,13 +107,13 @@ Steps:
  # ============= Extract VPC Address data ================
 
   - Name: Extract.VPCAddressesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudAddressData
     DumpCSV: false
     Params:
       save_to: GCloud.VPC.AddressData
-      collection_name: GCloudAddresses
+      collection_name: GCloud.Compute.Addresses
       pipeline:
         - $project:
             id: 1
@@ -132,7 +132,7 @@ Steps:
 # ============= Regroup Address data by Subnet ================
 
   - Name: Expand.SubnetIPData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SubnetIPData
     DumpCSV: true
@@ -163,6 +163,7 @@ Steps:
             vpc: $subnetInfo.vpc
             subnet: 1
             name: 1
+            env: 
             ip_address: 1
             purpose: 1
             subnet_cidr: $subnetInfo.ip_cidr_range
@@ -172,7 +173,7 @@ Steps:
 # ============= Aggregate Subnet occupation data ================
 
   - Name: Extract.SubnetOccupationData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SubnetOccupationData
     DumpCSV: true

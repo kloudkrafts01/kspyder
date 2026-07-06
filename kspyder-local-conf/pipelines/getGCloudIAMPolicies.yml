@@ -1,0 +1,25 @@
+Steps:
+
+  - Name: ExportProjectIds
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: GCPProjectIds
+    Params:
+      collection_name: GCPProjects
+      pipeline:
+        - $project:
+            resource: 
+              $replaceOne:
+                input: "projects/{project_id}"
+                find: "{project_id}"
+                replacement: $project_id
+        - $unset:
+            - _id
+  
+  - Name: GetProjectIAMPolicies
+    Job: get_data_to_mongo
+    Input: GCPProjectIds.data
+    Output: GCPProjectIAMPolicies
+    Params:
+      from_worker: gcloud
+      model_name: ProjectIAMPolicies

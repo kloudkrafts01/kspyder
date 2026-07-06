@@ -1,7 +1,7 @@
 Steps:
 
   - Name: ExtractFullRuleTrees
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: AkamaiFullPropertyDescriptions
     Params:
@@ -19,7 +19,7 @@ Steps:
             - _id
 
   - Name: Save.AkamaiFullPropertyDescriptions
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: upsert_dataset
     Input: AkamaiFullPropertyDescriptions
     Output: AkamaiFullPropertyDescriptions.InsertionResult
@@ -31,7 +31,7 @@ Steps:
           - propertyId
 
   - Name: Extract.AkamaiPropertyCheck
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: AkamaiPropertyCheck
     Params:
@@ -60,7 +60,7 @@ Steps:
             - _id
 
   - Name: Extract.AkamaiAllowedMethodsCheck
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: AkamaiAllowedMethodsCheck
     Params:

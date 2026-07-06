@@ -1,0 +1,16 @@
+Steps:
+
+  - Name: Extract.ResourceGroupData
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: ResourceGroupData
+    DumpCSV: true
+    Params:
+      # save_to: Aliyun.RM.ResourceGroupData
+      collection_name: Aliyun.RM.ResourceGroups
+      pipeline:
+        - $project:
+            AccountId: 1
+            DisplayName: 1
+            Name: 1
+            Id: 1

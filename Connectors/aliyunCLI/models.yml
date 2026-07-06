@@ -1,0 +1,138 @@
+Connector:
+    schema: Aliyun
+    update_field: CreationStartTime
+
+UnpackingFields: null
+    
+Models:
+
+    RAMUsers:
+        base_name: User
+        nested: true
+        API: RAM
+        query_domains:
+            - ListUsers
+        datapath: Users.User[]
+    
+    NetworkSecurityGroups:
+        base_name: SecurityGroup
+        nested: true
+        paginate: true
+        API: ECS
+        query_domains:
+            - DescribeSecurityGroups
+        datapath: SecurityGroups.SecurityGroup[]
+        index_keys:
+            - SecurityGroupId
+            - SecurityGroupName
+            - VpcId
+
+    NSGRules:
+        base_name: SecurityGroupRule
+        API: ECS
+        query_domains:
+            - DescribeSecurityGroupAttribute
+        paginate: false
+        datapath: Permissions.Permission[]
+        accepted_inputs:
+            - SecurityGroupId
+        index_keys:
+            - SecurityGroupRuleId
+
+    ECSInstances:
+        base_name: Instance
+        nested: true
+        API: ECS
+        query_domains:
+            - DescribeInstances
+        datapath: Instances.Instance[]
+        index_keys:
+            - InstanceId
+            - InstanceName
+
+    ECSImages:
+        base_name: Image
+        API: ECS
+        query_domains:
+            - DescribeImages
+        datapath: Images.Image[]
+        index_keys:
+            - ImageId
+            - ImageName
+
+    VPCs:
+        base_name: VPC
+        API: VPC
+        paginate: true
+        query_domains:
+            - DescribeVpcs
+        datapath: Vpcs.Vpc[]
+        index_keys:
+            - VpcId
+
+    VSwitches:
+        base_name: VSwitch
+        API: VPC
+        query_domains:
+            - DescribeVSwitches
+        datapath: VSwitches.VSwitch[]
+        index_keys:
+            - VSwitchId
+
+    RouteTables:
+        base_name: RouteTable
+        API: VPC
+        query_domains:
+            - DescribeRouteTableList
+        datapath: RouterTableList.RouterTableListType[]
+        accepted_inputs:
+            - RegionId
+        index_keys:
+            - RouteTableId
+
+    RouteTableDetails:
+        base_name: RouteTableDetails
+        API: VPC
+        query_domains:
+            - DescribeRouteTables
+        datapath: RouteTables.RouteTable[]
+        accepted_inputs:
+            - RouteTableId
+        index_keys:
+            - RouteTableId
+
+    LoadBalancers:
+        base_name: LoadBalancer
+        nested: true
+        API: SLB
+        query_domains:
+            - DescribeLoadBalancers
+
+    LoadBalancerListeners:
+        base_name: Listener
+        nested: false
+        API: SLB
+        query_domains:
+            - DescribeLoadBalancerListeners
+
+    CloudSSODirectories:
+        base_name: CloudSSODirectories
+        API: CloudSSO
+        paginated: false
+        total_count_key: TotalCounts
+        query_domains:
+            - ListDirectories
+        datapath: Directories[]
+        index_keys:
+            - DirectoryId
+    
+    CloudSSOUsers:
+        base_name: CloudSSOUsers
+        API: CloudSSO
+        query_domains:
+            - ListUsers
+        response_map: 
+            data: Users.User[]
+        index_keys:
+            - UserId
+            - UserName

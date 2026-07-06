@@ -1,12 +1,42 @@
 Steps:
 
+  - Name: ExtractPublicImages
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AliyunPublicImages
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.PublicImagesData
+      collection_name: Aliyun.ECS.ECSImages
+      pipeline:
+        - $match:
+            ImageOwnerAlias: system
+        - $project:
+            ImageId: $ImageId
+            Name: $ImageName
+            Description: $Description
+            Version: $ImageVersion
+            ProductCode: $ProductCode
+            Family: $ImageFamily
+            OSType: $OSType
+            OSName: $OSName
+            OSNameEn: $OSNameEn
+            Platform: $Platform
+            Arch: $Architecture
+            BootMode: $BootMode
+            IsPublic: $IsPublic
+            cloudInit: $IsSupportCloudInit
+            IsSupportIoOptimized: $IsSupportIoOptimized
+            LoginAsNonRootSupported: $LoginAsNonRootSupported
+
   - Name: ExtractRHELImages
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunRHELImages
+    DumpCSV: true
     Params:
       save_to: Aliyun.ECS.RHELImagesData
-      collection_name: ECSImages
+      collection_name: Aliyun.ECS.ECSImages
       pipeline:
         - $match:
             ImageOwnerAlias: marketplace
@@ -30,34 +60,167 @@ Steps:
             IsSupportIoOptimized: $IsSupportIoOptimized
             LoginAsNonRootSupported: $LoginAsNonRootSupported
 
+  - Name: Extract.ECSData
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AliyunECSData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.InstancesData
+      collection_name: Aliyun.ECS.ECSInstances
+      pipeline:
+        - $lookup:
+            from: Aliyun.VPC.VPCs
+            localField: VpcAttributes.VpcId
+            foreignField: VpcId
+            as: VpcInfo
+        - $unwind: 
+            path: $VpcInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind: 
+            path: $RGInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Aliyun.VPC.VSwitches
+            localField: VpcAttributes.VSwitchId
+            foreignField: VSwitchId
+            as: VSwitchInfo
+        - $unwind: 
+            path: $VSwitchInfo
+            preserveNullAndEmptyArrays: true
+        - $unwind: 
+            path: $VpcAttributes.PrivateIpAddress.IpAddress
+            preserveNullAndEmptyArrays: true
+        - $unwind: 
+            path: $PublicIpAddress.IpAddress
+            preserveNullAndEmptyArrays: true
+        - $project:
+            InstanceId: 1
+            InstanceName: 1
+            ResourceGroupId: 1
+            ResourceGroup: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
+            InstanceType: 1
+            Status: 1
+            RegionId: 1
+            ZoneId: 1
+            OsType: 1
+            OSNameEn: 1
+            ImageId: 1
+            Cpu: 1
+            Memory: 1
+            PublicIpAddress: $PublicIpAddress.IpAddress
+            VpcId: $VpcAttributes.VpcId
+            VpcName: $VpcInfo.VpcName
+            VSwitchId: $VpcAttributes.VSwitchId
+            VSwitchName: $VSwitchInfo.VSwitchName
+            PrivateIpAddress: $VpcAttributes.PrivateIpAddress.IpAddress
+            SpotStrategy: 1
+            SpotPriceLimit: 1
+            SpotDuration: 1
+            SpotInterruptionBehavior: 1
+            CreationTime: 1
+            StartTime: 1
+
+  - Name: Extract.ECSDiskData
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AliyunECSDiskData
+    DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.DisksData
+      collection_name: Aliyun.ECS.ECSDisks
+      pipeline:
+        - $unwind: $Attachments.Attachment
+        - $set:
+            mountpoint: $Attachments.Attachment
+        - $lookup:
+            from: Aliyun.ECS.InstancesData
+            localField: mountpoint.InstanceId
+            foreignField: InstanceId
+            as: InstanceInfo
+        - $unwind:
+            path: $InstanceInfo
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind:
+            path: $RGInfo
+            preserveNullAndEmptyArrays: true
+        - $project:
+            ResourceGroupName: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
+            ResourceGroupId: 1
+            RegionId: 1
+            ZoneId: 1
+            DiskId: 1
+            DiskName: 1
+            DiskCategory: $Category
+            DiskSize: $Size
+            DiskStatus: $Status
+            Encrypted: 1
+            KMSKeyId: 1
+            MultiAttach: 1
+            MountInstanceName: $InstanceInfo.InstanceName
+            MountInstanceId: $mountpoint.InstanceId
+            MountPoint: $mountpoint.Device
+            MountTime: $mountpoint.AttachedTime
+            EnableAutomatedSnapshotPolicy: 1
+            AutoSnapshotPolicyId: 1
+            Portable: 1
+            DeleteWithInstance: 1
+            IOPS: 1
+
+
+          
+
+
   - Name: ExtractNSGData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunNSGData
     DumpCSV: true
     Params:
       save_to: Aliyun.ECS.NSGData
-      collection_name: AliyunNSGRules
+      collection_name: Aliyun.ECS.NSGRules
       pipeline:
         - $lookup:
-            from: AliyunNSGs
+            from: Aliyun.ECS.NetworkSecurityGroups
             localField: security_group_id
             foreignField: SecurityGroupId
             as: NsgInfo
         - $unwind: $NsgInfo
         - $set:
             VpcId: $NsgInfo.VpcId
+            ResourceGroupId: $NsgInfo.ResourceGroupId
         - $lookup:
-            from: AliyunVPCs
+            from: Aliyun.RM.ResourceGroups
+            localField: ResourceGroupId
+            foreignField: Id
+            as: RGInfo
+        - $unwind: $RGInfo
+        - $lookup:
+            from: Aliyun.VPC.VPCs
             localField: VpcId
             foreignField: VpcId
             as: VpcInfo
         - $unwind: $VpcInfo
-        - $project: 
+        - $project:
             VpcId: 1
             VpcName: $VpcInfo.VpcName
             SecurityGroupId: 1
             SecurityGroupName: $NsgInfo.SecurityGroupName
+            ResourceGroupId: 1
+            ResourceGroup: $RGInfo.Name
+            ResourceGroupDesc: $RGInfo.DisplayName
             SecurityGroupRuleId: 1
             Description: 1
             SourcePortRange: 1
@@ -73,7 +236,54 @@ Steps:
             Policy: 1
             Priority: 1
 
+  - Name: ViewInstanceTypeByZone
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: AvailableInstanceTypesByZone
+    # DumpCSV: true
+    Params:
+      save_to: Aliyun.ECS.InstanceTypesByZone
+      collection_name: Aliyun.ECS.AvailableECStypes
+      pipeline:
+        - $unwind:
+            path: $AvailableResources.AvailableResource
+            preserveNullAndEmptyArrays: true
+        - $unwind:
+            path: $AvailableResources.AvailableResource.SupportedResources.SupportedResource
+            preserveNullAndEmptyArrays: true
+        - $set:
+            resource: $AvailableResources.AvailableResource.SupportedResources.SupportedResource
+        - $project:
+            RegionId: 1
+            ZoneId: 1
+            InstanceFamily:
+              $arrayElemAt:
+                - $split:
+                    - $resource.Value
+                    - "."
+                - 1
+            InstanceSize:
+              $arrayElemAt:
+                - $split:
+                    - $resource.Value
+                    - "."
+                - 2
+            InstanceType: $resource.Value
+            Status: $resource.Status
+            StatusCategory: $resource.StatusCategory
 
-
-
-
+  - Name: ExtractInstanceTypesSubset
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: InstanceTypesSubset
+    DumpCSV: true
+    Params:
+      collection_name: Aliyun.ECS.InstanceTypesByZone
+      pipeline:
+        - $match:
+            $or:
+              - ZoneId: cn-shanghai-b
+              - ZoneId: cn-shanghai-g
+              - ZoneId: cn-shanghai-l
+              - ZoneId: cn-shanghai-m
+              - ZoneId: cn-shanghai-n

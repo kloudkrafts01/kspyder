@@ -1,0 +1,167 @@
+Steps:
+
+  - Name: Extract.PublicIPs
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: PublicIPs
+    Params:
+      save_to: Azure.PublicIPdata
+      collection_name: Azure.PublicIPs
+      pipeline:
+        - $project:
+            environment: $tags.lvmh_environment
+            name: 1
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            ipAddress: $properties.ipAddress
+
+
+# =========================================================================================================
+#       Build a summary of Frontend Configurations on Load Balancers
+# =========================================================================================================
+
+  - Name: Extract.LBFrontendIPConfigs
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: LBFrontendIPConfigs
+    Params:
+      save_to: Azure.LB.FrontendIPConfigs
+      collection_name: Azure.LoadBalancers
+      pipeline:
+        - $unwind: $properties.frontendIPConfigurations
+        - $set:
+            publicIPName:
+              $arrayElemAt:
+                - $split:
+                  - $properties.frontendIPConfigurations.properties.publicIPAddress.id
+                  - "/"
+                - -1
+        - $lookup:
+            from: Azure.PublicIPs
+            localField: publicIPName
+            foreignField: name
+            as: publicIPInfo
+        - $unwind: 
+            path: $publicIPInfo
+            preserveNullAndEmptyArrays: true
+        - $project:
+            environment: $tags.lvmh_environment
+            loadBalancerName: $name
+            IPConfigName: $properties.frontendIPConfigurations.name
+            IPConfigId: $properties.frontendIPConfigurations.id
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            publicIPAddress: $publicIPInfo.properties.ipAddress
+            privateIPAddress: $properties.frontendIPConfigurations.properties.privateIPAddress
+            subnet:
+              $arrayElemAt:
+                - $split:
+                  - $properties.frontendIPConfigurations.properties.subnet.id
+                  - "/"
+                - -1
+
+  - Name: Extract.LBBackendPools
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: LBBackendPools
+    Params:
+      save_to: Azure.LB.LBBackendPools
+      collection_name: Azure.LoadBalancers
+      pipeline:
+        - $unwind: $properties.backendAddressPools
+        - $unwind: $properties.backendAddressPools.properties.loadBalancerBackendAddresses
+        - $set:
+            backends: $properties.backendAddressPools.properties.loadBalancerBackendAddresses
+        - $project:
+            environment: $tags.lvmh_environment
+            loadBalancerName: $name
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            backendPoolName: $properties.backendAddressPools.name
+            backendTargetName: $backends.name
+            backendTargetInterface:
+              $arrayElemAt:
+                - $split:
+                  - $backends.properties.networkInterfaceIPConfiguration.id
+                  - "/"
+                - -3
+
+
+# =========================================================================================================
+#       Build a flat dataset to sum up Load Balancing Rules
+# =========================================================================================================
+
+  - Name: Extract.LBRules
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: LBRules
+    Params:
+      save_to: Azure.LB.Rules
+      collection_name: Azure.LoadBalancers
+      pipeline:
+        - $unwind: 
+            path: $properties.loadBalancingRules
+            preserveNullAndEmptyArrays: true
+        - $set:
+            ruleProperties: $properties.loadBalancingRules.properties
+        - $unwind: 
+            path: $ruleProperties.backendAddressPools
+            preserveNullAndEmptyArrays: true
+        - $lookup:
+            from: Azure.LB.FrontendIPConfigs
+            localField: ruleProperties.frontendIPConfiguration.id
+            foreignField: IPConfigId
+            as: LBFrontendInfo
+        - $unwind: $LBFrontendInfo
+        - $project:
+            environment: $tags.lvmh_environment
+            loadBalancerName: $name
+            region: $location
+            subscriptionId: 1
+            resourceGroup: 1
+            ruleName: $properties.loadBalancingRules.name
+            publicFrontendIP: $LBFrontendInfo.publicIPAddress
+            privateFrontendIP: $LBFrontendInfo.privateIPAddress
+            backendPool: 
+              $arrayElemAt:
+                  - $split:
+                      - $ruleProperties.backendAddressPools.id
+                      - "/"
+                  - -1
+            enableFloatingIP: $ruleProperties.enableFloatingIP
+            protocol: $ruleProperties.protocol
+            frontendPort: $ruleProperties.frontendPort
+            backendPort: $ruleProperties.backendPort
+
+# =========================================================================================================
+#       Extract a subset of data to save them on CSV
+# =========================================================================================================
+
+  - Name: Extract.FrontendConfigSubset
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: FrontendsSubset
+    DumpCSV: true
+    Params:
+      collection_name: Azure.LB.FrontendIPConfigs
+      pipeline:
+        - $match:
+            resourceGroup:
+              $regex: "rg-hub-network-weu"
+
+  - Name: Extract.LBRulesSubset
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: LBRulesSubset
+    DumpCSV: true
+    Params:
+      collection_name: Azure.LB.Rules
+      pipeline:
+        - $match:
+            resourceGroup:
+              $regex: "rg-hub-network-weu"
+            ruleName:
+              $regex: "mulesoft"
