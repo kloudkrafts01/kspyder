@@ -73,6 +73,7 @@ openpyxl
 orderedmultidict
 packaging
 pandas
+pydantic>=2.0
 propcache
 proto-plus
 protobuf

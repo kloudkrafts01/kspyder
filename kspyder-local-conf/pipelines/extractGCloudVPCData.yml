@@ -3,7 +3,7 @@ Steps:
 # ============ Flatten IP Ranges data for Subnets ==============
 
   - Name: GCP.SubnetData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudSubnetData
     DumpCSV: true
@@ -54,7 +54,7 @@ Steps:
 # ============ Get VPC Peerings Data ==============
 
   - Name: Extract.VPCPeerings
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudVPCPeeringData
     DumpCSV: true
@@ -107,7 +107,7 @@ Steps:
  # ============= Extract VPC Address data ================
 
   - Name: Extract.VPCAddressesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudAddressData
     DumpCSV: false
@@ -132,7 +132,7 @@ Steps:
 # ============= Regroup Address data by Subnet ================
 
   - Name: Expand.SubnetIPData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SubnetIPData
     DumpCSV: true
@@ -173,7 +173,7 @@ Steps:
 # ============= Aggregate Subnet occupation data ================
 
   - Name: Extract.SubnetOccupationData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SubnetOccupationData
     DumpCSV: true

@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Extract.ComputeInstanceData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ComputeInstanceData
     DumpCSV: true

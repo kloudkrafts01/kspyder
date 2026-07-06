@@ -2,14 +2,17 @@
 
 import json
 import argparse
+from typing import Any, cast
 # from re import search
 
 from common.config import DEFAULT_TIMESPAN
 from common.loggingHandler import logger
 from common.clientHandler import clientHandler
+from common.models import Dataset
+from common.protocols import Extractor
 
-from Connectors.mongoDBConnector import mongoDBConnector
-from Connectors.azureSQLConnector import azureSQLConnector
+from Connectors.mongoDB.connector import mongoDBConnector
+from Connectors.azureSQL.connector import azureSQLConnector
 
 from AzureFunctions.F_fetch_data import fetch_data
 from AzureFunctions.F_pandas_transform import extend_data
@@ -18,47 +21,48 @@ from AzureFunctions.F_db_activity import db_actions
 from Engines.pipelineEngine import pipelineEngine
 
 operation = 'operation'
-source = None
-model_name = None
+source: str | None = None
+model_name: str | None = None
+models: list[str] | None = None
 input_file = 'file'
-last_days = None
-fetch_all = None
-action = None
-scopes = None
-search_domain = None
+last_days: int | None = None
+fetch_all: bool | None = None
+action: str | None = None
+scopes: list[str] | None = None
+search_domain: list[str] | None = None
 # query_domain = None
-input_data = [{}]
+input_data: list[dict] = [{}]
 
-params = {}
+params: dict = {}
 
 ch = clientHandler()
     
 
-def fetch():
+def fetch() -> Any:
 
     result = fetch_data.main(params)
     logger.info(result)
 
     return result
 
-def build_db():
+def build_db() -> None:
 
     azconn = azureSQLConnector.load_default()
     source_list = ([source] if source else None)
     azconn.create_db(source_list)
 
-def destroy_db():
+def destroy_db() -> None:
 
     azconn = azureSQLConnector.load_default()
     azconn.delete_db(schema_name=source)
 
-def extract():
+def extract() -> list[Dataset]:
 
-    full_results = []
+    full_results: list[Dataset] = []
 
     logger.info("Instantiating Extractor {} with scopes : {}".format(source,scopes))
-    client = ch.get_client(source=source, scopes=scopes)  
-    
+    client = cast(Extractor, ch.get_client(source=source, scopes=scopes))
+
     for model_name in models:
         logger.info("Extracting schema: {} - model: {}".format(source,model_name))
         dataset = client.get_data(model_name=model_name,search_domains=[search_domain],**params)
@@ -66,71 +70,71 @@ def extract():
         
     return full_results
 
-def pipelines():
+def pipelines() -> None:
 
     p_engine = pipelineEngine()
     for model_name in models:
         p_engine.execute_pipeline_from_file(model_name)
 
-def get_to_mongo():
+def get_to_mongo() -> None:
 
     results = extract()
     mgconn = mongoDBConnector()
     for result in results:
         try:
-            collection_name = result['header']['model']
+            collection_name = result['header']['model_name']
             mgconn.insert_dataset(input_data=result['data'], collection = collection_name)
         except Exception as e:
             logger.error("get_to_mongo :: Caught Exception: {}".format(e))
             continue
 
 
-def insert_to_azure():
-    
+def insert_to_azure() -> None:
+
     azconn = azureSQLConnector.load_default()
     azconn.insert_from_jsonfile(input_file)
 
-def insert_to_mongo():
+def insert_to_mongo() -> None:
 
     mgconn = mongoDBConnector()
     mgconn.insert_from_jsonfile(input_file)
 
-def pass_mongo_queries():
+def pass_mongo_queries() -> None:
     mgconn = mongoDBConnector()
     mgconn.execute_queries(query_names=models,search_domain=search_domain)
 
-def transform_xls():
+def transform_xls() -> None:
 
     for model_name in models:
-        pdxls = ch.get_client(source,pipeline_def=model_name)
+        pdxls = cast(Any, ch.get_client(source,pipeline_def=model_name))
         dataframes = pdxls.apply_transforms()
 
 
-def expand():
+def expand() -> None:
 
     result = extend_data.main(params)
     logger.info(result)
 
-def examine_db():
+def examine_db() -> dict:
 
     azconn = azureSQLConnector.load_default()
     json_plan = azconn.plan_changes(source)
     return json_plan
 
-def apply_db_changes():
+def apply_db_changes() -> None:
 
     with open(input_file, 'r') as f:
         plan = json.load(f)
-    
+
     azconn = azureSQLConnector.load_default()
     azconn.apply_changes(plan)
 
-def manage_db():
+def manage_db() -> Any:
     result = db_actions.main(params)
     return result
 
 class KwargsParse(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Any, option_string: str | None = None) -> None:
         setattr(namespace, self.dest, dict())
         for value in values:
             key, value = value.split('=')

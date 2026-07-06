@@ -4,7 +4,7 @@ Steps:
     Job: get_data_to_mongo
     Output: AliyunVPCs
     Params:
-      from_worker: aliyunCLIConnector
+      from_worker: aliyunCLI
       model_name: VPCs
       last_days: null
 
@@ -12,12 +12,12 @@ Steps:
     Job: get_data_to_mongo
     Output: AliyunVSwitches
     Params:
-      from_worker: aliyunCLIConnector
+      from_worker: aliyunCLI
       model_name: VSwitches
       last_days: null
 
   - Name: Extract.RouteTableIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: RouteTableIds
     Params:
@@ -33,7 +33,7 @@ Steps:
   #   Output: RouteTableDetails
   #   Input: RouteTableIds.data
   #   Params:
-  #     from_worker: aliyunCLIConnector
+  #     from_worker: aliyunCLI
   #     model_name: RouteTableDetails
   #     last_days: null
 

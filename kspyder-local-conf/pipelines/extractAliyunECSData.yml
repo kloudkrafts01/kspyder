@@ -1,7 +1,7 @@
 Steps:
 
   - Name: ExtractPublicImages
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunPublicImages
     DumpCSV: true
@@ -30,7 +30,7 @@ Steps:
             LoginAsNonRootSupported: $LoginAsNonRootSupported
 
   - Name: ExtractRHELImages
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunRHELImages
     DumpCSV: true
@@ -61,7 +61,7 @@ Steps:
             LoginAsNonRootSupported: $LoginAsNonRootSupported
 
   - Name: Extract.ECSData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunECSData
     DumpCSV: true
@@ -128,7 +128,7 @@ Steps:
             StartTime: 1
 
   - Name: Extract.ECSDiskData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunECSDiskData
     DumpCSV: true
@@ -184,7 +184,7 @@ Steps:
 
 
   - Name: ExtractNSGData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunNSGData
     DumpCSV: true
@@ -237,7 +237,7 @@ Steps:
             Priority: 1
 
   - Name: ViewInstanceTypeByZone
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AvailableInstanceTypesByZone
     # DumpCSV: true
@@ -273,7 +273,7 @@ Steps:
             StatusCategory: $resource.StatusCategory
 
   - Name: ExtractInstanceTypesSubset
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: InstanceTypesSubset
     DumpCSV: true

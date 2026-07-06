@@ -12,7 +12,7 @@ Steps:
   #   Output: ECSInstances
   #   Input: RegionData.data
   #   Params:
-  #     from_worker: aliyunConnector 
+  #     from_worker: aliyun 
   #     model_name: ECSInstances
 
   # - Name: GetToMongo.ECSDisks
@@ -20,14 +20,14 @@ Steps:
   #   Output: ECSDisks
   #   Input: RegionData.data
   #   Params:
-  #     from_worker: aliyunConnector 
+  #     from_worker: aliyun 
   #     model_name: ECSDisks
 
   # - Name: GetToMongo.StandardImages
   #   Job: get_data_to_mongo
   #   Output: ECSImages
   #   Params:
-  #     from_worker: aliyunCLIConnector
+  #     from_worker: aliyunCLI
   #     model_name: ECSImages
   #     last_days: null
 
@@ -35,7 +35,7 @@ Steps:
   # #   Job: get_data_to_mongo
   # #   Output: ECSMarketplaceImages
   # #   Params:
-  # #     from_worker: aliyunCLIConnector
+  # #     from_worker: aliyunCLI
   # #     model_name: ECSImages
   # #     last_days: null
   # #     search_domains:
@@ -56,7 +56,7 @@ Steps:
   #   Input: InstanceTypeInput.data
   #   Output: AvailableECStypes
   #   Params:
-  #     from_worker: aliyunConnector
+  #     from_worker: aliyun
   #     model_name: AvailableECStypes
 
   - Name: GetToMongo.NSGs
@@ -64,11 +64,11 @@ Steps:
     Input: RegionData.data
     Output: NetworkSecurityGroups
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: NetworkSecurityGroups
 
   - Name: Extract.NSGIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: NSGIds
     Params:
@@ -85,5 +85,5 @@ Steps:
     Input: NSGIds.data
     Output: NSGRules
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: NSGRules

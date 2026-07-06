@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Extract.VirtualMachineData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: VirtualMachineData
     DumpCSV: true

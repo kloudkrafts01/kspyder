@@ -4,13 +4,13 @@ Steps:
     Job: get_data_to_mongo
     Output: PublicIPs
     Params:
-      from_worker: azureRGraphConnector
+      from_worker: azureRGraph
       model_name: PublicIPs
 
   - Name: GetToMongo.LoadBalancers
     Job: get_data_to_mongo
     Output: PublicIPs
     Params:
-      from_worker: azureRGraphConnector
+      from_worker: azureRGraph
       model_name: LoadBalancers
   

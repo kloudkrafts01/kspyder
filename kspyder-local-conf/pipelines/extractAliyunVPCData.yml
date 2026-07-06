@@ -3,7 +3,7 @@ Steps:
   # ============= Extract VPCs Data ================
 
   - Name: Extract.VPCData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunVPCData
     DumpCSV: true
@@ -45,7 +45,7 @@ Steps:
             CIDR_Type: 1
 
   - Name: ExtractVSwitchInfo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AliyunVSwitchInfo
     DumpCSV: true
@@ -78,7 +78,7 @@ Steps:
   # ============= Expand, save, extract Route Entries by VSwitch data ================
 
   - Name: Expand.VSwitchRouteTablesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: VSwitchRouteTablesData
     # DumpCSV: true
@@ -114,7 +114,7 @@ Steps:
             EntryDesc: $RouteEntries.RouteEntry.Description
 
   - Name: Extract.ACKNonPRDRouteEntries
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ACKNonPRDRouteEntries
     DumpCSV: true

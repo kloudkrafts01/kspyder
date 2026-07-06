@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetDIOProjectIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DIOProjectIds
     Params:
@@ -16,7 +16,7 @@ Steps:
             - _id
   
   - Name: GetDIOProjectRegions
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DIOProjectRegions
     Params:
@@ -34,7 +34,7 @@ Steps:
             - _id
 
   - Name: GetDIOProjectZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DIOProjectZones
     Params:
@@ -51,7 +51,7 @@ Steps:
     Input: DIOProjectZones.data
     Output: DIOComputeInstances
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: ComputeInstances
   
   - Name: GetToMongo.GCloudVPCs
@@ -59,7 +59,7 @@ Steps:
     Input: DIOProjectIds.data
     Output: DIO_VPCs
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: VPCs
 
   - Name: GetToMongo.GCloudSubnets
@@ -67,5 +67,5 @@ Steps:
     Input: DIOProjectRegions.data
     Output: DIO_Subnets
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: Subnets

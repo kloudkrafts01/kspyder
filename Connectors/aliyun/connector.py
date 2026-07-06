@@ -1,0 +1,191 @@
+import os, re
+from importlib import import_module
+from typing import Any
+
+from Engines.restExtractorEngine import RESTExtractor
+from common.config import BASE_FILE_HANDLER as fh
+from common.loggingHandler import logger
+
+from alibabacloud_credentials.client import Client as CredClient
+from alibabacloud_tea_openapi.models import Config
+from alibabacloud_tea_util.models import RuntimeOptions
+
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+DEFAULT_RATE = CONNECTOR_CONF['default_rate_limit']
+
+APIS = CONF['APIs']
+MODELS = CONF['Models']
+
+ALIYUN_MAX_PAGE_SIZE = 20
+
+class AliyunClient:
+
+    def __init__(self,
+                 access_key_id: str | None = None,
+                 access_key_secret: str | None = None,
+                 region_id: str = 'cn-shanghai',
+                 api_name: str | None = None,
+                 **kwargs: Any
+                 ) -> None:
+
+        cred = CredClient()
+        config = Config(
+            credential = cred,
+            region_id = region_id
+            )
+
+        # config = Config(
+        #     # Required, your AccessKey ID,
+        #     access_key_id = access_key_id,
+        #     # Required, your AccessKey secret,
+        #     access_key_secret = access_key_secret,
+        #     # The Region Id. Required in some cases depending on the actual client
+        #     region_id = region_id
+        # )
+
+        # Import the connector's modules
+        self.source_client = import_module('{}.client'.format(api_name))
+        self.source_models = import_module('{}.models'.format(api_name))
+
+        Client = getattr(self.source_client,'Client')
+        self.client = Client(config)
+
+    @classmethod
+    def from_env(cls, api_name: str | None = None) -> "AliyunClient":
+        env = os.environ
+        return cls(
+            env['ALIBABA_CLOUD_ACCESS_KEY_ID'],
+            env['ALIBABA_CLOUD_ACCESS_KEY_SECRET'],
+            env['ALIBABA_CLOUD_REGION_ID'],
+            api_name = api_name
+        )
+
+class aliyunConnector(RESTExtractor):
+
+    def __init__(self, profile: Any = None, schema: str = SCHEMA_NAME, models: dict = MODELS, apis: dict = APIS, scopes: list[str] | None = None, rate_limit: int = DEFAULT_RATE, batch_size: int = ALIYUN_MAX_PAGE_SIZE, **params: Any) -> None:
+
+        self.schema = schema
+        self.models = models
+        self.apis = apis
+        self.scopes = scopes
+        self.params = params
+        self.profile = profile
+        self.rate_limit = rate_limit
+        self.batch_size = batch_size
+
+        # All the fields below are set at each query context
+        self.api_name = None
+        self.api = None
+        self.convert_case = False
+        self.is_truncated_key = None
+        self.next_token_key = None
+        self.last_request_key = None
+        self.update_field = None
+        self.client = None
+        self.source_models = None
+        self.runtime_options = None
+
+    def convert_to_camelcase(self, string: str | None) -> str | None:
+
+        if string:
+            old_string = string
+
+            # using regex to split string at every underscore
+            temp = re.split('_+', string)
+            # using lambda function to convert first letter of every word to uppercase
+            string = ''.join(map(lambda x: x.title(), temp))
+
+            logger.debug("Converted field {} to {}".format(old_string, string))
+
+        return string
+
+    def build_request(self, model: dict, **params: Any) -> list:
+
+        request_builder = None
+        request_context = []
+
+        # Instanciate a request object with the sdk module needed arguments
+        request_params = {}
+
+        # add base keys from API definition
+        base_keys = (
+            self.api.next_token_key,
+            self.api.batch_size_key
+        )
+        if self.api.is_truncated_key is not None:
+            base_keys += self.api.is_truncated_key,
+        if self.api.total_count_key is not None:
+            base_keys += self.api.total_count_key,
+
+        # If pull should be paginated (default = true), add base pagination params
+        if model.get('paginate', True):
+            for key in (x for x in params.keys() if x in base_keys):
+                request_params[key] = params[key]
+
+        # Only keep parameters with accepted keys
+        if 'accepted_inputs' in model.keys():
+            valid_keys = (x for x in params.keys() if x in model['accepted_inputs'])
+            for key in valid_keys:
+                request_params[key] = params[key]
+            logger.debug(f"valid request params: {request_params}")
+
+
+        if 'request_builder' in model.keys():
+            # Import request builder and instanciate a request object
+            request_builder = getattr(self.source_models, model['request_builder'])
+            logger.debug("request builder name: {}".format(model['request_builder']))
+            logger.debug("request builder object: {}".format(request_builder))
+            logger.debug("request builder params: {}".format(request_params))
+
+            request = request_builder(**request_params)
+
+            # Add the request to request context (mandatory)
+            request_context.append(request)
+
+        else:
+            # if no request builder class is provided, just pass on the valid key-value params
+            request_context.append(request_params)
+
+        # If the API requires a header (e.g. ContainerServices API), add it
+        if self.api.header is not None:
+            request_context.append(self.api.header)
+
+        # Add RuntimeOptions (mandatory)
+        request_context.append(self.runtime_options)
+
+        logger.debug("Request context: {}".format(request_context))
+        return request_context
+
+    def read_query(self, model: dict, search_domains: list = [], start_token: Any = None, batch_size: int | None = None, query_args: list = [], **params: Any) -> tuple[list, bool, Any, Any]:
+
+        data = []
+        metadata = {}
+        is_truncated = False
+        next_token = None
+
+        # Instantiate a new AliyunClient and set it to current client
+        aliyun_client = AliyunClient( api_name = self.api.name )
+        self.client = aliyun_client.client
+        self.source_models = aliyun_client.source_models
+        self.runtime_options = RuntimeOptions()
+
+        actual_start_token, preprocessed_params = self.preprocess_params(params,start_token=start_token,batch_size=batch_size)
+
+        # Build a request context for the current client API
+        request_context = self.build_request( model, **preprocessed_params )
+
+        # Send a query with the request context built before
+        query = getattr(self.client, model['query_name'])
+        response = query( *request_context )
+
+        # Parse response and retrieve relevant data
+        raw_response_data = response.body.to_map()
+        logger.debug("Response dict keys: {}".format(raw_response_data.keys()))
+
+        data, metadata, is_truncated, next_token = self.postprocess_response(raw_response_data, model = model, start_token = actual_start_token)
+        logger.debug("Next token: {}".format(next_token))
+
+        return data, is_truncated, next_token, actual_start_token

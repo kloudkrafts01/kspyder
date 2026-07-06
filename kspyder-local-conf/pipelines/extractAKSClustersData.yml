@@ -4,25 +4,25 @@ Steps:
   #   Job: get_data_to_mongo
   #   Output: AzureAKSClusters
   #   Params:
-  #     from_worker: azureRGraphConnector
+  #     from_worker: azureRGraph
   #     model_name: AzureAKSClusters
 
   # - Name: GetAKSRoleBindings
   #   Job: get_data_to_mongo
   #   Output: AzureCSTrustedAccessRoleBindings
   #   Params:
-  #     from_worker: azureRGraphConnector
+  #     from_worker: azureRGraph
   #     model_name: AzureCSTrustedAccessRoleBindings
 
   - Name: GetAKSNodePools
     Job: get_data_to_mongo
     Output: AzureAKSNodePools
     Params:
-      from_worker: azureRGraphConnector
+      from_worker: azureRGraph
       model_name: AzureAKSNodePools
 
   # - Name: ExtractAKSTabularData
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: aggregate_data
   #   Output: AzureAKSData
   #   Params:

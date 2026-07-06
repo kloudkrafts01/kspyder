@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Extract.PublicIPs
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: PublicIPs
     Params:
@@ -22,7 +22,7 @@ Steps:
 # =========================================================================================================
 
   - Name: Extract.LBFrontendIPConfigs
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: LBFrontendIPConfigs
     Params:
@@ -63,7 +63,7 @@ Steps:
                 - -1
 
   - Name: Extract.LBBackendPools
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: LBBackendPools
     Params:
@@ -95,7 +95,7 @@ Steps:
 # =========================================================================================================
 
   - Name: Extract.LBRules
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: LBRules
     Params:
@@ -141,7 +141,7 @@ Steps:
 # =========================================================================================================
 
   - Name: Extract.FrontendConfigSubset
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: FrontendsSubset
     DumpCSV: true
@@ -153,7 +153,7 @@ Steps:
               $regex: "rg-hub-network-weu"
 
   - Name: Extract.LBRulesSubset
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: LBRulesSubset
     DumpCSV: true

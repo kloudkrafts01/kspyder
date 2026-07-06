@@ -4,11 +4,11 @@ Steps:
     Job: get_data_to_mongo
     Output: AzNics
     Params:
-      from_worker: azureRGraphConnector
+      from_worker: azureRGraph
       model_name: NetworkInterfaces
 
   - Name: ExtractNICdata
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AzureNicIPConfigs
     DumpCSV: true

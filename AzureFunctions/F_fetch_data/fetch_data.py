@@ -6,7 +6,7 @@ from importlib import import_module
 from common.loggingHandler import logger
 from common.clientHandler import clientHandler
 
-from Connectors.azureSQLConnector import azureSQLConnector
+from Connectors.azureSQL.connector import azureSQLConnector
 
 
 def main(params: dict) -> dict:

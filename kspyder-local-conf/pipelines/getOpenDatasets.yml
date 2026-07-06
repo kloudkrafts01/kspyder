@@ -13,25 +13,27 @@ Steps:
     Output: DiDoDatasets
     Input: StarterRequest.data
     Params:
-      from_worker: openDataConnector
+      from_worker: openData
       model_name: DiDoDatasetCatalogue
 
   - Name: GetToMongo.MelodiCatalogue
     Job: get_data_to_mongo
     Output: MelodiDatasetCatalogue
     Params:
-      from_worker: openDataConnector
+      from_worker: openData
       model_name: MelodiDatasetCatalogue
 
   - Name: Extract.MelodiDatasetIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: MelodiDatasetIds
     Params:
-      collection_name: MelodiDatasetCatalogue
+      collection_name: opendata-fr.INSEE.MelodiDatasetCatalogue
       pipeline:
+        - $match:
+            identifier: DD_EEC_ANNUEL
         - $project:
-            identifier: 1
+            id: $identifier
         - $unset:
             - _id
   
@@ -40,11 +42,11 @@ Steps:
     Input: MelodiDatasetIds.data
     Output: MelodiDatasets
     Params:
-      from_worker: openDataConnector
+      from_worker: openData
       model_name: MelodiDatasets
 
   # - Name: Extract.DatafileRids
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: aggregate_data
   #   Output: DatafileRids
   #   Params:
@@ -61,7 +63,7 @@ Steps:
   #   Input: DatafileRids.data
   #   Output: OpenData.DiDo.Datafiles
   #   Params:
-  #     from_worker: openDataConnector
+  #     from_worker: openData
   #     model_name: DiDoDatafiles
 
 

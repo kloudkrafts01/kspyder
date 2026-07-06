@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Aliyun.CloudSSOPoliciesByAccessConfig
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: CloudSSOPoliciesByAccessConfig
     Params:
@@ -27,7 +27,7 @@ Steps:
               PermissionDocument: $Policies.PermissionPolicyDocument
 
   - Name: Aliyun.CloudSSOPolicyGrants
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: CloudSSOPolicyGrants
     DumpCSV: true

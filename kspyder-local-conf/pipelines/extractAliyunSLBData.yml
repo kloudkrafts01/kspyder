@@ -1,7 +1,7 @@
 Steps:
 
 - Name: Expand.CLBAttributesFull
-  Worker: mongoDBConnector
+  Worker: mongoDB
   Job: aggregate_data
   Output: CLBAttributesFull
   DumpCSV: true
@@ -22,7 +22,7 @@ Steps:
           VSwitchName: $VSwitchInfo.VSwitchName
 
 - Name: Extract.CLBBackendsData
-  Worker: mongoDBConnector
+  Worker: mongoDB
   Job: aggregate_data
   Output: CLBBackendsData
   DumpCSV: true
@@ -53,7 +53,7 @@ Steps:
           BackendZone: $ECSInfo.ZoneId
 
 - Name: Extract.ListenersData
-  Worker: mongoDBConnector
+  Worker: mongoDB
   Job: aggregate_data
   Output: ListenersData
   DumpCSV: true

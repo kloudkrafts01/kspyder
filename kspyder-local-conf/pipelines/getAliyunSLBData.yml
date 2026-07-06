@@ -12,11 +12,11 @@ Steps:
     Input: RegionData.data
     Output: ClassicLoadBalancers
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: ClassicLoadBalancers
 
   - Name: Extract.CLBInfo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ClbIds
     Params:
@@ -33,11 +33,11 @@ Steps:
     Input: ClbIds.data
     Output: CLBAttributes
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: CLBAttributes
 
   - Name: Extract.ListenerPorts
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ListenerPorts
     Params:
@@ -58,7 +58,7 @@ Steps:
     Input: RegionData.data
     Output: LoadBalancerListeners
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: LoadBalancerListeners
 
   - Name: GetToMongo.LBForwardingRules
@@ -66,7 +66,7 @@ Steps:
     Input: ListenerPorts.data
     Output: LBForwardingRules
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: LBForwardingRules
 
   # - Name: GetToMongo.VServerGroups
@@ -74,11 +74,11 @@ Steps:
   #   Input: ClbIds.data
   #   Output: VServerGroups
   #   Params:
-  #     from_worker: aliyunConnector
+  #     from_worker: aliyun
   #     model_name: VServerGroups
 
   # - Name: Extract.VSGInfo
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: aggregate_data
   #   Output: VsgIds
   #   Params:
@@ -95,5 +95,5 @@ Steps:
   #   Input: VsgIds.data
   #   Output: VServerGroupAttributes
   #   Params:
-  #     from_worker: aliyunConnector
+  #     from_worker: aliyun
   #     model_name: VServerGroupAttributes

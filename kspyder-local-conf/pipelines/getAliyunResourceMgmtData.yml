@@ -4,5 +4,5 @@ Steps:
     Job: get_data_to_mongo
     Output: ResourceGroups
     Params:
-      from_worker: aliyunConnector 
+      from_worker: aliyun 
       model_name: ResourceGroups

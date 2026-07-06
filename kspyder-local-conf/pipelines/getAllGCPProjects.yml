@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetFolderIdsFromMongo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GCloudFoldersIds
     Params:
@@ -17,7 +17,7 @@ Steps:
             - _id
 
   # - Name: GetFolderLeavesFromMongo
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: GCPFolderLeafIds
   #   Params:
@@ -38,7 +38,7 @@ Steps:
     Input: GCloudFoldersIds.data
     Output: GCloudProjects
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: Projects
 
 

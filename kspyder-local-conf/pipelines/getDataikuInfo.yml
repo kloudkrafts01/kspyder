@@ -1,7 +1,7 @@
 Steps:
 
   - Name: ExtractDSSInstanceData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: DataikuInstances
     Params:
@@ -60,7 +60,7 @@ Steps:
   #     model_name: ComputeInstances
 
   # - Name: StoreInstancesToMongo
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: upsert_dataset
   #   Input: ComputeInstances
   #   Output: ComputeInstancesInsertionResult
@@ -68,7 +68,7 @@ Steps:
   #     collection: GCPComputeInstances
 
   # - Name: BuildParentURIs
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: GCRParentURIs
   #   Params:
@@ -88,7 +88,7 @@ Steps:
   #           - _id
     
   # - Name: GetCloudRunServices
-  #   Worker: gcloudConnector
+  #   Worker: gcloud
   #   Job: get_data
   #   Input: GCRParentURIs.data
   #   Output: CloudRunServices
@@ -96,7 +96,7 @@ Steps:
   #     model_name: CloudRunServices
 
   # - Name: StoreGCRServices
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: upsert_dataset
   #   Input: CloudRunServices
   #   Output: GCRServicesInsertionResult
