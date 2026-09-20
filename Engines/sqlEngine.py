@@ -2,6 +2,7 @@
 import re
 import urllib
 from importlib import import_module
+from typing import Any, cast
 
 import sqlalchemy
 from sqlalchemy import Column, String
@@ -21,7 +22,7 @@ STR_PATTERN = re.compile('(String)\((\d+)\)')
 
 class GenericSQLEngine():
 
-    def __init__(self,dbtype,url,dbname,username,password):
+    def __init__(self, dbtype: str, url: str, dbname: str, username: str, password: str) -> None:
 
         self.type = dbtype
         self.url = url
@@ -68,11 +69,11 @@ class GenericSQLEngine():
         # else:
         #     raise Exception
 
-        self.engine = sqlalchemy.create_engine(conn_url)
+        self.engine = sqlalchemy.create_engine(cast(str, conn_url))
         self.SessionFactory = sessionmaker(bind=self.engine)
               
     @classmethod
-    def from_profile(cls,profile):
+    def from_profile(cls, profile: dict) -> "GenericSQLEngine":
         
         return cls(
             profile['dbtype'],
@@ -82,7 +83,7 @@ class GenericSQLEngine():
             profile['password']
         )
     
-    def update_from_json(self,dataset):
+    def update_from_json(self, dataset: dict) -> str | None:
 
         header = dataset['header']
         schema = header['schema']
@@ -142,7 +143,7 @@ class GenericSQLEngine():
         
         return result
 
-    def compare_schema(self,schema):
+    def compare_schema(self, schema: str) -> tuple[set, set, set, set, dict]:
         """Loads all table definitions from the db schema, and compares it with the connector's model definitions taken from the connector's YAML manifest.
         Returns several sets of strings:
 
@@ -215,7 +216,7 @@ class GenericSQLEngine():
 
         return new_models, deleted_models, intersect_models, changed_models, model_changes
 
-    def plan_changes(self,schema,create_new=True,delete_old=False,alter_changed=True):
+    def plan_changes(self, schema: str, create_new: bool = True, delete_old: bool = False, alter_changed: bool = True) -> dict:
         """Establishes a comparison between the current connector's manifest and the current db schema state,
         and produces a 'change plan' JSON file"""
 
@@ -263,11 +264,11 @@ class GenericSQLEngine():
 
         return plan
 
-    def apply_changes(self,plan):
+    def apply_changes(self, plan: dict) -> dict:
         """Applies the changes specified in a given 'plan' JSON file. This approach is pretty much inspired by Terraform, but applied to SQLAlchemy db models :)"""
 
         returnmsg = ""
-        result = {}
+        result: dict = {}
 
         schema = plan['schema']
         to_delete = plan['delete']
@@ -314,7 +315,7 @@ class GenericSQLEngine():
         result['plan'] = plan
         return result
 
-    def delete_tables(self,schema,to_delete):
+    def delete_tables(self, schema: str, to_delete: list) -> dict:
 
         AutoBase.prepare(engine=self.engine, schema=schema, reflect=True)
         tables_list = list(x.__table__ for x in AutoBase.classes if x.__table__.name in to_delete)
@@ -331,7 +332,7 @@ class GenericSQLEngine():
 
         return result
         
-    def delete_db(self,schemas=[]):
+    def delete_db(self, schemas: list = []) -> dict:
         """ Drops all tables from the database within the specified schema. If no schema is specified, drops everything"""
 
         delete_tables = []
@@ -353,7 +354,7 @@ class GenericSQLEngine():
 
         return result
 
-    def create_db(self,schemas=[]):
+    def create_db(self, schemas: list = []) -> dict:
         """Creates all Table Metadata and db tables corresponding to the given connectors' models definitions"""
 
         for schema in schemas:
@@ -370,7 +371,7 @@ class GenericSQLEngine():
 
         return result
 
-    def create_models(self, schema, models_list=None):
+    def create_models(self, schema: str, models_list: list | None = None) -> None:
         """Creates Tabls Metadata and db tables corresponding to the given connectors' models definitions"""
 
         connector = import_module(schema)
@@ -386,7 +387,7 @@ class GenericSQLEngine():
         AutoBase.metadata.create_all(bind=self.engine)
         
 
-def create_ORM_class(schema,model_name,model,unpack={}):
+def create_ORM_class(schema: str, model_name: str, model: dict, unpack: dict = {}) -> type:
     """Constructs an sqlAlchemy ORM class definition on a declarative Base,
     that corresponds to a given model definition""" 
 
@@ -408,7 +409,7 @@ def create_ORM_class(schema,model_name,model,unpack={}):
 
     return ORMClass
 
-def construct_field(field_name,field,unpack):
+def construct_field(field_name: str, field: dict, unpack: dict) -> dict:
     """Builds a dict-like object that represents the field, and can be passed to the SQLAlchemy constructor"""
 
     field_construct = {}
@@ -433,20 +434,20 @@ def construct_field(field_name,field,unpack):
 
     return field_construct
 
-def translate_orm_type(fieldtype_raw):
+def translate_orm_type(fieldtype_raw: str) -> Any:
     """function to translate a 'raw' string into a valid sqlalchemy Data Type"""
 
     fieldtype = None
     match = re.search(STR_PATTERN,fieldtype_raw)
     if match:
         # define Cloumn as a String object with the desired max length
-        fieldtype = String(match[2])
+        fieldtype = String(cast(int, match[2]))
     else:
         fieldtype = getattr(sqlalchemy,fieldtype_raw)
 
     return fieldtype
 
-def get_all_model_fields(connector,model_name):
+def get_all_model_fields(connector: Any, model_name: str) -> set:
     """Utility function to get the full list of field names from a model, 
     INCLUDING field names that are eventually derived fro mthe connector's UNPACKING list in the manifest."""
 

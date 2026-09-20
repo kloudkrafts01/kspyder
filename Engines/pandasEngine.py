@@ -1,27 +1,40 @@
 import pandas as pd
 import numpy as np
 from importlib import import_module
+from typing import Any, cast
 
 from common.config import BASE_FILE_HANDLER as fh
 
 class PandaPipeline():
 
-    def __init__(self):
+    # set by subclasses (e.g. export_to_json usage) — never assigned in this base class
+    schema: str
+    scope: str
 
-        self.dataframes = {}
-        self.transforms = {}
+    def __init__(self) -> None:
+
+        self.dataframes: dict = {}
+        self.transforms: dict = {}
         # placeholder object for instanciated child classes
         self.engine = None
 
-    def close_engine(self):
+    def close_engine(self) -> None:
         """Placeholder method. Each child class will have to instanciate its own engine."""
         return None
 
-    def load_transforms(self,pipeline_def):
+    def load_tables(self, table_list: list[str], source: str | None = None) -> dict:
+        """Placeholder method. Each child class implements its own table-loading strategy (SQL, XLS, etc.)."""
+        raise NotImplementedError
+
+    def save(self, df: pd.DataFrame, *args: Any, **kwargs: Any) -> None:
+        """Placeholder method. Each child class implements its own save strategy (SQL, XLS, etc.)."""
+        raise NotImplementedError
+
+    def load_transforms(self, pipeline_def: str) -> None:
 
         self.transforms = fh.load_yaml(pipeline_def,subpath=__name__)
 
-    def apply_transforms(self):
+    def apply_transforms(self) -> dict:
 
         table_list = self.transforms['Tables']
         source = self.transforms['Source']
@@ -67,10 +80,10 @@ class PandaPipeline():
 
         return self.dataframes
 
-    def passthrough(self,origin_df):
+    def passthrough(self, origin_df: pd.DataFrame) -> pd.DataFrame:
             return origin_df
 
-    def export_to_json(self,origin_df, model_name, **params):
+    def export_to_json(self, origin_df: pd.DataFrame, model_name: str, **params: Any) -> None:
 
         dataset = origin_df.to_json(orient='records')
 
@@ -87,7 +100,7 @@ class PandaPipeline():
 
         fh.dump_json(full_dataset,self.schema,model_name)
 
-    def reduce_df_axis(self,origin_df):
+    def reduce_df_axis(self, origin_df: pd.DataFrame) -> Any:
 
         df = origin_df.iloc[0]
         for i in range(1,origin_df.shape[0]):
@@ -95,35 +108,35 @@ class PandaPipeline():
 
         return df
 
-    def series_from_set(self,origin_df,import_from=None, import_value=None):
+    def series_from_set(self, origin_df: pd.DataFrame, import_from: str | None = None, import_value: str | None = None) -> pd.Series:
 
-        module = import_module(name=import_from)
-        imported_set = getattr(module,import_value)
+        module = import_module(name=cast(str, import_from))
+        imported_set = getattr(module, cast(str, import_value))
 
         datalist = list(imported_set)
         series = pd.Series(datalist)
 
         return series
 
-    def apply_func_on_df(self,origin_df,func_name=None,import_from='.',**fargs):
+    def apply_func_on_df(self, origin_df: pd.DataFrame, func_name: str | None = None, import_from: str = '.', **fargs: Any) -> pd.DataFrame:
 
         module = import_module(name=import_from)
-        func = getattr(module,func_name)
+        func = getattr(module, cast(str, func_name))
         df = func(origin_df,**fargs)
 
         return df
 
-    def apply_func_on_axis(self,origin_df,func_name=None,axis=1,import_from='.',import_pkg=None,**fargs):
+    def apply_func_on_axis(self, origin_df: pd.DataFrame, func_name: str | None = None, axis: int = 1, import_from: str = '.', import_pkg: str | None = None, **fargs: Any) -> pd.DataFrame:
 
         module = import_module(name=import_from,package=import_pkg)
-        func = getattr(module,func_name)
+        func = getattr(module, cast(str, func_name))
         df = origin_df.apply(func,axis=axis,**fargs)
 
         return df
 
-    def merge_fields(self,origin_df,how='inner',left_key='Id',left_index=False,left_fields=None,right_df=None,right_key=None,right_index=False,right_fields=None,prefix=None):
+    def merge_fields(self, origin_df: pd.DataFrame, how: str = 'inner', left_key: str = 'Id', left_index: bool = False, left_fields: list | None = None, right_df: pd.DataFrame | None = None, right_key: str | None = None, right_index: bool = False, right_fields: list | None = None, prefix: str | None = None) -> pd.DataFrame:
 
-        map = {}
+        map: dict = {}
         base_df = origin_df
         extend_df = right_df
 
@@ -142,20 +155,20 @@ class PandaPipeline():
                     map[field_name] = '{}_{}'.format(prefix,field_name)
 
             right_fields += right_key,
-            drop_cols = (x for x in right_df.columns if x not in right_fields)
-            extend_df = right_df.drop(drop_cols, axis=1)
+            drop_cols = (x for x in cast(pd.DataFrame, right_df).columns if x not in right_fields)
+            extend_df = cast(pd.DataFrame, right_df).drop(drop_cols, axis=1)
             extend_df = extend_df.rename(map, axis=1)
 
         # build a dict with the join parameters for pandas
-        joinparams = {
+        joinparams: dict = {
             'how': how
         }
         if (left_index or (left_key == base_df.index.name)):
             joinparams['left_index'] = True
         else:
             joinparams['left_on'] = left_key
-        
-        if (right_index or (right_key == extend_df.index.name)):
+
+        if (right_index or (right_key == cast(pd.DataFrame, extend_df).index.name)):
             joinparams['right_index'] = True
         elif right_key is None:
             # if no right key is provided, join on the same key as left
@@ -168,9 +181,9 @@ class PandaPipeline():
 
         return df
 
-    def group_compute(self,origin_df,group_by,map=None,unstack=None,slug_index=False,fillna=True):
+    def group_compute(self, origin_df: pd.DataFrame, group_by: str | list, map: dict | None = None, unstack: Any = None, slug_index: bool = False, fillna: bool = True) -> pd.DataFrame:
         
-        values = list(set(map.keys()))
+        values = list(set(cast(dict, map).keys()))
         df = pd.pivot_table(origin_df,index=group_by, values=values, aggfunc=map)
 
         if unstack:
@@ -185,19 +198,19 @@ class PandaPipeline():
 
         return df
 
-    def transpose(self,origin_df,copy=True):
+    def transpose(self, origin_df: pd.DataFrame, copy: bool = True) -> pd.DataFrame:
 
         df = origin_df.transpose(copy=copy)
 
         return df
 
-    def reindex(self,origin_df,**params):
+    def reindex(self, origin_df: pd.DataFrame, **params: Any) -> pd.DataFrame:
 
         df = origin_df.reindex(**params)
 
         return df
 
-    def rename_columns(self,origin_df,separator="|",column_map={},dropcolumns=False,flatten_columns=False):
+    def rename_columns(self, origin_df: pd.DataFrame, separator: str = "|", column_map: dict = {}, dropcolumns: bool = False, flatten_columns: bool = False) -> pd.DataFrame:
 
         df = origin_df
 
@@ -213,12 +226,12 @@ class PandaPipeline():
 
         return df
 
-    def sort_values(self,origin_df,sort_by,**params):
+    def sort_values(self, origin_df: pd.DataFrame, sort_by: str | list, **params: Any) -> pd.DataFrame:
 
         df = origin_df.sort_values(sort_by,**params)
         return df
 
-    def group_rank(self,origin_df,rank_by,name=None,group_by=None,method='dense',ascending=False):
+    def group_rank(self, origin_df: pd.DataFrame, rank_by: str, name: str | None = None, group_by: str | list | None = None, method: str = 'dense', ascending: bool = False) -> pd.DataFrame:
 
         if group_by:
             series = origin_df.groupby(group_by).rank(method=method,ascending=ascending)[rank_by]
@@ -232,13 +245,13 @@ class PandaPipeline():
 
         return df
 
-    def deduplicate(self,origin_df,by=None):
+    def deduplicate(self, origin_df: pd.DataFrame, by: str | list | None = None) -> pd.DataFrame:
 
         df = origin_df.drop_duplicates(subset=by,keep='first')
 
         return df
 
-    def add_datetimes(self,origin_df,datecol,dayfirst=True):
+    def add_datetimes(self, origin_df: pd.DataFrame, datecol: str, dayfirst: bool = True) -> pd.DataFrame:
 
         df = origin_df
         df.loc[:,'datetime'] = pd.to_datetime(df.loc[:,datecol], dayfirst=dayfirst)
@@ -249,7 +262,7 @@ class PandaPipeline():
 
         return df
 
-    def filter(self,origin_df,filter_map):
+    def filter(self, origin_df: pd.DataFrame, filter_map: list) -> pd.DataFrame:
 
         fdef = filter_map.pop(0)
         
@@ -272,18 +285,18 @@ class PandaPipeline():
 
         return df
 
-    def hash_columns(self,origin_df,columns):
+    def hash_columns(self, origin_df: pd.DataFrame, columns: list) -> pd.DataFrame:
 
         hashcol = np.zeros(origin_df.shape[0])
 
         for col in columns:
-            hashcol += df[col].apply(lambda x: hash(x))
+            hashcol += df[col].apply(lambda x: hash(x))  # type: ignore[has-type, used-before-def]
 
         df = origin_df
         df['hash'] = hashcol
         return df
 
-    def concat(self,origin_df,df_list=[]):
+    def concat(self, origin_df: pd.DataFrame, df_list: list = []) -> pd.DataFrame:
 
         dataframes = [origin_df]
 
@@ -292,12 +305,12 @@ class PandaPipeline():
 
         return pd.concat(dataframes)
 
-    def cast_dtypes(self,origin_df,typemap):
+    def cast_dtypes(self, origin_df: pd.DataFrame, typemap: dict) -> pd.DataFrame:
 
             df = origin_df.astype(typemap)
             return df
 
-    def addup_columns(self,origin_df,output_name,origin_column,add_columns=[]):
+    def addup_columns(self, origin_df: pd.DataFrame, output_name: str, origin_column: str, add_columns: list = []) -> pd.DataFrame:
 
         df = origin_df
         df[output_name] = df[origin_column]
@@ -306,7 +319,7 @@ class PandaPipeline():
 
         return df
 
-    def substitute_str(self,origin_df,colnames,strmaps):
+    def substitute_str(self, origin_df: pd.DataFrame, colnames: list, strmaps: list) -> pd.DataFrame:
         
         df = origin_df
         for colname in colnames:
@@ -315,7 +328,7 @@ class PandaPipeline():
         
         return df
 
-    def add_fill_column(self,origin_df,fill_columns):
+    def add_fill_column(self, origin_df: pd.DataFrame, fill_columns: list) -> pd.DataFrame:
 
         df = origin_df
         for item in fill_columns:
@@ -323,7 +336,7 @@ class PandaPipeline():
 
         return df
 
-    def filter_duplicates(self, origin_df, colnames, sort_by, keep='first'):
+    def filter_duplicates(self, origin_df: pd.DataFrame, colnames: list, sort_by: str | list, keep: str = 'first') -> pd.DataFrame:
 
         sorted_df = origin_df.reset_index().sort_values(by=sort_by)
         filtered_df = sorted_df.duplicated(subset=colnames,keep=keep)
