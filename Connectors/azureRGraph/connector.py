@@ -1,0 +1,127 @@
+import os
+from typing import Any
+import jmespath
+
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.resourcegraph import ResourceGraphClient
+from azure.mgmt.resourcegraph.models import QueryRequest,QueryRequestOptions
+from azure.mgmt.subscription import SubscriptionClient
+
+from common.config import PAGE_SIZE, BASE_FILE_HANDLER as fh
+from common.loggingHandler import logger
+from common.configModels import APIConfig
+from Engines.restExtractorEngine import RESTExtractor
+
+_DIR = os.path.dirname(__file__)
+CONF = fh.load_yaml('models', input=_DIR)
+
+# mandatory connector config
+CONNECTOR_CONF = CONF['Connector']
+SCHEMA_NAME = CONNECTOR_CONF['schema']
+UPD_FIELD_NAME = CONNECTOR_CONF['update_field']
+DEFAULT_FIELDS = CONNECTOR_CONF['default_fields']
+DEFAULT_CLASS = CONNECTOR_CONF['default_class']
+
+MODELS = CONF['Models']
+
+class azureRGraphClient(ResourceGraphClient):
+
+    def __init__(self) -> None:
+
+        self.credential = DefaultAzureCredential()
+        # Instantiate Azure Resource Graph Client with Credential
+        ResourceGraphClient.__init__(
+            self,
+            credential = self.credential
+        )
+
+    def get_subscriptions(self) -> list[dict]:
+
+        # Instantiate azure Subscriptions Client
+        sub_client = SubscriptionClient(
+            credential = self.credential
+        )
+        sub_iter = sub_client.subscriptions.list()
+        subscriptions = []
+
+        for sub in sub_iter:
+            subscriptions += sub.__dict__,
+
+        return subscriptions
+
+
+class azureRGraphConnector(RESTExtractor):
+
+    def __init__(self, scopes: list[str] | None = None, schema: str = SCHEMA_NAME, models: dict = MODELS, update_field: str = UPD_FIELD_NAME, **params: Any) -> None:
+
+        self.schema = schema
+        self.models = models
+        self.update_field = update_field
+
+        self.client = azureRGraphClient()
+        self.rate_limit = 0.01
+
+        self.subscriptions = self.client.get_subscriptions()
+        # set the subscription IDs and scope names from the scopes specified in the request,
+        # or all subscription IDs if no scope was specified
+        self.scopes = None
+        self.subscription_ids = None
+        self.set_scopes_and_subscription_ids(scopes)
+
+    def set_api_from_model(self, model: dict) -> None:
+        self.api = APIConfig(name='Microsoft')
+
+    def set_scopes_and_subscription_ids(self, scopes: list[str] | None = None) -> None:
+
+        subscription_ids = []
+
+        if scopes:
+            logger.debug("setting subscription Ids from names: {}".format(scopes))
+            self.scopes = scopes
+            subscription_ids = [x['subscription_id'] for x in self.subscriptions if x['display_name'] in scopes]
+        else:
+            logger.debug("setting all subscription Ids")
+            # Explicitly set all scopes names for clarity and logging
+            all_scopes = jmespath.search('[].display_name', self.subscriptions)
+            self.scopes = all_scopes
+            subscription_ids = jmespath.search('[].subscription_id', self.subscriptions)
+
+        self.subscription_ids = subscription_ids
+
+    def read_query(self, model: dict, start_token: Any = None, **params: Any) -> tuple[list, bool, Any, Any]:
+
+        request = self.build_request(model,start_token=start_token)
+        query_response = self.client.resources(request)
+
+        next_token = query_response.skip_token
+        # infer if is truncated from this, cause the natural field result_truncated ain't worth shit
+        is_truncated = (next_token is not None)
+        result = query_response.data
+
+        return result, is_truncated, next_token, start_token
+
+
+    def build_request(self, model: dict, start_token: Any = None, page_size: int = PAGE_SIZE, **params: Any) -> QueryRequest:
+
+        class_scope = model['class'] if 'class' in model.keys() else DEFAULT_CLASS
+        base_name = model['base_name']
+        fieldnames = model['fields'] if 'fields' in model.keys() else DEFAULT_FIELDS
+
+        query_string = "{} | where type =~ '{}' | project {}".format(class_scope, base_name, fieldnames)
+        logger.debug("QUERY STRING : {}".format(query_string))
+
+        request_params = { 'skip_token': start_token } if start_token else {}
+
+        request_options = QueryRequestOptions(
+            top = page_size,
+            **request_params
+        )
+
+        # Instantiate request object
+        request = QueryRequest(
+                query=query_string,
+                subscriptions = self.subscription_ids,
+                options = request_options
+            )
+
+        return request

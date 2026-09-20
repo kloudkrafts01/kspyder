@@ -1,0 +1,632 @@
+Connector:
+    schema: Aliyun
+    default_rate_limit: 0.2
+
+APIs:
+
+    RAM:
+        name: alibabacloud_ram20150501
+        update_field: UpdateDate
+        is_truncated_key: is_truncated
+        next_token_key: next_token
+        last_request_key: request_id
+        convert_response_case: true
+        pagination_style: tokens
+        batch_size_key: max_results
+
+    RM:
+        name: alibabacloud_resourcemanager20200331
+        update_field: CreateDate
+        pagination_style: pages
+        next_token_key: page_number
+        batch_size_key: page_size
+        total_count_key: total_count
+        last_request_key: request_id
+        response_map:
+            total_count: TotalCount
+            request_id: RequestId
+            page_size: PageSize
+            page_number: PageNumber
+
+    
+    CS:
+        name: alibabacloud_cs20151215
+        update_field: updated
+        pagination_style: tokens
+        batch_size_key: max_results
+        total_count_key: total_count
+        is_truncated_key: is_truncated
+        next_token_key: marker
+        last_request_key: request_id
+        header:
+            accept: application/json
+
+    ECS:
+        name: alibabacloud_ecs20140526
+        update_field: update_date
+        pagination_style: tokens
+        next_token_key: next_token
+        last_request_key: request_id
+        batch_size_key: max_results
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            next_token: NextToken
+            request_id: RequestId
+            max_results: MaxResults
+
+    KMS:
+        name: alibabacloud_kms20160120
+        update_field: update_date
+        pagination_style: pages
+        next_token_key: page_number
+        last_request_key: request_id
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            page_number: PageNumber
+            request_id: RequestId
+            page_size: PageSize
+
+    CloudSSO:
+        name: alibabacloud_cloudsso20210515
+        update_field: update_time
+        pagination_style: tokens
+        is_truncated_key: is_truncated
+        next_token_key: next_token
+        last_request_key: request_id
+        batch_size_key: max_results
+        convert_response_case: true
+
+    Security:
+        name: alibabacloud_cloudfw20171207
+        update_field: ModifyTime
+        pagination_style: pages
+        next_token_key: current_page
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            current_page: PageNo
+            page_size: PageSize
+            request_id: RequestId
+            total_count: TotalCount
+
+    SLB_by_pages:
+        name: alibabacloud_slb20140515
+        update_field: CreateTime
+        pagination_style: pages
+        next_token_key: page_number
+        batch_size_key: page_size
+        total_count_key: total_count
+        response_map:
+            page_number: PageNumber
+            page_size: PageSize
+            request_id: RequestId
+            total_count: TotalCount
+
+    SLB_by_tokens:
+        name: alibabacloud_slb20140515
+        update_field: update_date
+        pagination_style: tokens
+        next_token_key: next_token
+        last_request_key: request_id
+        batch_size_key: max_results
+        total_count_key: total_count
+        response_map:
+            total_count: TotalCount
+            next_token: NextToken
+            request_id: RequestId
+            max_results: MaxResults
+
+    ELK:
+        name: alibabacloud_elasticsearch20170613
+        update_field: update_date
+        pagination_style: pages
+        next_token_key: page
+        last_request_key: request_id
+        batch_size_key: size
+        response_map:
+            request_id: RequestId
+    
+Models:
+
+# ================ Resource Management Models ==================
+
+    ResourceGroups:
+        API: RM
+        request_builder: ListResourceGroupsRequest
+        query_name: list_resource_groups_with_options
+        response_map:
+            data: ResourceGroups.ResourceGroup[]
+        index_keys:
+            - Id
+
+# ================ RAM Models ==================
+
+    RAMUsers:
+        API: RAM
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        response_map:
+            data: Users.User[]
+        index_keys:
+            - UserId
+            - UserName
+
+    RAMGroups:
+        API: RAM
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        response_map:
+            data: Groups.Group[]
+        index_keys:
+            - GroupId
+            - GroupName
+
+    RAMGroupMembers:
+        API: RAM
+        request_builder: ListUsersForGroupRequest
+        query_name: list_users_for_group_with_options
+        response_map:
+            data: Users.User[]
+        accepted_inputs:
+            - group_name
+        index_keys:
+            - UserId
+            - UserName
+        
+    RAMRoles:
+        API: RAM
+        request_builder: ListRolesRequest
+        query_name: list_roles_with_options
+        response_map:
+            data: Roles.Role[]
+        index_keys:
+            - RoleId
+            - RoleName
+
+    RAMPolicies:
+        API: RAM
+        request_builder: ListPoliciesRequest
+        query_name: list_policies_with_options
+        response_map:
+            data: Policies.Policy[]
+        index_keys:
+            - PolicyName
+
+    RAMPolicyVersions:
+        API: RAM
+        request_builder: ListPolicyVersionsRequest
+        query_name: list_policy_versions_with_options
+        response_map:
+            data: PolicyVersions.PolicyVersion[]
+        accepted_inputs:
+            - policy_name
+            - policy_type
+        index_keys:
+            - policy_name
+            - VersionId
+
+    AccessKeys:
+        API: RAM
+        request_builder: ListAccessKeysRequest
+        query_name: list_access_keys_with_options
+        response_map:
+            data: AccessKeys.AccessKey[]
+        accepted_inputs:
+            - user_name
+        index_keys:
+            - AccessKeyId
+            
+    PolicyForGroups:
+        API: RAM
+        request_builder: ListPoliciesForGroupRequest
+        query_name: list_policies_for_group_with_options
+        response_map:
+            data: Policies.Policy[]
+        accepted_inputs:
+            - group_name
+        index_keys:
+            - group_name
+            - PolicyName
+
+                
+    PolicyForRoles:
+        API: RAM
+        request_builder: ListPoliciesForRoleRequest
+        query_name: list_policies_for_role_with_options
+        response_map:
+            data: Policies.Policy[]
+        accepted_inputs:
+            - role_name
+        index_keys:
+            - role_name
+            - PolicyName
+    
+    PolicyForUsers:
+        API: RAM
+        request_builder: ListPoliciesForUserRequest
+        query_name: list_policies_for_user_with_options
+        response_map:
+            data: Policies.Policy[]
+        accepted_inputs:
+            - user_name
+        index_keys:
+            - user_name
+            - PolicyName
+    
+    # # To be adapted : returns multiple useful data paths (Users, Groups and Roles)
+    # PolicyGrants:
+    #     API: RAM
+    #     request_builder: ListEntitiesForPolicyRequest
+    #     query_name: list_entities_for_policy_with_options
+    #     response_map:
+            # data: Policies.Policy[]
+    #     accepted_inputs:
+    #         - PolicyName
+    #         - PolicyType
+    #     index_keys:
+    #         - PolicyName
+
+
+# ================ CloudSSO Models ==================
+
+    # To be reworked : not iterable result (see the aliyunCLIModel equivalent)
+    # CloudSSODirectories:
+    #     API: CloudSSO
+    #     query_name: list_directories
+    #     response_map:
+    #         data: Directories.Directory[]
+    #     index_keys:
+    #         - DirectoryId
+
+    CloudSSOUsers:
+        API: CloudSSO
+        request_builder: ListUsersRequest
+        query_name: list_users_with_options
+        response_map:
+               data: Users[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - UserId
+            - UserName
+
+    CloudSSOGroups:
+        API: CloudSSO
+        request_builder: ListGroupsRequest
+        query_name: list_groups_with_options
+        response_map:
+            data: Groups[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - GroupId
+            - GroupName
+
+    CloudSSOGroupMembers:
+        API: CloudSSO
+        request_builder: ListGroupMembersRequest
+        query_name: list_group_members_with_options
+        response_map:
+            data: GroupMembers[]
+        accepted_inputs:
+            - directory_id
+            - group_id
+        index_keys:
+            - UserId
+            - GroupId
+
+    CloudSSOAccessConfigurations:
+        API: CloudSSO
+        request_builder: ListAccessConfigurationsRequest
+        query_name: list_access_configurations_with_options
+        response_map:
+            data: AccessConfigurations[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+    
+    CloudSSOPolicies:
+        API: CloudSSO
+        request_builder: ListPermissionPoliciesInAccessConfigurationRequest
+        query_name: list_permission_policies_in_access_configuration_with_options
+        paginate: false
+        response_map:
+            data: PermissionPolicies[]
+        accepted_inputs:
+            - directory_id
+            - access_configuration_id
+        index_keys:
+            - PermissionPolicyName
+
+    CloudSSOAssignments:
+        API: CloudSSO
+        request_builder: ListAccessAssignmentsRequest
+        query_name: list_access_assignments_with_options
+        response_map:
+            data: AccessAssignments[]
+        accepted_inputs:
+            - directory_id
+        index_keys:
+            - AccessConfigurationId
+            - PrincipalId
+            - TargetId
+
+# ================ ACK Kubernetes Models ==================
+
+    ACKClusters:
+        API: CS
+        request_builder: DescribeClustersV1Request
+        query_name: describe_clusters_v1with_options
+        accepted_inputs:
+            - region_id
+        response_map:  
+            data: clusters[]
+        index_keys:
+            - cluster_id
+
+    # To be reworked : maybe better fit for basic REST extract
+    # ACKClusterDetails:
+    #     API: CS
+    #     query_name: describe_cluster_detail_with_options
+    #     response_map:
+    #        data: __ROOT__
+    #     accepted_inputs:
+    #         - cluster_id
+    #     index_keys:
+    #         - cluster_id
+
+    # To be reworked : maybe better fit for basic REST extract
+    # ACKClusterResources:
+    #     API: CS
+    #     request_builder: DescribeClusterResourcesRequest
+    #     query_name: describe_cluster_resources_with_options
+    #     response_map:
+    #        data: __ROOT__
+    #     positional_inputs:
+    #         - cluster_id
+    #     accepted_inputs:
+    #         - with_addon_resources
+    #     index_keys:
+    #         - cluster_id
+    #         - instance_id
+
+
+# ================ Elastic Compute Service Models ==================
+
+    ECSInstances:
+        API: ECS
+        request_builder: DescribeInstancesRequest
+        query_name: describe_instances_with_options
+        response_map: 
+            data: Instances.Instance[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - InstanceId
+            - InstanceName
+
+    ECSDisks:
+        API: ECS
+        request_builder: DescribeDisksRequest
+        query_name: describe_disks_with_options
+        response_map:
+            data: Disks.Disk[]
+        accepted_inputs:
+            - region_id
+            - RegionId
+        index_keys:
+            - DiskId
+
+    ECSImages:
+        API: ECS
+        request_builder: DescribeImagesRequest
+        query_name: describe_images_with_options
+        response_map: 
+            data: Images.Image[]
+        accepted_inputs:
+            - region_id
+            - image_owner_alias
+        index_keys:
+            - ImageId
+            - ImageName
+            - ImageOwnerAlias
+
+    AvailableECStypes:
+        API: ECS
+        request_builder: DescribeAvailableResourceRequest
+        query_name: describe_available_resource_with_options
+        paginate: false
+        response_map:
+            data: AvailableZones.AvailableZone[]
+        accepted_inputs:
+            - region_id
+            - destination_resource
+        index_keys:
+            - RegionId
+            - ZoneId
+
+    NetworkSecurityGroups:
+        API: ECS
+        request_builder: DescribeSecurityGroupsRequest
+        query_name: describe_security_groups_with_options
+        response_map: 
+            data: SecurityGroups.SecurityGroup[]
+        accepted_inputs:
+            - region_id
+            - RegionId
+        index_keys:
+            - SecurityGroupId
+
+    NSGRules:
+        API: ECS
+        request_builder: DescribeSecurityGroupAttributeRequest
+        query_name: describe_security_group_attribute_with_options
+        response_map: 
+            data: Permissions.Permission[]
+        accepted_inputs:
+            - region_id
+            - security_group_id
+            - RegionId
+            - SecurityGroupId
+        index_keys:
+            - SecurityGroupRuleId
+
+# ================ Key Management Service Models ==================
+
+    KMSKeyList:
+        API: KMS
+        request_builder: ListKeysRequest
+        query_name: list_keys_with_options
+        response_map:
+            data: Keys.Key[]
+        index_keys:
+            - KeyId
+    
+    KMSKeys:
+        API: KMS
+        request_builder: DescribeKeyRequest
+        query_name: describe_key_with_options
+        paginate: false
+        response_map:
+            data: KeyMetadata
+        accepted_inputs:
+            - key_id
+        index_keys:
+            - KeyId
+    
+    KMSInstanceList:
+        API: KMS
+        request_builder: ListKmsInstancesRequest
+        query_name: list_kms_instances_with_options
+        response_map:
+            data: KmsInstances.KmsInstance[]
+        index_keys:
+            - KmsInstanceId
+
+    KMSInstances:
+        API: KMS
+        request_builder: GetKmsInstanceRequest
+        query_name: get_kms_instance_with_options
+        paginate: false
+        response_map:
+            data: KmsInstance
+        accepted_inputs:
+            - kms_instance_id
+        index_keys:
+            - KmsInstanceId
+
+# ================ Load Balancers Models ==================
+
+    ClassicLoadBalancers:
+        API: SLB_by_pages
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancersRequest
+        query_name: describe_load_balancers_with_options
+        response_map:
+            data: LoadBalancers.LoadBalancer[]
+        accepted_inputs:
+            - region_id
+        index_keys:
+            - LoadBalancerId
+
+    CLBAttributes:
+        API: SLB_by_pages
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancerAttributeRequest
+        query_name: describe_load_balancer_attribute_with_options
+        paginated: false
+        response_map:
+            data: __ROOT__
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+        index_keys:
+            - LoadBalancerId
+
+    LoadBalancerListeners:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeLoadBalancerListenersRequest
+        query_name: describe_load_balancer_listeners_with_options
+        response_map:
+            data: Listeners[]
+        accepted_inputs:
+            - region_id
+            - next_token
+            - max_results
+        index_keys:
+            - LoadBalancerId
+            - AclId
+            - VServerGroupId
+
+    LBForwardingRules:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeRulesRequest
+        query_name: describe_rules_with_options
+        response_map:
+            data: Rules.Rule[]
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+            - listener_port
+        index_keys:
+            - RuleId
+
+    VServerGroups:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeVServerGroupsRequest
+        query_name: describe_vserver_groups_with_options
+        response_map:
+            data: VServerGroups.VServerGroup[]
+        accepted_inputs:
+            - region_id
+            - load_balancer_id
+        index_keys:
+            - VServerGroupId
+
+    VServerGroupAttributes:
+        API: SLB_by_tokens
+        api_namespace: SLB
+        request_builder: DescribeVServerGroupAttributeRequest
+        query_name: describe_vserver_group_attribute_with_options
+        response_map:
+            data: __ROOT__
+        accepted_inputs:
+            - region_id
+            - vserver_group_id
+        index_keys:
+            - LoadBalancerId
+            - VServerGroupId
+
+  # ================ Yundun / Cloud Security Models ==================
+
+    FirewallPoliciesInternet:
+        API: Security
+        request_builder: DescribeControlPolicyRequest
+        query_name: describe_control_policy_with_options
+        accepted_inputs:
+            - current_page
+            - page_size
+            - direction
+        response_map:
+            data: Policys[]
+        index_keys:
+            - PolicyId
+
+# ================ Yundun / Cloud Security Models ==================
+
+    ElasticClusters:
+        API: ELK
+        query_name: list_instance_with_options
+        accepted_inputs:
+            - resource_group_id
+            - vpc_id
+        response_map:
+            data: Result
+            request_id: RequestId

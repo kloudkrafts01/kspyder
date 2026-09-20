@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetPANProjectIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: PANProjectIds
     Params:
@@ -18,7 +18,7 @@ Steps:
             - _id
   
   - Name: GetPANProjectRegions
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: PANProjectRegions
     Params:
@@ -38,7 +38,7 @@ Steps:
             - _id
 
   - Name: GetPANProjectZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: PANProjectZones
     Params:
@@ -57,7 +57,7 @@ Steps:
     Input: PANProjectZones.data
     Output: PANComputeInstances
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: ComputeInstances
   
   - Name: GetToMongo.GCloudVPCs
@@ -65,7 +65,7 @@ Steps:
     Input: PANProjectIds.data
     Output: PAN_VPCs
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: GCloudVPCs
 
   - Name: GetToMongo.GCloudSubnets
@@ -73,12 +73,12 @@ Steps:
     Input: PANProjectRegions.data
     Output: PAN_Subnets
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: GCloudSubnets
 
   
   # - Name: GetDIOProjectZones
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: DIOProjectZones
   #   Params:
@@ -97,5 +97,5 @@ Steps:
   #   Input: DIOProjectZones.data
   #   Output: DIOComputeInstances
   #   Params:
-  #     from_worker: gcloudConnector
+  #     from_worker: gcloud
   #     model_name: ComputeInstances

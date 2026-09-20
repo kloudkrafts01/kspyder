@@ -1,0 +1,99 @@
+Steps:
+
+  - Name: SetAliyunRegionId
+    Job: set_static_data
+    Output: RegionData
+    Params:
+      data:
+        - region_id: cn-shanghai
+
+  - Name: GetToMongo.ClassicLoadBalancers
+    Job: get_data_to_mongo
+    Input: RegionData.data
+    Output: ClassicLoadBalancers
+    Params:
+      from_worker: aliyun
+      model_name: ClassicLoadBalancers
+
+  - Name: Extract.CLBInfo
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: ClbIds
+    Params:
+      collection_name: Aliyun.SLB.ClassicLoadBalancers
+      pipeline:
+        - $project:
+            region_id: 1
+            load_balancer_id: $LoadBalancerId
+        - $unset:
+          - _id
+
+  - Name: GetToMongo.CLBAttributes
+    Job: get_data_to_mongo
+    Input: ClbIds.data
+    Output: CLBAttributes
+    Params:
+      from_worker: aliyun
+      model_name: CLBAttributes
+
+  - Name: Extract.ListenerPorts
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: ListenerPorts
+    Params:
+      save_to: Aliyun.SLB.ListenerPorts
+      collection_name: Aliyun.SLB.CLBAttributes
+      pipeline:
+        - $unwind: $ListenerPorts.ListenerPort
+        - $project:
+            region_id: 1
+            load_balancer_id: $LoadBalancerId
+            listener_port: $ListenerPorts.ListenerPort
+        - $unset:
+          - _id
+
+
+  - Name: GetToMongo.LoadBalancerListeners
+    Job: get_data_to_mongo
+    Input: RegionData.data
+    Output: LoadBalancerListeners
+    Params:
+      from_worker: aliyun
+      model_name: LoadBalancerListeners
+
+  - Name: GetToMongo.LBForwardingRules
+    Job: get_data_to_mongo
+    Input: ListenerPorts.data
+    Output: LBForwardingRules
+    Params:
+      from_worker: aliyun
+      model_name: LBForwardingRules
+
+  # - Name: GetToMongo.VServerGroups
+  #   Job: get_data_to_mongo
+  #   Input: ClbIds.data
+  #   Output: VServerGroups
+  #   Params:
+  #     from_worker: aliyun
+  #     model_name: VServerGroups
+
+  # - Name: Extract.VSGInfo
+  #   Worker: mongoDB
+  #   Job: aggregate_data
+  #   Output: VsgIds
+  #   Params:
+  #     collection_name: Aliyun.SLB.VServerGroups
+  #     pipeline:
+  #       - $project:
+  #           region_id: 1
+  #           vserver_group_id: $VServerGroupId
+  #       - $unset:
+  #         - _id
+
+  # - Name: GetToMongo.VServerGroupAttributes
+  #   Job: get_data_to_mongo
+  #   Input: VsgIds.data
+  #   Output: VServerGroupAttributes
+  #   Params:
+  #     from_worker: aliyun
+  #     model_name: VServerGroupAttributes

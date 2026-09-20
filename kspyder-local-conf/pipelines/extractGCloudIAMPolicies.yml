@@ -1,7 +1,7 @@
 Steps:
 
   - Name: Expand.IAMPolicyBindings
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: IAMBindings
     Params:

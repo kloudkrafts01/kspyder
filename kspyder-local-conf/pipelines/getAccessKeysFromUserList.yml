@@ -1,7 +1,7 @@
 Steps:
 
   - Name: FlattenUserList
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: GetAccessKeysInputParams
     Params:
@@ -25,7 +25,7 @@ Steps:
       model_name: AccessKeys
 
   - Name: InsertAccessKeyInfoToMongo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: insert_dataset
     Input: RAMUserAccessKeys.data
     Output: AccessKeysInsertionResult

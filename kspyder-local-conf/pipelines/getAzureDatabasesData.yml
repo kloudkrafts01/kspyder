@@ -1,0 +1,29 @@
+Steps:
+
+  - Name: GetToMongo.SQLServers
+    Job: get_data_to_mongo
+    Output: SQLServers
+    Params:
+      from_worker: azureRGraph
+      model_name: SQLServers
+    
+  - Name: GetToMongo.SQLFirewallRules
+    Job: get_data_to_mongo
+    Output: SQLFirewallRules
+    Params:
+      from_worker: azureRGraph
+      model_name: SQLFirewallRules
+
+  - Name: GetToMongo.SQLVnetRules
+    Job: get_data_to_mongo
+    Output: SQLVnetRules
+    Params:
+      from_worker: azureRGraph
+      model_name: SQLVnetRules
+
+  - Name: GetToMongo.MongoDBClusters
+    Job: get_data_to_mongo
+    Output: MongoDBClusters
+    Params:
+      from_worker: azureRGraph
+      model_name: MongoDBClusters

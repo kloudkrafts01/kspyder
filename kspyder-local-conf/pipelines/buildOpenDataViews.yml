@@ -3,7 +3,7 @@ Steps:
   # ============= Sum up DiDo catalog by datafiles ================
 
   - Name: DatasetCatalogueSummary
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: OpenDatasetsSummary
     DumpCSV: false
@@ -34,7 +34,7 @@ Steps:
 
 
   - Name: List.DatafilesMetadata
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DiDoDatafilesMetadata
     DumpCSV: false
@@ -57,7 +57,7 @@ Steps:
 # ============= Sum up INSEE / Melodi catalog by datafiles ================
 
   - Name: Summary.MelodiDatasets
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: MelodiDatasetsSummary
     # DumpCSV: true

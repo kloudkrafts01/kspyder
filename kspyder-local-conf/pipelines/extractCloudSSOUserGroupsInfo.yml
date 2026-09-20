@@ -1,7 +1,7 @@
 Steps:
 
   - Name: AugmentGroupMembersGroupInfo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: CloudSSOUserGroupsData
     Params:
@@ -35,7 +35,7 @@ Steps:
             UserUpdatedTime: $UserInfo.UpdateTime
 
   - Name: QueryUserInfoWithoutGlobalSyncGroup
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: CloudSSOGroupMembersLean
     DumpJSON: false

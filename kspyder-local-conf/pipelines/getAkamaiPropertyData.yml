@@ -4,11 +4,11 @@ Steps:
     Job: get_data_to_mongo
     Output: PropertyGroups
     Params:
-      from_worker: akamaiConnector
+      from_worker: akamai
       model_name: PropertyGroups
 
   - Name: ExtractContractGroupList
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: ContractAndGroupIds
     Params:
@@ -26,7 +26,7 @@ Steps:
     Input: ContractAndGroupIds.data
     Output: AkamaiEdgeHostnames
     Params:
-      from_worker: akamaiConnector
+      from_worker: akamai
       model_name: EdgeHostnames
 
   - Name: GetToMongo.AkamaiProperties
@@ -34,7 +34,7 @@ Steps:
     Input: ContractAndGroupIds.data
     Output: AkamaiProperties
     Params:
-      from_worker: akamaiConnector
+      from_worker: akamai
       model_name: Properties
 
   - Name: GetIndex.AkamaiProperties.propertyId
@@ -49,11 +49,11 @@ Steps:
     Input: AkamaiPropertyIds.data
     Output: AkamaiPropertyActivations
     Params:
-      from_worker: akamaiConnector
+      from_worker: akamai
       model_name: PropertyActivations
 
   - Name: ExtractLatestAkamaiProperties
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: AkamaiPropertyVersionIds
     Params:
@@ -70,7 +70,7 @@ Steps:
     Input: AkamaiPropertyVersionIds.data
     Output: AkamaiPropertyRules
     Params:
-      from_worker: akamaiConnector
+      from_worker: akamai
       model_name: PropertyRules
 
   # - Name: GetToMongo.AkamaiPropertyIncludes
@@ -78,6 +78,6 @@ Steps:
   #   Input: AkamaiPropertyVersionIds.data
   #   Output: AkamaiPropertyIncludes
   #   Params:
-  #     from_worker: akamaiConnector
+  #     from_worker: akamai
   #     model_name: AkamaiPropertyIncludes
 

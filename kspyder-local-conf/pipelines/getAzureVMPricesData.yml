@@ -1,0 +1,26 @@
+Steps:
+
+  - Name: SetData.VMPricesInput
+    Job: set_static_data
+    Output: VMPricesInput
+    Params:
+      data:
+        - $filter: serviceName eq 'Virtual Machines' and armRegionName eq 'westeurope'
+        - $filter: serviceName eq 'Virtual Machines' and armRegionName eq 'francecentral'
+
+  - Name: GetToMongo.AzureVMPrices
+    Job: get_data_to_mongo
+    Input: VMPricesInput.data
+    Output: VMPricesWEUandFRC
+    Params:
+      from_worker: azureRetailPrices
+      model_name: RetailPrices
+  
+  - Name: GetToMongo.AzureVMPricesAll
+    Job: get_data_to_mongo
+    Output: VMPricesAll
+    Params:
+      from_worker: azureRetailPrices
+      model_name: VirtualMachines.All
+
+  

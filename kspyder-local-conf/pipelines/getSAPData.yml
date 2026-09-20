@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetSAPProjectIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPProjectIds
     Params:
@@ -17,7 +17,7 @@ Steps:
             - _id
   
   - Name: GetSAPProjectRegions
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPProjectRegions
     Params:
@@ -36,7 +36,7 @@ Steps:
             - _id
 
   - Name: GetSAPProjectZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPProjectZones
     Params:
@@ -54,7 +54,7 @@ Steps:
     Input: SAPProjectZones.data
     Output: SAP_ComputeInstances
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: ComputeInstances
   
   - Name: GetToMongo.GCloudVPCs
@@ -62,7 +62,7 @@ Steps:
     Input: SAPProjectIds.data
     Output: SAP_VPCs
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: VPCs
 
   - Name: GetToMongo.GCloudSubnets
@@ -70,7 +70,7 @@ Steps:
     Input: SAPProjectRegions.data
     Output: SAP_Subnets
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: Subnets
 
   - Name: GetToMongo.LBForwardingRules
@@ -78,7 +78,7 @@ Steps:
     Input: SAPProjectRegions.data
     Output: SAP_LBForwardingRules
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: LBForwardingRules
 
   - Name: GetToMongo.LBBackendBuckets
@@ -86,6 +86,6 @@ Steps:
     Input: SAPProjectIds.data
     Output: SAP_LBBackendBuckets
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: LBBackendBuckets
   

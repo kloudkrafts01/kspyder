@@ -1,7 +1,7 @@
 Steps:
 
   - Name: GetProjectsXZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: GCPProjectXZoneIds
     Params:
@@ -24,7 +24,7 @@ Steps:
             - _id
 
   - Name: StoreProjectXZones
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: insert_dataset
     Input: GCPProjectXZoneIds.data
     Output: ProjectXZonesInsertionResult

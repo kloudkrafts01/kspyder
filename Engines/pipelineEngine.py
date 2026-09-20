@@ -2,20 +2,24 @@
 
 import sys
 from importlib import import_module
+from typing import Any, cast
 import jmespath
 
 from common.config import BASE_FILE_HANDLER as fh
 from common.clientHandler import clientHandler
 from common.loggingHandler import logger
+from common.configModels import PipelineConfig
+from common.models import Dataset
+from common.protocols import DocumentStore, Extractor
 
 class pipelineEngine:
 
-    def __init__(self,**params):
+    def __init__(self, **params: Any) -> None:
 
         self.ch = clientHandler()
         self.schema = __name__
 
-    def apply_filters(self,input_data=None,filters=None):
+    def apply_filters(self, input_data: Any = None, filters: Any = None) -> dict:
 
         filtered_data = input_data
         logger.debug("apply_filters :: INPUT DATA : {}".format(input_data))
@@ -33,7 +37,7 @@ class pipelineEngine:
 
         return filtered_dataset
 
-    def set_static_data(self, data=None):
+    def set_static_data(self, data: Any = None) -> dict:
 
         static_dataset = {
             'header': { 
@@ -43,9 +47,11 @@ class pipelineEngine:
             'data': data
         }
 
+        logger.debug(f"Static data: {static_dataset}")
+
         return static_dataset
 
-    def get_unique_key_list(self,input_data=None,key=None,datapath=None):
+    def get_unique_key_list(self, input_data: Any = None, key: str | None = None, datapath: str | None = None) -> dict:
 
         values_list = jmespath.search(datapath,input_data)
         if values_list:
@@ -64,70 +70,56 @@ class pipelineEngine:
 
         return full_output_data
 
-    def get_data_to_mongo(self,input_data=[{}],from_worker=None,**params):
-        """Shortcut method to get data from a connector and get the output to mongoDB directly
-        This method assumes model_name = collection_name"""
+    def get_data_to_mongo(self, input_data: list[dict] = [{}], from_worker: str | None = None, **params: Any) -> Dataset:
+        """Shortcut method to get data from a connector and get the output to mongoDB directly.
+        This method assumes model_name = collection_name."""
 
-        worker_module = self.ch.get_client(from_worker)
-        full_dataset = worker_module.get_data(input_data=input_data,**params)
+        worker_module = cast(Extractor, self.ch.get_client(from_worker))
+        full_dataset = worker_module.get_data(input_data=input_data, **params)
 
-        mongo_module = self.ch.get_client('mongoDBConnector')
+        mongo_module = cast(DocumentStore, self.ch.get_client('mongoDB'))
         mongo_module.upsert_dataset(input_data=full_dataset)
 
         return full_dataset
 
-    def execute_pipeline_from_file(self,filename):
+    def execute_pipeline_from_file(self, filename: str) -> None:
 
         pipeline_data = fh.load_yaml(filename, subpath='pipelines')
-        self.execute_pipeline(pipeline_data)
+        pipeline = PipelineConfig(**pipeline_data)
+        self.execute_pipeline(pipeline)
 
-    def execute_pipeline(self,pipeline):
+    def execute_pipeline(self, pipeline: PipelineConfig) -> None:
 
-        datasets = {}
+        datasets: dict = {}
 
-        for step in pipeline['Steps']:
+        for step in pipeline.Steps:
 
-            # Mandatory Step definition fields
-            step_name = step['Name']
-            job_name = step['Job']
+            step_input = jmespath.search(step.Input, datasets) if step.Input else None
 
-            # prepare job input
-            step_input_name = step['Input'] if 'Input' in step.keys() else None
-            step_input = jmespath.search(step_input_name, datasets) if step_input_name else None
-            # logger.debug("Step Input: {}".format(step_input))
-
-            step_params = step['Params'] if 'Params' in step.keys() else {}
-            
-            # If no Worker name is given in the Step definition,
-            # It is assumed that the job is one of pipelineEngine's own methods
-            step_worker_name = step['Worker'] if 'Worker' in step.keys() else __name__
-            worker_module = self.ch.get_client(step_worker_name) if 'Worker' in step.keys() else self
-            job_instance = getattr(worker_module,job_name)
-            logger.debug("Executing step {} : Worker = {}, Job = {}".format(step_name, worker_module.schema, job_name))
+            worker_module = self.ch.get_client(step.Worker) if step.Worker else self
+            job_instance = getattr(worker_module, step.Job)
+            logger.info("Executing step {} : Worker = {}, Job = {}".format(step.Name, worker_module.schema, step.Job))
 
             if step_input:
-                result = job_instance(input_data=step_input,**step_params)
+                result = job_instance(input_data=step_input, **step.Params)
             else:
-                result = job_instance(**step_params)
+                result = job_instance(**step.Params)
 
-            # Store Output
-            step_output_name = step['Output'] if 'Output' in step.keys() else step_name
-            logger.debug("Inserting result set {} in the pile.".format(step_output_name))
+            step_output_name = step.Output or step.Name
+            logger.info("Inserting result set {} in the pile.".format(step_output_name))
             datasets[step_output_name] = result
-            logger.debug("Current datasets in the processing pile: {}".format(list(datasets.keys())))
+            logger.info("Current datasets in the processing pile: {}".format(list(datasets.keys())))
 
             # If the step conf specifies the result needs to be dumped into csv or json, proceed.
             # Order is important : csv first, then json
-            dump_json = step['DumpJSON'] if 'DumpJSON' in step.keys() else None
-            dump_csv = step['DumpCSV'] if 'DumpCSV' in step.keys() else None
             results_count = result['header']['count']
 
             if results_count > 0:
-                if dump_csv:
-                    result_dataset = fh.dump_csv(result,step['Worker'],step_output_name)
+                if step.DumpCSV:
+                    result_dataset = fh.dump_csv(result, step.Worker, step_output_name)
 
-                if dump_json:
-                    result_dataset = fh.dump_json(result,step['Worker'],step_output_name)
+                if step.DumpJSON:
+                    result_dataset = fh.dump_json(result, step.Worker, step_output_name)
 
 
 if __name__ == "__main__":

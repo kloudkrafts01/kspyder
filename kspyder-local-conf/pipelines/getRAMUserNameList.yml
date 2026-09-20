@@ -8,7 +8,7 @@ Steps:
   #     model_name: RAMUsers
 
   # - Name: StoreRAMUsersToMongo
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: insert_dataset
   #   Input: RAMUsersList.data
   #   Output: RAMUsersInsertionResult
@@ -23,7 +23,7 @@ Steps:
       model_name: RAMRoles
 
   - Name: StoreRAMRolesToMongo
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: upsert_dataset
     Input: RAMRoles
     Output: RAMRolesInsertionResult

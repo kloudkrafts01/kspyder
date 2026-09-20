@@ -3,7 +3,7 @@ Steps:
   # ============= Save and extract raw Instances data for SAP ================
 
   - Name: View.SAPComputeInstancesData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeInstances
     DumpJSON: false
@@ -19,7 +19,7 @@ Steps:
           - _id
 
   # - Name: Extract.SAPComputeInstancesData
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: aggregate_data
   #   Output: SAPComputeInstancesData
   #   DumpCSV: true
@@ -42,7 +42,7 @@ Steps:
   # ============= Expand, save, extract Instance NIC data ================
 
   - Name: Extend.SAPComputeInstancesData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeExtendedNics
     DumpCSV: false
@@ -88,7 +88,7 @@ Steps:
   # # ============= Expand, save, extract Instance Disks data ================
 
   # - Name: Extend.SAPComputeInstancesData.Disks
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: execute_query
   #   Output: SAPComputeExtendedDisks
   #   Params:
@@ -101,7 +101,7 @@ Steps:
   #           - _id
 
   # - Name: Save.ExtendedSAPData.Disks
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: upsert_dataset
   #   Input: SAPComputeExtendedDisks
   #   Output: SAPComputeExtendedDisksInsertionResults
@@ -113,7 +113,7 @@ Steps:
   #         - disks.device_name
 
   - Name: Extract.SAPComputeInstancesDisks
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: SAPComputeInstancesDiskData
     Params:

@@ -3,7 +3,7 @@ Steps:
   # ============= Expand, save and export Instance Network data ================
 
   - Name: Extend.SAPComputeInstancesData.Nics
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DataikuComputeNetworkData
     DumpCSV: true
@@ -72,7 +72,7 @@ Steps:
 # ============= Expand, save and export Instance Disk data ================
 
   - Name: Extract.ComputeInstancesDisksData
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DataikuComputeDiskData
     DumpCSV: true

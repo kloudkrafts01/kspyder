@@ -8,7 +8,7 @@ Steps:
   #       - region_id: cn-shanghai
 
   # - Name: GetVMs
-  #   Worker: aliyunConnector
+  #   Worker: aliyun
   #   Job: get_data
   #   Input: RegionData.data
   #   Output: ECSInstances
@@ -16,13 +16,13 @@ Steps:
   #     model_name: ECSInstances
 
   # - Name: StoreInstancesToMongo
-  #   Worker: mongoDBConnector
+  #   Worker: mongoDB
   #   Job: upsert_dataset
   #   Input: ECSInstances
   #   Output: ECSInstancesInsertionResult
 
   - Name: GetVMforDHCPtest
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: execute_query
     Output: ECS_Instances_DHCPOptest
     Params:

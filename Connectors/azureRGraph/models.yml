@@ -1,0 +1,200 @@
+Connector:
+    schema: Azure
+    update_field: write_date
+    default_class: resources
+    default_fields: name,type,location,zones,subscriptionId,resourceGroup,tags,properties
+
+APIs:
+    AzureRGraph:
+        name: AzureRGraph
+
+Models:
+
+# ================== Management & Governance Services Models =================
+
+    ResourceGroups:    
+        class: resourcecontainers
+        base_name: microsoft.resources/subscriptions/resourcegroups
+        index_keys:
+            - resourceGroup
+            - subscriptionId
+
+    PolicyInsights:
+        base_name: Microsoft.PolicyInsights/attestations
+        fields: name,properties
+
+# ================== Compute / IaaS Models =================
+
+    VirtualMachines:
+        base_name: Microsoft.Compute/VirtualMachines
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== Compute / PaaS Models ===================
+
+    
+
+# ================== Container / Kubernetes Models ==================
+
+    AzureContainerServices:
+        base_name: Microsoft.ContainerService/containerServices
+
+    AKSClusters:
+        base_name: Microsoft.ContainerService/managedClusters
+        index_keys:
+            - name
+            - resourceGroup
+    
+    AKSNodePools:
+        base_name: Microsoft.ContainerService/managedClusters/agentPools
+        index_keys:
+            - name
+
+    CSTrustedAccessRoleBindings:
+        base_name: Microsoft.ContainerService/managedClusters/trustedAccessRoleBindings
+        index_keys:
+            - name
+
+    ContainerRegistries:
+        base_name: Microsoft.ContainerRegistry/registries
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== Networking Models ==================
+
+    VirtualNetworks:
+        base_name: Microsoft.Network/VirtualNetworks
+        index_keys:
+            - name
+            - properties.resourceGuid
+
+    RouteTables:
+        base_name: Microsoft.Network/routeTables
+        index_keys:
+            - name
+
+    PublicIPs:
+        base_name: Microsoft.Network/publicIPAddresses
+        index_keys:
+            - name
+            - resourceGroup
+
+    LoadBalancers:
+        base_name: Microsoft.Network/loadBalancers
+        index_keys:
+            - name
+
+    NetworkInterfaces:
+        base_name: Microsoft.Network/networkInterfaces
+        fields: name,location,extendedLocation,tags,properties
+        index_keys:
+            - name
+            - resourceGroup
+
+    NetworkSecurityGroups:
+        base_name: Microsoft.Network/networkSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
+            
+    ApplicationSecurityGroups:
+        base_name: Microsoft.Network/ApplicationSecurityGroups
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualWAN:
+        base_name: Microsoft.Network/virtualWans
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualHubs:
+        base_name: Microsoft.Network/virtualHubs
+        index_keys:
+            - name
+            - resourceGroup
+
+    VirtualHubRouteTables:
+        base_name: Microsoft.Network/virtualHubs/hubRouteTables
+        index_keys:
+            - name
+            - resourceGroup
+        
+    VirtualHubConnections:
+        base_name: Microsoft.Network/virtualHubs/hubVirtualNetworkConnections
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== WAF / CDN / Proxying Models ==================        
+
+    AppGateways:
+        base_name: Microsoft.Network/applicationGateways
+        index_keys:
+            - name
+            - resourceGroup
+
+# ================== IAM / Auth Services Models ==================
+
+    AzureKeyVaults:
+        base_name: Microsoft.KeyVault/vaults
+
+    AzureKVSecrets:
+        base_name: Microsoft.KeyVault/vaults/secrets
+
+    AzureKeys:
+        base_name: Microsoft.KeyVault/vaults/keys
+
+
+# ================== Other Models ==================
+
+    AzureAutomationJobs:
+        base_name: Microsoft.Automation/automationAccounts/jobs
+        fields: name,properties
+
+# ================== Backup / Recovery Models ==================
+
+    RecoveryServicesVaults:
+        base_name: Microsoft.RecoveryServices/vaults
+        fields: name,location,type,properties,sku,tags
+
+# ================== PaaS Database Models ==================
+
+    MongoDBClusters:
+        base_name: Microsoft.DocumentDB/mongoClusters
+        fields: name,location,type,properties,tags
+        index_keys: 
+            - name
+
+    MongoDBClusterFirewallRules:
+        base_name: Microsoft.DocumentDB/mongoClusters/firewallRules
+        fields: name,properties
+        index_keys: 
+            - name
+    
+    MongoDBClusterPEConnections:
+        base_name: Microsoft.DocumentDB/mongoClusters/privateEndpointConnections
+        fields: name,properties
+        index_keys: 
+            - name
+
+    SQLServers:
+        base_name: Microsoft.sql/servers
+        fields: name,location,type,properties,tags
+        index_keys: 
+            - name
+
+    SQLFirewallRules:
+        base_name: Microsoft.sql/servers/firewallRules
+        fields: name,properties
+        index_keys: 
+            - name
+    
+    SQLVnetRules:
+        base_name: Microsoft.sql/servers/virtualNetworkRules
+        fields: name,properties
+        index_keys: 
+            - name

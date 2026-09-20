@@ -1,7 +1,7 @@
 Steps:
 
   - Name: BuildGKEParentIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: GKEParentIds
     Params:
@@ -38,11 +38,11 @@ Steps:
     Input: GKEParentIds.data
     Output: GKEClusters
     Params:
-      from_worker: gcloudConnector
+      from_worker: gcloud
       model_name: GKEClusters
 
   # - Name: GetClusters
-  #   Worker: gcloudConnector
+  #   Worker: gcloud
   #   Job: get_data
   #   Input: ClusterParentIds.data
   #   Output: GKEClusters

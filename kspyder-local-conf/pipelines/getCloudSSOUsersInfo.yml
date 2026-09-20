@@ -1,39 +1,39 @@
 Steps:
 
-  - Name: GetToMongo.CloudSSODirectories
-    Job: get_data_to_mongo
-    Output: CloudSSODirectories
-    Params:
-      from_worker: aliyunCLIConnector
-      model_name: CloudSSODirectories
-      last_days: null
+  # - Name: GetToMongo.CloudSSODirectories
+  #   Job: get_data_to_mongo
+  #   Output: CloudSSODirectories
+  #   Params:
+  #     from_worker: aliyunCLI
+  #     model_name: CloudSSODirectories
+  #     last_days: null
 
-  - Name: GetDirectoryList
-    Job: get_unique_key_list
-    Input: CloudSSODirectories
-    Output: DirectoryIds
-    Params:
-      key: directory_id
-      datapath: data[].DirectoryId
-
-  # - Name: Extract.DirectoryIds
-  #   Worker: mongoDBConnector
-  #   Job: aggregate_data
+  # - Name: GetDirectoryList
+  #   Job: get_unique_key_list
+  #   Input: CloudSSODirectories
   #   Output: DirectoryIds
   #   Params:
-  #     collection_name: Aliyun.CloudSSO.CloudSSODirectories
-  #     pipeline:
-  #       - $project:
-  #         directory_id: $DirectoryId
-  #       - $unset:
-  #         - _id
+  #     key: directory_id
+  #     datapath: data[].DirectoryId
+
+  - Name: Extract.DirectoryIds
+    Worker: mongoDB
+    Job: aggregate_data
+    Output: DirectoryIds
+    Params:
+      collection_name: Aliyun.CloudSSODirectories
+      pipeline:
+        - $project:
+            directory_id: $DirectoryId
+        - $unset:
+          - _id
 
   - Name: GetUsers
     Job: get_data_to_mongo
     Input: DirectoryIds.data
     Output: CloudSSOUsers
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: CloudSSOUsers
 
   - Name: GetGroups
@@ -41,11 +41,11 @@ Steps:
     Input: DirectoryIds.data
     Output: CloudSSOGroups
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: CloudSSOGroups
 
   - Name: GetDirectoryGroupIds
-    Worker: mongoDBConnector
+    Worker: mongoDB
     Job: aggregate_data
     Output: DirectoryGroupIds
     Params:
@@ -62,6 +62,6 @@ Steps:
     Input: DirectoryGroupIds.data
     Output: CloudSSOGroupMembers
     Params:
-      from_worker: aliyunConnector
+      from_worker: aliyun
       model_name: CloudSSOGroupMembers
 
